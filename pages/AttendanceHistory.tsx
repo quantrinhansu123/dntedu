@@ -7,8 +7,9 @@ import { useAuth } from '../src/hooks/useAuth';
 import { useStudents } from '../src/hooks/useStudents';
 import { useStaff } from '../src/hooks/useStaff';
 import { AttendanceRecord, AttendanceStatus, StudentAttendance } from '../types';
-import { collection, query, where, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+import * as studentAttendanceSupabaseService from '../src/services/studentAttendanceSupabaseService';
+import * as attendanceRecordSupabaseService from '../src/services/attendanceRecordSupabaseService';
 import * as XLSX from 'xlsx';
 
 const RECORDS_PER_PAGE = 10;
@@ -252,23 +253,18 @@ export const AttendanceHistory: React.FC = () => {
 
       setFilterLoading(true);
       try {
-        let q = query(collection(db, 'studentAttendance'));
-
-        // Build query constraints
-        const constraints: any[] = [];
+        // Query using Supabase service
+        const allStudentAttendance = await studentAttendanceSupabaseService.getAllStudentAttendance();
+        
+        let filtered = allStudentAttendance;
         if (filterStudent) {
-          constraints.push(where('studentId', '==', filterStudent));
+          filtered = filtered.filter(sa => sa.studentId === filterStudent);
         }
         if (filterStatus) {
-          constraints.push(where('status', '==', filterStatus));
+          filtered = filtered.filter(sa => sa.status === filterStatus);
         }
-
-        if (constraints.length > 0) {
-          q = query(collection(db, 'studentAttendance'), ...constraints);
-        }
-
-        const snapshot = await getDocs(q);
-        const attendanceIds = [...new Set(snapshot.docs.map(doc => doc.data().attendanceId))];
+        
+        const attendanceIds = [...new Set(filtered.map(sa => sa.attendanceId))];
         setFilteredAttendanceIds(attendanceIds);
       } catch (error) {
         console.error('Error querying studentAttendance:', error);
@@ -310,18 +306,13 @@ export const AttendanceHistory: React.FC = () => {
   };
 
   // Load audit logs for attendance record
+  // TODO: Implement with Supabase when attendanceAuditLog table is migrated
   const loadAuditLogs = async (attendanceId: string) => {
     setLoadingLogs(true);
     try {
-      const q = query(
-        collection(db, 'attendanceAuditLog'),
-        where('attendanceId', '==', attendanceId)
-      );
-      const snapshot = await getDocs(q);
-      const logs = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .sort((a: any, b: any) => (b.editedAt || '').localeCompare(a.editedAt || ''));
-      setAuditLogs(logs);
+      // TODO: Implement audit log query with Supabase
+      console.warn('Audit logs chưa được migrate sang Supabase');
+      setAuditLogs([]);
     } catch (error) {
       console.error('Error loading audit logs:', error);
     } finally {
@@ -480,30 +471,28 @@ export const AttendanceHistory: React.FC = () => {
           continue;
         }
 
-        // Update studentAttendance document
-        const docRef = doc(db, 'studentAttendance', docId);
-        await updateDoc(docRef, {
+        // Update studentAttendance document using Supabase
+        await studentAttendanceSupabaseService.updateStudentAttendance(docId, {
           status: change.status,
-          updatedAt: new Date().toISOString(),
-          updatedBy: staffData?.name || 'Unknown',
+          note: change.note || original.note,
         });
 
-        // Create audit log
-        await addDoc(collection(db, 'attendanceAuditLog'), {
-          attendanceId: selectedRecord.id,
-          studentAttendanceId: docId,
-          studentId: change.studentId,
-          studentName: change.studentName,
-          classId: selectedRecord.classId,
-          className: selectedRecord.className,
-          date: selectedRecord.date,
-          oldStatus: original.status,
-          newStatus: change.status,
-          reason: (change as any).editReason,
-          editedBy: staffData?.name || 'Unknown',
-          editedByUid: staffData?.id || '',
-          editedAt: new Date().toISOString(),
-        });
+        // TODO: Create audit log when attendanceAuditLog table is migrated
+        // await addDoc(collection(db, 'attendanceAuditLog'), {
+        //   attendanceId: selectedRecord.id,
+        //   studentAttendanceId: docId,
+        //   studentId: change.studentId,
+        //   studentName: change.studentName,
+        //   classId: selectedRecord.classId,
+        //   className: selectedRecord.className,
+        //   date: selectedRecord.date,
+        //   oldStatus: original.status,
+        //   newStatus: change.status,
+        //   reason: (change as any).editReason,
+        //   editedBy: staffData?.name || 'Unknown',
+        //   editedByUid: staffData?.id || '',
+        //   editedAt: new Date().toISOString(),
+        // });
       }
 
       // Update attendance record summary
@@ -511,12 +500,14 @@ export const AttendanceHistory: React.FC = () => {
         s.status === AttendanceStatus.ON_TIME || s.status === AttendanceStatus.LATE
       ).length;
       const absent = editedAttendance.filter(s => s.status === AttendanceStatus.ABSENT).length;
+      const reserved = editedAttendance.filter(s => s.status === AttendanceStatus.RESERVED).length;
+      const tutored = editedAttendance.filter(s => s.status === AttendanceStatus.TUTORED).length;
 
-      const attendanceDocRef = doc(db, 'attendance', selectedRecord.id);
-      await updateDoc(attendanceDocRef, {
+      await attendanceRecordSupabaseService.updateAttendanceRecord(selectedRecord.id, {
         present,
         absent,
-        updatedAt: new Date().toISOString(),
+        reserved,
+        tutored,
       });
 
       // Reload data

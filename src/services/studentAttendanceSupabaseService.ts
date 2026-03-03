@@ -142,6 +142,42 @@ export const createStudentAttendance = async (attendance: StudentAttendance): Pr
 };
 
 /**
+ * Cập nhật điểm danh học sinh
+ */
+export const updateStudentAttendance = async (
+  id: string,
+  updates: Partial<StudentAttendance>
+): Promise<StudentAttendance> => {
+  try {
+    const transformed: any = {};
+    if (updates.status !== undefined) transformed.status = updates.status;
+    if (updates.note !== undefined) transformed.note = updates.note || null;
+    if (updates.homeworkCompletion !== undefined) transformed.homework_completion = updates.homeworkCompletion || null;
+    if (updates.testName !== undefined) transformed.test_name = updates.testName || null;
+    if (updates.score !== undefined) transformed.score = updates.score || null;
+    if (updates.bonusPoints !== undefined) transformed.bonus_points = updates.bonusPoints || null;
+    if (updates.punctuality !== undefined) transformed.punctuality = updates.punctuality || null;
+    if (updates.isLate !== undefined) transformed.is_late = updates.isLate;
+    
+    transformed.updated_at = new Date().toISOString();
+    
+    const { data, error } = await supabase
+      .from('student_attendance')
+      .update(transformed)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return transformStudentAttendanceFromSupabase(data);
+  } catch (error) {
+    console.error('Error updating student attendance in Supabase:', error);
+    throw error;
+  }
+};
+
+/**
  * Xóa tất cả điểm danh học sinh theo attendanceId
  */
 export const deleteStudentAttendanceByAttendanceId = async (attendanceId: string): Promise<void> => {
