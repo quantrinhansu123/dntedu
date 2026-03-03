@@ -3,7 +3,7 @@
  * Tự động tạo danh sách công từ TKB và lịch nghỉ
  * - Đọc schedule từ classes
  * - Loại trừ ngày nghỉ
- * - Merge với công đã xác nhận trong Firebase
+ * - Merge với công đã xác nhận trong database
  */
 
 import { useState, useEffect, useMemo } from 'react';

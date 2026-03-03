@@ -1,7 +1,6 @@
 /**
  * useCandidate Hook
- * Firebase đã được xóa - Hook này đã bị disable
- * Sử dụng Supabase hooks thay thế
+  * Sử dụng Supabase hooks thay thế
  */
 
 import { useState, useEffect } from 'react';
@@ -12,14 +11,14 @@ import { Candidate } from '../../types';
 export const useCandidate = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+  const [error, setError] = useState<string | null>('Tính năng này cần được migrate sang Supabase.');
 
   // Fetch all candidates
   const fetchCandidates = async () => {
-    console.warn('useCandidate.fetchCandidates: Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    
     setLoading(false);
     setCandidates([]);
-    setError('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    setError('Tính năng này cần được migrate sang Supabase.');
   };
 
   useEffect(() => {
@@ -27,15 +26,15 @@ export const useCandidate = () => {
   }, []);
 
   const addCandidate = async (candidate: Omit<Candidate, 'id'>) => {
-    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để thêm candidate.');
+    throw new Error('Tính năng này cần được migrate sang Supabase.');
   };
 
   const updateCandidate = async (id: string, candidate: Partial<Candidate>) => {
-    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật candidate.');
+    throw new Error('Tính năng này cần được migrate sang Supabase.');
   };
 
   const deleteCandidate = async (id: string) => {
-    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa candidate.');
+    throw new Error('Tính năng này cần được migrate sang Supabase.');
   };
 
   return {

@@ -1,7 +1,6 @@
 /**
  * useHolidays Hook
- * Firebase đã được xóa - Hook này đã bị disable
- * Sử dụng Supabase hooks thay thế
+  * Sử dụng Supabase hooks thay thế
  */
 
 import { useState, useEffect } from 'react';
@@ -21,25 +20,25 @@ interface UseHolidaysReturn {
 export const useHolidays = (): UseHolidaysReturn => {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+  const [error, setError] = useState<string | null>('Tính năng này cần được migrate sang Supabase.');
 
   useEffect(() => {
-    console.warn('useHolidays: Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    
     setLoading(false);
     setHolidays([]);
-    setError('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    setError('Tính năng này cần được migrate sang Supabase.');
   }, []);
 
   const createHoliday = async (data: Omit<Holiday, 'id'>): Promise<string> => {
-    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo holiday.');
+    throw new Error('Tính năng này cần được migrate sang Supabase.');
   };
 
   const updateHoliday = async (id: string, data: Partial<Holiday>): Promise<void> => {
-    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật holiday.');
+    throw new Error('Tính năng này cần được migrate sang Supabase.');
   };
 
   const deleteHoliday = async (id: string): Promise<void> => {
-    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa holiday.');
+    throw new Error('Tính năng này cần được migrate sang Supabase.');
   };
 
   return {

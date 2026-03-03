@@ -159,7 +159,7 @@ export const markAsRead = async (notificationId: string): Promise<void> => {
     // ;
     //   isRead: true,
     // });
-    console.warn('markAsRead: Firebase đã được xóa. Cần migrate sang Supabase.');
+    
   } catch (error) {
     console.error('Error marking notification as read:', error);
   }

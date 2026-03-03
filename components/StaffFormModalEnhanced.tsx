@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Mail, MapPin, Calendar, Building2, Briefcase, Shield, Save, CreditCard, GraduationCap, FileText, DollarSign, UserCheck } from 'lucide-react';
 import { Staff, StaffRole, Candidate, StaffContractType } from '../types';
 import { POSITION_TO_ROLE } from '../src/services/permissionService';
-// import { doc, getDoc } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
-// Firebase đã được xóa - sử dụng Supabase thay thế
 
 interface StaffFormModalEnhancedProps {
     isOpen: boolean;
@@ -57,8 +54,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
     useEffect(() => {
         const fetchConfig = async () => {
             try {
-                // Firebase đã được xóa - sử dụng Supabase thay thế
-                // TODO: Implement Supabase query for salary config
+                                // TODO: Implement Supabase query for salary config
                 // const { data, error } = await supabase
                 //   .from('settings')
                 //   .select('*')

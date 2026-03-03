@@ -174,7 +174,7 @@ export const seedFinancialData = async (): Promise<void> => {
     { date: `${currentMonth}-12`, month: currentMonth, type: 'income', category: 'Khác', amount: 1800000, description: 'Phí hoạt động ngoại khóa', studentName: 'Lớp A1' },
   ];
   
-  console.warn('seedFinancialData: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
+  
   // TODO: Implement Supabase seed
   // const existing = await getTransactions(currentMonth);
   // if (existing.length > 0) {

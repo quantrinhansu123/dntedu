@@ -27,9 +27,6 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-// import { collection, getDocs, query, where } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
-// Firebase đã được xóa - sử dụng Supabase thay thế
 import { formatCurrency } from '../src/utils/currencyUtils';
 
 const COLORS = ['#0D9488', '#FF6B5A', '#F59E0B', '#10B981', '#6366F1', '#EF4444'];
@@ -96,8 +93,7 @@ export const DashboardEnhancements: React.FC = () => {
       const lastDayOfMonth = new Date(thisYear, thisMonth + 1, 0);
 
       // 1. Fetch Classes
-      // Firebase đã được xóa - sử dụng Supabase thay thế
-      // TODO: Implement Supabase query
+            // TODO: Implement Supabase query
       // const { data: classesData } = await supabase.from('classes').select('*');
       // const classes = classesData || [];
       const classes: any[] = []; // Temporary empty array
@@ -118,8 +114,7 @@ export const DashboardEnhancements: React.FC = () => {
       }).length;
 
       // 2. Fetch Students
-      // Firebase đã được xóa - sử dụng Supabase thay thế
-      // TODO: Implement Supabase query
+            // TODO: Implement Supabase query
       const students: any[] = []; // Temporary empty array
       
       const studentsActive = students.filter((s: any) => s.status === 'Đang học').length;
@@ -153,8 +148,7 @@ export const DashboardEnhancements: React.FC = () => {
       }
 
       // 4. Revenue Trend (6 tháng gần nhất)
-      // Firebase đã được xóa - sử dụng Supabase thay thế
-      // TODO: Implement Supabase query
+            // TODO: Implement Supabase query
       const contracts: any[] = []; // Temporary empty array
       
       const revenueTrend: { month: string; amount: number }[] = [];
@@ -196,8 +190,7 @@ export const DashboardEnhancements: React.FC = () => {
         .slice(0, 5); // Top 5
 
       // 6. Lead Sources (Kênh tuyển sinh)
-      // Firebase đã được xóa - sử dụng Supabase thay thế
-      // TODO: Implement Supabase query
+            // TODO: Implement Supabase query
       const leads: any[] = []; // Temporary empty array
       
       const leadSourceMap = new Map<string, number>();
@@ -233,8 +226,7 @@ export const DashboardEnhancements: React.FC = () => {
       }
 
       // 8. Monthly Goals (KPI từ departmentGoals)
-      // Firebase đã được xóa - sử dụng Supabase thay thế
-      // TODO: Implement Supabase query
+            // TODO: Implement Supabase query
       // const { data: goalsData } = await supabase
       //   .from('departmentGoals')
       //   .select('*')

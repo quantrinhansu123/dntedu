@@ -273,7 +273,7 @@ export const Dashboard: React.FC = () => {
     //   });
     // if (error) throw error;
     
-    alert('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật trạng thái quà sinh nhật.');
+    
   };
 
   const fetchDashboardData = async () => {
@@ -506,7 +506,7 @@ export const Dashboard: React.FC = () => {
         //   const totalRating = feedbacksData.reduce((sum, f) => sum + (f.rating || 0), 0);
         //   diemHaiLong = Math.round((totalRating / feedbacksData.length) * 20);
         // }
-        console.log('No feedback data - Firebase đã được xóa');
+        
       } catch (err) {
         console.log('No feedback data');
       }

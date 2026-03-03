@@ -137,7 +137,7 @@ export const useClasses = (filters?: {
 export const useClass = (id: string) => {
   const [classData, setClassData] = useState<ClassModel | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+  const [error, setError] = useState<string | null>('Tính năng này cần được migrate sang Supabase.');
 
   useEffect(() => {
     const fetchClass = async () => {

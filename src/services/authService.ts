@@ -1,4 +1,4 @@
-// Firebase auth removed - using Supabase auth
+// Authentication service - using Supabase
 import { Staff } from '../../types';
 import { sanitizeError } from '../utils/errorUtils';
 

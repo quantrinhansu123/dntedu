@@ -59,7 +59,7 @@ export interface SalaryRangeConfig {
 
 export const createSalaryRule = async (data: Omit<SalaryRule, 'id'>): Promise<string> => {
   // TODO: Implement Supabase create
-  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo salary rule.');
+  throw new Error('Tính năng này cần được migrate sang Supabase.');
 };
 
 export const getSalaryRules = async (staffId?: string): Promise<SalaryRule[]> => {
@@ -76,7 +76,7 @@ export const getSalaryRules = async (staffId?: string): Promise<SalaryRule[]> =>
     // return data.map(transformSalaryRuleFromSupabase);
     
     // Tạm thời trả về empty array để không gây lỗi
-    console.warn('getSalaryRules: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
+    
     return [];
   } catch (error) {
     console.error('Error getting salary rules:', error);
@@ -86,12 +86,12 @@ export const getSalaryRules = async (staffId?: string): Promise<SalaryRule[]> =>
 
 export const updateSalaryRule = async (id: string, data: Partial<SalaryRule>): Promise<void> => {
   // TODO: Implement Supabase update
-  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật salary rule.');
+  throw new Error('Tính năng này cần được migrate sang Supabase.');
 };
 
 export const deleteSalaryRule = async (id: string): Promise<void> => {
   // TODO: Implement Supabase delete
-  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa salary rule.');
+  throw new Error('Tính năng này cần được migrate sang Supabase.');
 };
 
 // ============================================
@@ -100,7 +100,7 @@ export const deleteSalaryRule = async (id: string): Promise<void> => {
 
 export const createSalaryRange = async (data: Omit<SalaryRangeConfig, 'id'>): Promise<string> => {
   // TODO: Implement Supabase create
-  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo salary range.');
+  throw new Error('Tính năng này cần được migrate sang Supabase.');
 };
 
 export const getSalaryRanges = async (type?: RangeType): Promise<SalaryRangeConfig[]> => {
@@ -117,7 +117,7 @@ export const getSalaryRanges = async (type?: RangeType): Promise<SalaryRangeConf
     // return data.map(transformSalaryRangeFromSupabase);
     
     // Tạm thời trả về empty array để không gây lỗi
-    console.warn('getSalaryRanges: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
+    
     return [];
   } catch (error) {
     console.error('Error getting salary ranges:', error);
@@ -127,12 +127,12 @@ export const getSalaryRanges = async (type?: RangeType): Promise<SalaryRangeConf
 
 export const updateSalaryRange = async (id: string, data: Partial<SalaryRangeConfig>): Promise<void> => {
   // TODO: Implement Supabase update
-  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật salary range.');
+  throw new Error('Tính năng này cần được migrate sang Supabase.');
 };
 
 export const deleteSalaryRange = async (id: string): Promise<void> => {
   // TODO: Implement Supabase delete
-  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa salary range.');
+  throw new Error('Tính năng này cần được migrate sang Supabase.');
 };
 
 // ============================================

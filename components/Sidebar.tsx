@@ -68,7 +68,6 @@ const subItemToModule: Record<string, ModuleKey> = {
   'service-hub': 'service_dashboard',
 };
 
-
 // Map parent menu to required modules (at least one must be visible)
 const parentMenuModules: Record<string, ModuleKey[]> = {
   'training': ['classes', 'schedule', 'holidays', 'attendance', 'tutoring', 'homework', 'attendance_history', 'enrollment_history'],

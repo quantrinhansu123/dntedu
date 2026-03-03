@@ -1,7 +1,6 @@
 /**
  * Auto Notification Triggers
- * Firebase đã được xóa - Service này đã bị disable
- * Sử dụng Supabase triggers thay thế
+  * Sử dụng Supabase triggers thay thế
  */
 
 // ;
@@ -17,7 +16,7 @@ import {
  * Lắng nghe contract mới có nợ -> gửi thông báo đóng phí
  */
 export const watchContractDebts = () => {
-  console.warn('watchContractDebts: Firebase đã được xóa. Sử dụng Supabase triggers thay thế.');
+  
   return () => {}; // Return no-op unsubscribe function
 };
 
@@ -25,7 +24,7 @@ export const watchContractDebts = () => {
  * Lắng nghe feedback campaigns -> gửi thông báo
  */
 export const watchFeedbackCampaigns = () => {
-  console.warn('watchFeedbackCampaigns: Firebase đã được xóa. Sử dụng Supabase triggers thay thế.');
+  
   return () => {}; // Return no-op unsubscribe function
 };
 
@@ -33,7 +32,7 @@ export const watchFeedbackCampaigns = () => {
  * Lắng nghe homework mới -> gửi thông báo
  */
 export const watchHomework = () => {
-  console.warn('watchHomework: Firebase đã được xóa. Sử dụng Supabase triggers thay thế.');
+  
   return () => {}; // Return no-op unsubscribe function
 };
 
@@ -41,7 +40,7 @@ export const watchHomework = () => {
  * Lắng nghe thay đổi lịch học -> gửi thông báo
  */
 export const watchScheduleChanges = () => {
-  console.warn('watchScheduleChanges: Firebase đã được xóa. Sử dụng Supabase triggers thay thế.');
+  
   return () => {}; // Return no-op unsubscribe function
 };
 
@@ -49,7 +48,7 @@ export const watchScheduleChanges = () => {
  * Khởi tạo tất cả watchers
  */
 export const initAutoNotificationTriggers = () => {
-  console.warn('initAutoNotificationTriggers: Firebase đã được xóa. Sử dụng Supabase triggers thay thế.');
+  
   // No-op
 };
 
