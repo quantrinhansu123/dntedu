@@ -11,8 +11,8 @@ export const useSalaryScale = () => {
   const fetchSalaryScales = async () => {
     try {
       setLoading(true);
-      const q = query(collection(db, 'salaryScales'), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
+      // const q = query(collection(db, 'salaryScales'), orderBy('createdAt', 'desc'));
+      // const snapshot = await getDocs(q);
       const data: SalaryScale[] = [];
       snapshot.forEach((docSnap) => {
         data.push({ id: docSnap.id, ...docSnap.data() } as SalaryScale);
@@ -32,11 +32,11 @@ export const useSalaryScale = () => {
   // Create salary scale
   const createSalaryScale = async (scaleData: Omit<SalaryScale, 'id'>) => {
     try {
-      const docRef = await addDoc(collection(db, 'salaryScales'), {
-        ...scaleData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      //       const docRef = await addDoc(collection(db, 'salaryScales'), {
+      //         ...scaleData,
+      //         createdAt: new Date().toISOString(),
+      //         updatedAt: new Date().toISOString(),
+      //       });
       await fetchSalaryScales();
       return docRef.id;
     } catch (error) {
@@ -48,11 +48,11 @@ export const useSalaryScale = () => {
   // Update salary scale
   const updateSalaryScale = async (id: string, scaleData: Partial<SalaryScale>) => {
     try {
-      const docRef = doc(db, 'salaryScales', id);
-      await updateDoc(docRef, {
-        ...scaleData,
-        updatedAt: new Date().toISOString(),
-      });
+      // const docRef = doc(db, 'salaryScales', id);
+      //       await updateDoc(docRef, {
+      //         ...scaleData,
+      //         updatedAt: new Date().toISOString(),
+      //       });
       await fetchSalaryScales();
     } catch (error) {
       console.error('Error updating salary scale:', error);
@@ -63,7 +63,7 @@ export const useSalaryScale = () => {
   // Delete salary scale
   const deleteSalaryScale = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'salaryScales', id));
+      // await deleteDoc(doc(db, 'salaryScales', id));
       await fetchSalaryScales();
     } catch (error) {
       console.error('Error deleting salary scale:', error);

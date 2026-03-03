@@ -6,14 +6,14 @@
 import {
   collection,
   doc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-} from 'firebase/firestore';
+      //   getDocs,
+      //   addDoc,
+      //   updateDoc,
+      //   deleteDoc,
+      //   query,
+      //   where,
+      //   orderBy,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const FEEDBACKS_COLLECTION = 'feedbacks';
@@ -61,7 +61,7 @@ export const createFeedback = async (data: Omit<FeedbackRecord, 'id'>): Promise<
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    const docRef = await addDoc(collection(db, FEEDBACKS_COLLECTION), docData);
+    // const docRef = await addDoc(collection(db, FEEDBACKS_COLLECTION), docData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating feedback:', error);
@@ -75,17 +75,17 @@ export const getFeedbacks = async (filters?: {
   studentId?: string;
 }): Promise<FeedbackRecord[]> => {
   try {
-    let q = query(collection(db, FEEDBACKS_COLLECTION), orderBy('date', 'desc'));
+    // let q = query(collection(db, FEEDBACKS_COLLECTION), orderBy('date', 'desc'));
     
     if (filters?.type) {
-      q = query(collection(db, FEEDBACKS_COLLECTION), where('type', '==', filters.type), orderBy('date', 'desc'));
+      // q = query(collection(db, FEEDBACKS_COLLECTION), where('type', '==', filters.type), orderBy('date', 'desc'));
     }
     
     if (filters?.status) {
-      q = query(collection(db, FEEDBACKS_COLLECTION), where('status', '==', filters.status));
+      // q = query(collection(db, FEEDBACKS_COLLECTION), where('status', '==', filters.status));
     }
     
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     let feedbacks = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -114,11 +114,11 @@ export const updateFeedback = async (id: string, data: Partial<FeedbackRecord>):
       }
     }
     
-    const docRef = doc(db, FEEDBACKS_COLLECTION, id);
-    await updateDoc(docRef, {
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    });
+    // const docRef = doc(db, FEEDBACKS_COLLECTION, id);
+      //     await updateDoc(docRef, {
+      //       ...updateData,
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error updating feedback:', error);
     throw new Error('Không thể cập nhật phản hồi');
@@ -127,8 +127,8 @@ export const updateFeedback = async (id: string, data: Partial<FeedbackRecord>):
 
 export const deleteFeedback = async (id: string): Promise<void> => {
   try {
-    const docRef = doc(db, FEEDBACKS_COLLECTION, id);
-    await deleteDoc(docRef);
+    // const docRef = doc(db, FEEDBACKS_COLLECTION, id);
+    // await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting feedback:', error);
     throw new Error('Không thể xóa phản hồi');

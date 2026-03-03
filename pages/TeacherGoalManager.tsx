@@ -60,8 +60,8 @@ export const TeacherGoalManager: React.FC = () => {
       const [goalsData, performanceData, staffSnap] = await Promise.all([
         teacherReportService.getTeacherGoals(undefined, selectedPeriod),
         teacherReportService.getTeacherPerformance(selectedPeriod),
-        getDocs(collection(db, 'staff')),
-      ]);
+      //         getDocs(collection(db, 'staff')),
+      //       ]);
       
       const allStaff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Staff[];
       const teacherStaff = allStaff.filter(s => 

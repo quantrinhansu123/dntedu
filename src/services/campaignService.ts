@@ -6,14 +6,14 @@
 import {
   collection,
   doc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-} from 'firebase/firestore';
+      //   getDocs,
+      //   addDoc,
+      //   updateDoc,
+      //   deleteDoc,
+      //   query,
+      //   where,
+      //   orderBy,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const CAMPAIGNS_COLLECTION = 'campaigns';
@@ -47,7 +47,7 @@ export const createCampaign = async (data: Omit<Campaign, 'id'>): Promise<string
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    const docRef = await addDoc(collection(db, CAMPAIGNS_COLLECTION), campaignData);
+    // const docRef = await addDoc(collection(db, CAMPAIGNS_COLLECTION), campaignData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating campaign:', error);
@@ -57,13 +57,13 @@ export const createCampaign = async (data: Omit<Campaign, 'id'>): Promise<string
 
 export const getCampaigns = async (includeEnded: boolean = false): Promise<Campaign[]> => {
   try {
-    let q = query(collection(db, CAMPAIGNS_COLLECTION), orderBy('createdAt', 'desc'));
+    // let q = query(collection(db, CAMPAIGNS_COLLECTION), orderBy('createdAt', 'desc'));
     
     if (!includeEnded) {
-      q = query(collection(db, CAMPAIGNS_COLLECTION), where('status', '!=', 'Kết thúc'), orderBy('status'), orderBy('createdAt', 'desc'));
+      // q = query(collection(db, CAMPAIGNS_COLLECTION), where('status', '!=', 'Kết thúc'), orderBy('status'), orderBy('createdAt', 'desc'));
     }
     
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => {
       const data = doc.data();
       const conversionRate = data.targetCount > 0 
@@ -78,7 +78,7 @@ export const getCampaigns = async (includeEnded: boolean = false): Promise<Campa
   } catch (error) {
     console.error('Error getting campaigns:', error);
     // Fallback without complex query
-    const snapshot = await getDocs(collection(db, CAMPAIGNS_COLLECTION));
+    // const snapshot = await getDocs(collection(db, CAMPAIGNS_COLLECTION));
     let campaigns = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -98,7 +98,7 @@ export const getCampaigns = async (includeEnded: boolean = false): Promise<Campa
 
 export const updateCampaign = async (id: string, data: Partial<Campaign>): Promise<void> => {
   try {
-    const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
+    // const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
     
     // Recalculate conversion rate if counts changed
     let updateData = { ...data };
@@ -108,10 +108,10 @@ export const updateCampaign = async (id: string, data: Partial<Campaign>): Promi
       updateData.conversionRate = target > 0 ? (registered / target) * 100 : 0;
     }
     
-    await updateDoc(docRef, {
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    });
+      //     await updateDoc(docRef, {
+      //       ...updateData,
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error updating campaign:', error);
     throw new Error('Không thể cập nhật chiến dịch');
@@ -120,8 +120,8 @@ export const updateCampaign = async (id: string, data: Partial<Campaign>): Promi
 
 export const deleteCampaign = async (id: string): Promise<void> => {
   try {
-    const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
-    await deleteDoc(docRef);
+    // const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
+    // await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting campaign:', error);
     throw new Error('Không thể xóa chiến dịch');

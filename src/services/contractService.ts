@@ -6,17 +6,17 @@
 import {
   collection,
   doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  Timestamp,
-  QueryConstraint,
-} from 'firebase/firestore';
+  // getDoc,
+      //   getDocs,
+      //   addDoc,
+      //   updateDoc,
+      //   deleteDoc,
+      //   query,
+      //   where,
+      //   orderBy,
+      //   Timestamp,
+      //   QueryConstraint,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 import { Contract, ContractStatus, ContractType, PaymentMethod, EnrollmentRecord } from '../../types';
 import * as enrollmentService from './enrollmentService';
@@ -28,8 +28,8 @@ const CONTRACTS_COLLECTION = 'contracts';
  */
 export const generateContractCode = async (): Promise<string> => {
   try {
-    const contractsRef = collection(db, CONTRACTS_COLLECTION);
-    const snapshot = await getDocs(contractsRef);
+    // const contractsRef = collection(db, CONTRACTS_COLLECTION);
+    // const snapshot = await getDocs(contractsRef);
 
     if (snapshot.empty) {
       return 'DNT001';
@@ -95,7 +95,7 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
       createdBy: contractData.createdBy || 'unknown',
     };
 
-    const docRef = await addDoc(collection(db, CONTRACTS_COLLECTION), contract);
+    // const docRef = await addDoc(collection(db, CONTRACTS_COLLECTION), contract);
 
     // Auto-create enrollment record for tracking
     try {
@@ -144,8 +144,8 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
  */
 export const getContract = async (id: string): Promise<Contract | null> => {
   try {
-    const docRef = doc(db, CONTRACTS_COLLECTION, id);
-    const docSnap = await getDoc(docRef);
+    // const docRef = doc(db, CONTRACTS_COLLECTION, id);
+    // const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
       return null;
@@ -180,8 +180,8 @@ export const getContracts = async (filters?: {
 
     constraints.push(orderBy('createdAt', 'desc'));
 
-    const q = query(collection(db, CONTRACTS_COLLECTION), ...constraints);
-    const snapshot = await getDocs(q);
+    // const q = query(collection(db, CONTRACTS_COLLECTION), ...constraints);
+    // const snapshot = await getDocs(q);
 
     let contracts = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -209,11 +209,11 @@ export const getContracts = async (filters?: {
  */
 export const updateContract = async (id: string, data: Partial<Contract>): Promise<void> => {
   try {
-    const docRef = doc(db, CONTRACTS_COLLECTION, id);
-    await updateDoc(docRef, {
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
+    // const docRef = doc(db, CONTRACTS_COLLECTION, id);
+      //     await updateDoc(docRef, {
+      //       ...data,
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error updating contract:', error);
     throw new Error('Không thể cập nhật hợp đồng');
@@ -228,8 +228,8 @@ export const deleteContract = async (id: string): Promise<void> => {
     // Get contract first to get the code
     const contract = await getContract(id);
 
-    const docRef = doc(db, CONTRACTS_COLLECTION, id);
-    await deleteDoc(docRef);
+    // const docRef = doc(db, CONTRACTS_COLLECTION, id);
+    // await deleteDoc(docRef);
 
     // Cascade delete enrollment record
     if (contract?.code) {
@@ -253,11 +253,11 @@ export const updateContractStatus = async (
   status: ContractStatus
 ): Promise<void> => {
   try {
-    const docRef = doc(db, CONTRACTS_COLLECTION, id);
-    await updateDoc(docRef, {
-      status,
-      updatedAt: new Date().toISOString(),
-    });
+    // const docRef = doc(db, CONTRACTS_COLLECTION, id);
+      //     await updateDoc(docRef, {
+      //       status,
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error updating contract status:', error);
     throw new Error('Không thể cập nhật trạng thái hợp đồng');
@@ -281,14 +281,14 @@ export const recordPayment = async (
     const newPaidAmount = contract.paidAmount + amount;
     const newRemainingAmount = contract.totalAmount - newPaidAmount;
 
-    const docRef = doc(db, CONTRACTS_COLLECTION, id);
-    await updateDoc(docRef, {
-      paidAmount: newPaidAmount,
-      remainingAmount: newRemainingAmount,
-      paymentDate: paymentDate || new Date().toISOString(),
-      status: newRemainingAmount === 0 ? ContractStatus.PAID : ContractStatus.PARTIAL,
-      updatedAt: new Date().toISOString(),
-    });
+    // const docRef = doc(db, CONTRACTS_COLLECTION, id);
+      //     await updateDoc(docRef, {
+      //       paidAmount: newPaidAmount,
+      //       remainingAmount: newRemainingAmount,
+      //       paymentDate: paymentDate || new Date().toISOString(),
+      //       status: newRemainingAmount === 0 ? ContractStatus.PAID : ContractStatus.PARTIAL,
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error recording payment:', error);
     throw new Error('Không thể ghi nhận thanh toán');

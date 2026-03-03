@@ -37,7 +37,7 @@ export interface RevenueSummary {
 
 export const getRevenueSummary = async (year?: number): Promise<RevenueSummary> => {
   try {
-    const snapshot = await getDocs(collection(db, CONTRACTS_COLLECTION));
+    // const snapshot = await getDocs(collection(db, CONTRACTS_COLLECTION));
     const contracts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
     const targetYear = year || new Date().getFullYear();

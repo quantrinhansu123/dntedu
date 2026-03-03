@@ -68,12 +68,12 @@ export const TrainingReport: React.FC = () => {
 
       // Fetch all collections
       const [classesSnap, studentsSnap, attendanceSnap, tutoringSnap, contractsSnap] = await Promise.all([
-        getDocs(collection(db, 'classes')),
-        getDocs(collection(db, 'students')),
-        getDocs(collection(db, 'attendance')),
-        getDocs(collection(db, 'tutoring')),
-        getDocs(collection(db, 'contracts')),
-      ]);
+      //         getDocs(collection(db, 'classes')),
+      //         getDocs(collection(db, 'students')),
+      //         getDocs(collection(db, 'attendance')),
+      //         getDocs(collection(db, 'tutoring')),
+      //         getDocs(collection(db, 'contracts')),
+      //       ]);
 
       const classes = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));

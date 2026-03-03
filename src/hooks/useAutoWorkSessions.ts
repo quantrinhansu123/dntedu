@@ -131,7 +131,7 @@ export const useAutoWorkSessions = (weekStartDate: Date) => {
       
       try {
         // Fetch classes
-        const classesSnapshot = await getDocs(collection(db, 'classes'));
+        // const classesSnapshot = await getDocs(collection(db, 'classes'));
         const classesData = classesSnapshot.docs
           .map(doc => {
             try {
@@ -146,7 +146,7 @@ export const useAutoWorkSessions = (weekStartDate: Date) => {
         
         // Fetch holidays
         try {
-          const holidaysSnapshot = await getDocs(collection(db, 'holidays'));
+          // const holidaysSnapshot = await getDocs(collection(db, 'holidays'));
           const holidaysData: string[] = [];
           holidaysSnapshot.docs.forEach(doc => {
             try {
@@ -197,7 +197,7 @@ export const useAutoWorkSessions = (weekStartDate: Date) => {
         
         // Fetch confirmed work sessions for this week
         try {
-          const sessionsSnapshot = await getDocs(collection(db, 'workSessions'));
+          // const sessionsSnapshot = await getDocs(collection(db, 'workSessions'));
           const sessionsData = sessionsSnapshot.docs
             .map(doc => {
               try {
@@ -367,7 +367,7 @@ export const useAutoWorkSessions = (weekStartDate: Date) => {
       };
       delete sessionData.id;
       
-      await addDoc(collection(db, 'workSessions'), sessionData);
+      // await addDoc(collection(db, 'workSessions'), sessionData);
       
       // Update local state
       setConfirmedSessions(prev => [...prev, { ...sessionData, status: 'Đã xác nhận' } as WorkSession]);
@@ -394,7 +394,7 @@ export const useAutoWorkSessions = (weekStartDate: Date) => {
         updatedAt: new Date().toISOString(),
       };
       
-      const docRef = await addDoc(collection(db, 'workSessions'), sessionData);
+      // const docRef = await addDoc(collection(db, 'workSessions'), sessionData);
       setManualSessions(prev => [...prev, { ...sessionData, id: docRef.id } as WorkSession]);
       return docRef.id;
     } catch (err: any) {
@@ -409,7 +409,7 @@ export const useAutoWorkSessions = (weekStartDate: Date) => {
       throw new Error('Không có ID để hủy xác nhận');
     }
     try {
-      await deleteDoc(doc(db, 'workSessions', session.id));
+      // await deleteDoc(doc(db, 'workSessions', session.id));
       setConfirmedSessions(prev => prev.filter(s => s.id !== session.id));
     } catch (err: any) {
       console.error('Error unconfirming session:', err);
@@ -420,7 +420,7 @@ export const useAutoWorkSessions = (weekStartDate: Date) => {
   // Delete session
   const deleteSession = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'workSessions', id));
+      // await deleteDoc(doc(db, 'workSessions', id));
       setConfirmedSessions(prev => prev.filter(s => s.id !== id));
       setManualSessions(prev => prev.filter(s => s.id !== id));
     } catch (err: any) {

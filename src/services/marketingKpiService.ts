@@ -6,15 +6,15 @@
 import {
     collection,
     doc,
-    getDocs,
-    getDoc,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    orderBy,
-} from 'firebase/firestore';
+      //     getDocs,
+      //     getDoc,
+      //     addDoc,
+      //     updateDoc,
+      //     deleteDoc,
+      //     query,
+      //     where,
+      //     orderBy,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 import { MarketingKpi, StaffPerformance } from '../types/marketingTypes';
 
@@ -26,9 +26,9 @@ export const getKpis = async (filters?: {
     month?: string;
 }): Promise<MarketingKpi[]> => {
     try {
-        let q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
+        // let q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
 
-        const snapshot = await getDocs(q);
+        // const snapshot = await getDocs(q);
         let kpis = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
@@ -52,8 +52,8 @@ export const getKpis = async (filters?: {
 // Get single KPI
 export const getKpi = async (id: string): Promise<MarketingKpi | null> => {
     try {
-        const docRef = doc(db, COLLECTION, id);
-        const docSnap = await getDoc(docRef);
+        // const docRef = doc(db, COLLECTION, id);
+        // const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) return null;
         return { id: docSnap.id, ...docSnap.data() } as MarketingKpi;
     } catch (error) {
@@ -66,11 +66,11 @@ export const getKpi = async (id: string): Promise<MarketingKpi | null> => {
 export const createKpi = async (data: Omit<MarketingKpi, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
     try {
         const now = new Date().toISOString();
-        const docRef = await addDoc(collection(db, COLLECTION), {
-            ...data,
-            createdAt: now,
-            updatedAt: now,
-        });
+      //         const docRef = await addDoc(collection(db, COLLECTION), {
+      //             ...data,
+      //             createdAt: now,
+      //             updatedAt: now,
+      //         });
         return docRef.id;
     } catch (error) {
         console.error('Error creating KPI:', error);
@@ -81,11 +81,11 @@ export const createKpi = async (data: Omit<MarketingKpi, 'id' | 'createdAt' | 'u
 // Update KPI
 export const updateKpi = async (id: string, data: Partial<MarketingKpi>): Promise<void> => {
     try {
-        const docRef = doc(db, COLLECTION, id);
-        await updateDoc(docRef, {
-            ...data,
-            updatedAt: new Date().toISOString(),
-        });
+        // const docRef = doc(db, COLLECTION, id);
+      //         await updateDoc(docRef, {
+      //             ...data,
+      //             updatedAt: new Date().toISOString(),
+      //         });
     } catch (error) {
         console.error('Error updating KPI:', error);
         throw error;
@@ -95,8 +95,8 @@ export const updateKpi = async (id: string, data: Partial<MarketingKpi>): Promis
 // Delete KPI
 export const deleteKpi = async (id: string): Promise<void> => {
     try {
-        const docRef = doc(db, COLLECTION, id);
-        await deleteDoc(docRef);
+        // const docRef = doc(db, COLLECTION, id);
+        // await deleteDoc(docRef);
     } catch (error) {
         console.error('Error deleting KPI:', error);
         throw error;

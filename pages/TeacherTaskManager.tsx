@@ -63,8 +63,8 @@ export const TeacherTaskManager: React.FC = () => {
       setLoading(true);
       const [tasksData, staffSnap] = await Promise.all([
         teacherReportService.getTeacherTasks(),
-        getDocs(collection(db, 'staff')),
-      ]);
+      //         getDocs(collection(db, 'staff')),
+      //       ]);
       
       const allStaff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Staff[];
       const teacherStaff = allStaff.filter(s => 

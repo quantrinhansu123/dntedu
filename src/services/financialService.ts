@@ -10,17 +10,17 @@ import {
 } from '../../types';
 import {
     collection,
-    addDoc,
-    updateDoc,
-    doc,
-    getDocs,
-    query,
-    where,
-    orderBy,
-    Timestamp,
-    deleteDoc,
-    getDoc
-} from 'firebase/firestore';
+    // addDoc,
+      //     updateDoc,
+      //     doc,
+      //     getDocs,
+      //     query,
+      //     where,
+      //     orderBy,
+      //     Timestamp,
+      //     deleteDoc,
+      //     getDoc
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 
 // Collection references
@@ -36,9 +36,9 @@ export const financialService = {
 
     async addTransaction(transaction: Omit<FinancialTransaction, 'id' | 'createdAt'>) {
         try {
-            const docRef = await addDoc(collection(db, TRANSACTIONS_COLLECTION), {
-                ...transaction,
-                createdAt: new Date().toISOString()
+      //             const docRef = await addDoc(collection(db, TRANSACTIONS_COLLECTION), {
+      //                 ...transaction,
+      //                 createdAt: new Date().toISOString()
             });
             return { id: docRef.id, ...transaction };
         } catch (error) {
@@ -49,17 +49,17 @@ export const financialService = {
 
     async getTransactions(startDate?: string, endDate?: string, type?: TransactionType) {
         try {
-            let q = query(collection(db, TRANSACTIONS_COLLECTION), orderBy('date', 'desc'));
+            // let q = query(collection(db, TRANSACTIONS_COLLECTION), orderBy('date', 'desc'));
 
             if (startDate && endDate) {
-                q = query(q, where('date', '>=', startDate), where('date', '<=', endDate));
+                // q = query(q, where('date', '>=', startDate), where('date', '<=', endDate));
             }
 
             if (type) {
-                q = query(q, where('type', '==', type));
+                // q = query(q, where('type', '==', type));
             }
 
-            const snapshot = await getDocs(q);
+            // const snapshot = await getDocs(q);
             return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinancialTransaction));
         } catch (error) {
             console.error('Error getting transactions:', error);
@@ -69,7 +69,7 @@ export const financialService = {
 
     async deleteTransaction(id: string) {
         try {
-            await deleteDoc(doc(db, TRANSACTIONS_COLLECTION, id));
+            // await deleteDoc(doc(db, TRANSACTIONS_COLLECTION, id));
         } catch (error) {
             console.error('Error deleting transaction:', error);
             throw error;
@@ -83,13 +83,13 @@ export const financialService = {
     async addAsset(asset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt' | 'monthlyDepreciation' | 'residualValue' | 'status'>) {
         try {
             const monthlyDepreciation = Math.round(asset.cost / asset.usefulLife);
-            const docRef = await addDoc(collection(db, ASSETS_COLLECTION), {
-                ...asset,
-                monthlyDepreciation,
-                residualValue: asset.cost,
-                status: 'Đang khấu hao',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+      //             const docRef = await addDoc(collection(db, ASSETS_COLLECTION), {
+      //                 ...asset,
+      //                 monthlyDepreciation,
+      //                 residualValue: asset.cost,
+      //                 status: 'Đang khấu hao',
+      //                 createdAt: new Date().toISOString(),
+      //                 updatedAt: new Date().toISOString()
             });
             return { id: docRef.id, ...asset, monthlyDepreciation };
         } catch (error) {
@@ -100,7 +100,7 @@ export const financialService = {
 
     async getAssets() {
         try {
-            const snapshot = await getDocs(collection(db, ASSETS_COLLECTION));
+            // const snapshot = await getDocs(collection(db, ASSETS_COLLECTION));
             return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset));
         } catch (error) {
             console.error('Error getting assets:', error);
@@ -132,20 +132,20 @@ export const financialService = {
 
                 // Update Asset residual value
                 const newResidual = asset.residualValue - asset.monthlyDepreciation;
-                await updateDoc(doc(db, ASSETS_COLLECTION, asset.id), {
-                    residualValue: newResidual,
-                    status: newResidual <= 0 ? 'Đã khấu hao xong' : 'Đang khấu hao',
-                    updatedAt: new Date().toISOString()
+      //                 await updateDoc(doc(db, ASSETS_COLLECTION, asset.id), {
+      //                     residualValue: newResidual,
+      //                     status: newResidual <= 0 ? 'Đã khấu hao xong' : 'Đang khấu hao',
+      //                     updatedAt: new Date().toISOString()
                 });
 
                 // Log history
-                await addDoc(collection(db, DEPRECIATION_COLLECTION), {
-                    assetId: asset.id,
-                    assetName: asset.name,
-                    month,
-                    year,
-                    amount: asset.monthlyDepreciation,
-                    date: new Date().toISOString()
+      //                 await addDoc(collection(db, DEPRECIATION_COLLECTION), {
+      //                     assetId: asset.id,
+      //                     assetName: asset.name,
+      //                     month,
+      //                     year,
+      //                     amount: asset.monthlyDepreciation,
+      //                     date: new Date().toISOString()
                 });
             }
         } catch (error) {
@@ -170,39 +170,39 @@ export const financialService = {
     async updateTeacherDebt(record: Omit<TeacherDebtRecord, 'id'>) {
         // Check if record exists for this teacher/month/class
         const q = query(
-            collection(db, TEACHER_DEBT_COLLECTION),
-            where('teacherId', '==', record.teacherId),
-            where('month', '==', record.month),
-            where('year', '==', record.year),
-            where('classId', '==', record.classId)
+      //             collection(db, TEACHER_DEBT_COLLECTION),
+      //             where('teacherId', '==', record.teacherId),
+      //             where('month', '==', record.month),
+      //             where('year', '==', record.year),
+      //             where('classId', '==', record.classId)
         );
-        const snapshot = await getDocs(q);
+        // const snapshot = await getDocs(q);
 
         if (!snapshot.empty) {
             // Update
             const docId = snapshot.docs[0].id;
-            await updateDoc(doc(db, TEACHER_DEBT_COLLECTION, docId), {
-                ...record,
-                remainingDebt: record.totalSalary - record.paidAmount,
-                status: record.totalSalary - record.paidAmount <= 0 ? 'Đã trả hết' : (record.paidAmount > 0 ? 'Trả một phần' : 'Chưa trả')
+      //             await updateDoc(doc(db, TEACHER_DEBT_COLLECTION, docId), {
+      //                 ...record,
+      //                 remainingDebt: record.totalSalary - record.paidAmount,
+      //                 status: record.totalSalary - record.paidAmount <= 0 ? 'Đã trả hết' : (record.paidAmount > 0 ? 'Trả một phần' : 'Chưa trả')
             });
         } else {
             // Create
-            await addDoc(collection(db, TEACHER_DEBT_COLLECTION), {
-                ...record,
-                remainingDebt: record.totalSalary - record.paidAmount,
-                status: record.totalSalary - record.paidAmount <= 0 ? 'Đã trả hết' : (record.paidAmount > 0 ? 'Trả một phần' : 'Chưa trả')
+      //             await addDoc(collection(db, TEACHER_DEBT_COLLECTION), {
+      //                 ...record,
+      //                 remainingDebt: record.totalSalary - record.paidAmount,
+      //                 status: record.totalSalary - record.paidAmount <= 0 ? 'Đã trả hết' : (record.paidAmount > 0 ? 'Trả một phần' : 'Chưa trả')
             });
         }
     },
 
     async getTeacherDebts(teacherId?: string) {
         try {
-            let q = query(collection(db, TEACHER_DEBT_COLLECTION));
+            // let q = query(collection(db, TEACHER_DEBT_COLLECTION));
             if (teacherId) {
-                q = query(q, where('teacherId', '==', teacherId));
+                // q = query(q, where('teacherId', '==', teacherId));
             }
-            const snapshot = await getDocs(q);
+            // const snapshot = await getDocs(q);
             return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TeacherDebtRecord));
         } catch (error) {
             console.error('Error getting teacher debts:', error);
@@ -234,13 +234,13 @@ export const financialService = {
         };
 
         // 1. Sync from CONTRACTS (Revenue)
-        const contractsSnap = await getDocs(collection(db, 'contracts'));
+        // const contractsSnap = await getDocs(collection(db, 'contracts'));
         const contracts = contractsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Contract));
 
         for (const contract of contracts) {
             // Check if transaction already exists for this contract
-            const q = query(collection(db, TRANSACTIONS_COLLECTION), where('referenceId', '==', contract.id));
-            const exists = await getDocs(q);
+            // const q = query(collection(db, TRANSACTIONS_COLLECTION), where('referenceId', '==', contract.id));
+            // const exists = await getDocs(q);
 
             if (exists.empty && contract.paidAmount && contract.paidAmount > 0) {
                 // Create Income Transaction
@@ -266,12 +266,12 @@ export const financialService = {
 
         // We will try to fetch 'staff_salaries'
         try {
-            const salariesSnap = await getDocs(collection(db, 'staff_salaries')); // Verify collection name
-            const salaries = salariesSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      //             const salariesSnap = await getDocs(collection(db, 'staff_salaries')); // Verify collection name
+      //             const salaries = salariesSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
 
             for (const salary of salaries) {
-                const q = query(collection(db, TRANSACTIONS_COLLECTION), where('referenceId', '==', salary.id));
-                const exists = await getDocs(q);
+                // const q = query(collection(db, TRANSACTIONS_COLLECTION), where('referenceId', '==', salary.id));
+                // const exists = await getDocs(q);
 
                 if (exists.empty && salary.finalSalary && salary.status === 'Paid') {
                     // Determine category based on position

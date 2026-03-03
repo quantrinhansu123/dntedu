@@ -6,16 +6,16 @@
 import {
   collection,
   doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  writeBatch,
-} from 'firebase/firestore';
+      //   getDoc,
+      //   getDocs,
+      //   addDoc,
+      //   updateDoc,
+      //   deleteDoc,
+      //   query,
+      //   where,
+      //   orderBy,
+      //   writeBatch,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 import { 
   MonthlyComment, 
@@ -48,17 +48,17 @@ export const saveMonthlyComment = async (
     
     if (existing) {
       // Update existing
-      await updateDoc(doc(db, MONTHLY_COMMENTS_COLLECTION, existing.id), {
-        ...data,
-        updatedAt: new Date().toISOString(),
-      });
+      //       await updateDoc(doc(db, MONTHLY_COMMENTS_COLLECTION, existing.id), {
+      //         ...data,
+      //         updatedAt: new Date().toISOString(),
+      //       });
       return existing.id;
     } else {
       // Create new
-      const docRef = await addDoc(collection(db, MONTHLY_COMMENTS_COLLECTION), {
-        ...data,
-        createdAt: new Date().toISOString(),
-      });
+      //       const docRef = await addDoc(collection(db, MONTHLY_COMMENTS_COLLECTION), {
+      //         ...data,
+      //         createdAt: new Date().toISOString(),
+      //       });
       return docRef.id;
     }
   } catch (error) {
@@ -80,13 +80,13 @@ export const getMonthlyComment = async (
   try {
     // Try format 1: month and year as separate fields
     const q1 = query(
-      collection(db, MONTHLY_COMMENTS_COLLECTION),
-      where('studentId', '==', studentId),
-      where('classId', '==', classId),
-      where('month', '==', month),
-      where('year', '==', year)
+      //       collection(db, MONTHLY_COMMENTS_COLLECTION),
+      //       where('studentId', '==', studentId),
+      //       where('classId', '==', classId),
+      //       where('month', '==', month),
+      //       where('year', '==', year)
     );
-    const snapshot1 = await getDocs(q1);
+    // const snapshot1 = await getDocs(q1);
     
     if (!snapshot1.empty) {
       const docData = snapshot1.docs[0];
@@ -96,12 +96,12 @@ export const getMonthlyComment = async (
     // Try format 2: month as "YYYY-MM" string (from HomeworkManager)
     const monthStr = `${year}-${String(month).padStart(2, '0')}`;
     const q2 = query(
-      collection(db, MONTHLY_COMMENTS_COLLECTION),
-      where('studentId', '==', studentId),
-      where('classId', '==', classId),
-      where('month', '==', monthStr)
+      //       collection(db, MONTHLY_COMMENTS_COLLECTION),
+      //       where('studentId', '==', studentId),
+      //       where('classId', '==', classId),
+      //       where('month', '==', monthStr)
     );
-    const snapshot2 = await getDocs(q2);
+    // const snapshot2 = await getDocs(q2);
     
     if (!snapshot2.empty) {
       const docData = snapshot2.docs[0];
@@ -133,12 +133,12 @@ export const getStudentMonthlyComments = async (
 ): Promise<MonthlyComment[]> => {
   try {
     const q = query(
-      collection(db, MONTHLY_COMMENTS_COLLECTION),
-      where('studentId', '==', studentId),
-      where('month', '==', month),
-      where('year', '==', year)
+      //       collection(db, MONTHLY_COMMENTS_COLLECTION),
+      //       where('studentId', '==', studentId),
+      //       where('month', '==', month),
+      //       where('year', '==', year)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -155,7 +155,7 @@ export const getStudentMonthlyComments = async (
  */
 export const deleteMonthlyComment = async (id: string): Promise<void> => {
   try {
-    await deleteDoc(doc(db, MONTHLY_COMMENTS_COLLECTION, id));
+    // await deleteDoc(doc(db, MONTHLY_COMMENTS_COLLECTION, id));
   } catch (error) {
     console.error('Error deleting monthly comment:', error);
     throw new Error('Không thể xóa nhận xét');
@@ -181,11 +181,11 @@ export const getStudentTestComments = async (
 ): Promise<TestCommentData[]> => {
   try {
     const q = query(
-      collection(db, 'testComments'),
-      where('studentId', '==', studentId),
-      where('classId', '==', classId)
+      //       collection(db, 'testComments'),
+      //       where('studentId', '==', studentId),
+      //       where('classId', '==', classId)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => {
       const data = doc.data();
@@ -231,10 +231,10 @@ export const getStudentHomeworkSummary = async (
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
     
     const q = query(
-      collection(db, 'homeworkRecords'),
-      where('classId', '==', classId)
+      //       collection(db, 'homeworkRecords'),
+      //       where('classId', '==', classId)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
     let totalHomeworks = 0;
     let completedHomeworks = 0;
@@ -303,11 +303,11 @@ export const getStudentMonthlyAttendance = async (
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
     
     const q = query(
-      collection(db, STUDENT_ATTENDANCE_COLLECTION),
-      where('studentId', '==', studentId),
-      where('classId', '==', classId)
+      //       collection(db, STUDENT_ATTENDANCE_COLLECTION),
+      //       where('studentId', '==', studentId),
+      //       where('classId', '==', classId)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
     // Filter by date range client-side (check both date and createdAt fields)
     const records = snapshot.docs
@@ -346,10 +346,10 @@ export const getStudentAllClassesMonthlyAttendance = async (
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
     
     const q = query(
-      collection(db, STUDENT_ATTENDANCE_COLLECTION),
-      where('studentId', '==', studentId)
+      //       collection(db, STUDENT_ATTENDANCE_COLLECTION),
+      //       where('studentId', '==', studentId)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
     // Filter by date range client-side (check both date and createdAt fields)
     const records = snapshot.docs
@@ -582,10 +582,10 @@ export const updateStudentAttendanceGrade = async (
   }
 ): Promise<void> => {
   try {
-    const docRef = doc(db, STUDENT_ATTENDANCE_COLLECTION, attendanceId);
-    await updateDoc(docRef, {
-      ...gradeData,
-      updatedAt: new Date().toISOString()
+    // const docRef = doc(db, STUDENT_ATTENDANCE_COLLECTION, attendanceId);
+      //     await updateDoc(docRef, {
+      //       ...gradeData,
+      //       updatedAt: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error updating attendance grade:', error);
@@ -607,11 +607,11 @@ export const batchUpdateAttendanceGrades = async (
   }>
 ): Promise<void> => {
   try {
-    const batch = writeBatch(db);
+    // const batch = writeBatch(db);
     
     updates.forEach(update => {
       const { id, ...data } = update;
-      const docRef = doc(db, STUDENT_ATTENDANCE_COLLECTION, id);
+      // const docRef = doc(db, STUDENT_ATTENDANCE_COLLECTION, id);
       batch.update(docRef, {
         ...data,
         updatedAt: new Date().toISOString()

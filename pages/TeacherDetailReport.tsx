@@ -62,12 +62,12 @@ export const TeacherDetailReport: React.FC = () => {
     try {
       setLoading(true);
       const [staffSnap, classesSnap, studentsSnap, attendanceSnap, reportsSnap] = await Promise.all([
-        getDocs(collection(db, 'staff')),
-        getDocs(collection(db, 'classes')),
-        getDocs(collection(db, 'students')),
-        getDocs(collection(db, 'student_attendance')),
-        getDocs(collection(db, 'teacher_reports')),
-      ]);
+      //         getDocs(collection(db, 'staff')),
+      //         getDocs(collection(db, 'classes')),
+      //         getDocs(collection(db, 'students')),
+      //         getDocs(collection(db, 'student_attendance')),
+      //         getDocs(collection(db, 'teacher_reports')),
+      //       ]);
       
       const allStaff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Staff[];
       const teacherStaff = allStaff.filter(s => 

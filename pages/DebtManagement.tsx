@@ -38,60 +38,63 @@ export const DebtManagement: React.FC = () => {
   const syncContractDebt = async () => {
     setSyncing(true);
     try {
+      // Firebase đã được xóa - cần migrate sang Supabase
       // Get all contracts with "Nợ hợp đồng" status
-      const contractsQuery = query(
-        collection(db, 'contracts'),
-        where('status', '==', 'Nợ hợp đồng')
-      );
-      const contractsSnap = await getDocs(contractsQuery);
+      // const contractsQuery = query(
+      //   collection(db, 'contracts'),
+      //   where('status', '==', 'Nợ hợp đồng')
+      // );
+      // const contractsSnap = await getDocs(contractsQuery);
       
       // Group contracts by studentId and sum debt
-      const studentDebts: Record<string, { 
-        totalDebt: number; 
-        nextPaymentDate: string | null;
-        contractCount: number;
-      }> = {};
+      // const studentDebts: Record<string, { 
+      //   totalDebt: number; 
+      //   nextPaymentDate: string | null;
+      //   contractCount: number;
+      // }> = {};
       
-      for (const contractDoc of contractsSnap.docs) {
-        const contract = contractDoc.data();
-        if (!contract.studentId) continue;
-        
-        const studentId = contract.studentId;
-        if (!studentDebts[studentId]) {
-          studentDebts[studentId] = { totalDebt: 0, nextPaymentDate: null, contractCount: 0 };
-        }
-        
-        // Sum debt from all contracts
-        studentDebts[studentId].totalDebt += (contract.remainingAmount || 0);
-        studentDebts[studentId].contractCount++;
-        
-        // Get earliest nextPaymentDate
-        if (contract.nextPaymentDate) {
-          if (!studentDebts[studentId].nextPaymentDate || 
-              contract.nextPaymentDate < studentDebts[studentId].nextPaymentDate) {
-            studentDebts[studentId].nextPaymentDate = contract.nextPaymentDate;
-          }
-        }
-      }
+      // for (const contractDoc of contractsSnap.docs) {
+      //   const contract = contractDoc.data();
+      //   if (!contract.studentId) continue;
+      //   
+      //   const studentId = contract.studentId;
+      //   if (!studentDebts[studentId]) {
+      //     studentDebts[studentId] = { totalDebt: 0, nextPaymentDate: null, contractCount: 0 };
+      //   }
+      //   
+      //   // Sum debt from all contracts
+      //   studentDebts[studentId].totalDebt += (contract.remainingAmount || 0);
+      //   studentDebts[studentId].contractCount++;
+      //   
+      //   // Get earliest nextPaymentDate
+      //   if (contract.nextPaymentDate) {
+      //     if (!studentDebts[studentId].nextPaymentDate || 
+      //         contract.nextPaymentDate < studentDebts[studentId].nextPaymentDate) {
+      //       studentDebts[studentId].nextPaymentDate = contract.nextPaymentDate;
+      //     }
+      //   }
+      // }
       
       // Update students
-      let updated = 0;
-      for (const [studentId, debt] of Object.entries(studentDebts)) {
-        try {
-          await updateDoc(doc(db, 'students', studentId), {
-            status: 'Nợ hợp đồng',
-            contractDebt: debt.totalDebt,
-            nextPaymentDate: debt.nextPaymentDate,
-          });
-          updated++;
-          console.log(`Updated ${studentId}: ${debt.contractCount} contracts, total debt: ${debt.totalDebt}`);
-        } catch (err) {
-          console.error(`Error updating student ${studentId}:`, err);
-        }
-      }
+      // let updated = 0;
+      // for (const [studentId, debt] of Object.entries(studentDebts)) {
+      //   try {
+      //     await updateDoc(doc(db, 'students', studentId), {
+      //       status: 'Nợ hợp đồng',
+      //       contractDebt: debt.totalDebt,
+      //       nextPaymentDate: debt.nextPaymentDate,
+      //     });
+      //     updated++;
+      //     console.log(`Updated ${studentId}: ${debt.contractCount} contracts, total debt: ${debt.totalDebt}`);
+      //   } catch (err) {
+      //     console.error(`Error updating student ${studentId}:`, err);
+      //   }
+      // }
       
-      alert(`Đã đồng bộ ${updated} học viên (${contractsSnap.size} hợp đồng). Vui lòng refresh trang.`);
-      window.location.reload();
+      // alert(`Đã đồng bộ ${updated} học viên (${contractsSnap.size} hợp đồng). Vui lòng refresh trang.`);
+      // window.location.reload();
+      console.warn('syncContractDebt: Firebase đã được xóa. Cần migrate sang Supabase.');
+      alert('Tính năng này cần được migrate sang Supabase.');
     } catch (err) {
       console.error('Error syncing:', err);
       alert('Có lỗi khi đồng bộ. Vui lòng thử lại.');
@@ -187,9 +190,11 @@ export const DebtManagement: React.FC = () => {
   const handleSavePaymentDate = async (studentId: string) => {
     if (!paymentDateValue) return;
     try {
-      await updateDoc(doc(db, 'students', studentId), {
-        nextPaymentDate: paymentDateValue,
-      });
+      // Firebase đã được xóa - cần migrate sang Supabase
+      // await updateDoc(doc(db, 'students', studentId), {
+      //   nextPaymentDate: paymentDateValue,
+      // });
+      console.warn('handleSavePaymentDate: Firebase đã được xóa. Cần migrate sang Supabase.');
       setEditingPaymentDate(null);
       setPaymentDateValue('');
     } catch (err) {

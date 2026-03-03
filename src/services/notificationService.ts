@@ -39,7 +39,7 @@ export const createPaymentNotification = async (
   dueDate: string
 ): Promise<void> => {
   try {
-    await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
+    // await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
       studentId,
       studentName,
       type: 'payment_due',
@@ -65,7 +65,7 @@ export const createFeedbackNotification = async (
   feedbackLink: string
 ): Promise<void> => {
   try {
-    await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
+    // await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
       studentId,
       studentName,
       type: 'feedback_request',
@@ -91,7 +91,7 @@ export const createHomeworkNotification = async (
   dueDate: string
 ): Promise<void> => {
   try {
-    await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
+    // await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
       studentId,
       studentName,
       type: 'homework',
@@ -117,15 +117,15 @@ export const createScheduleChangeNotification = async (
 ): Promise<void> => {
   try {
     const promises = studentIds.map(studentId =>
-      addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
-        studentId,
-        type: 'schedule_change',
-        title: '📅 Thay đổi lịch học',
-        message: `Lớp ${className}: ${changeDescription}`,
-        link: '/student/schedule',
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      })
+      //       addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
+      //         studentId,
+      //         type: 'schedule_change',
+      //         title: '📅 Thay đổi lịch học',
+      //         message: `Lớp ${className}: ${changeDescription}`,
+      //         link: '/student/schedule',
+      //         isRead: false,
+      //         createdAt: new Date().toISOString(),
+      //       })
     );
     await Promise.all(promises);
   } catch (error) {
@@ -142,17 +142,17 @@ export const getStudentNotifications = async (
 ): Promise<StudentNotification[]> => {
   try {
     let q = query(
-      collection(db, NOTIFICATIONS_COLLECTION),
-      where('studentId', '==', studentId),
-      orderBy('createdAt', 'desc'),
-      limit(50)
+      //       collection(db, NOTIFICATIONS_COLLECTION),
+      //       where('studentId', '==', studentId),
+      //       orderBy('createdAt', 'desc'),
+      //       limit(50)
     );
 
     if (unreadOnly) {
-      q = query(q, where('isRead', '==', false));
+      // q = query(q, where('isRead', '==', false));
     }
 
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()

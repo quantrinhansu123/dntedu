@@ -192,7 +192,8 @@ export const TrialStudents: React.FC = () => {
     }
 
     try {
-      const studentRef = doc(db, 'students', selectedStudent.id);
+      // Firebase đã được xóa - cần migrate sang Supabase
+      // const studentRef = doc(db, 'students', selectedStudent.id);
       const newCall = {
         date: newCallForm.date,
         content: newCallForm.content,
@@ -200,15 +201,18 @@ export const TrialStudents: React.FC = () => {
         createdAt: new Date().toISOString(),
       };
       
-      await updateDoc(studentRef, {
-        callHistory: arrayUnion(newCall),
-      });
+      // await updateDoc(studentRef, {
+      //   callHistory: arrayUnion(newCall),
+      // });
       
       // Update local state
       setSelectedStudent(prev => prev ? {
         ...prev,
         callHistory: [...(prev.callHistory || []), newCall]
       } : null);
+      
+      // TODO: Save to Supabase using updateStudent hook
+      console.warn('handleAddCall: Firebase đã được xóa. Cần migrate sang Supabase.');
       
       alert('Đã lưu lịch sử cuộc gọi!');
       setShowAddCallModal(false);

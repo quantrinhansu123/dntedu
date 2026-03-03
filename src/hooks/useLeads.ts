@@ -40,15 +40,15 @@ export const useLeads = (props?: UseLeadsProps): UseLeadsReturn => {
     setLoading(true);
     setError(null);
 
-    const q = query(collection(db, 'leads'), orderBy('createdAt', 'desc'));
+    // const q = query(collection(db, 'leads'), orderBy('createdAt', 'desc'));
     
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Lead));
+      //     const unsubscribe = onSnapshot(
+      //       q,
+      //       (snapshot) => {
+      //         const data = snapshot.docs.map(doc => ({
+      //           id: doc.id,
+      //           ...doc.data(),
+      //         } as Lead));
         setAllLeads(data);
         setLoading(false);
       },

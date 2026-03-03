@@ -86,8 +86,8 @@ export const StaffRewardPenalty: React.FC = () => {
 
   // Fetch records - simplified query without compound index requirement
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'staffRewardPenalty'), (snapshot) => {
-      const allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as RewardPenaltyRecord[];
+      //     const unsubscribe = onSnapshot(collection(db, 'staffRewardPenalty'), (snapshot) => {
+      //       const allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as RewardPenaltyRecord[];
       // Filter by month/year in client
       const filtered = allData
         .filter(r => r.month === filterMonth && r.year === filterYear)
@@ -104,8 +104,8 @@ export const StaffRewardPenalty: React.FC = () => {
 
   // Fetch configs
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'rewardPenaltyConfig'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as RewardPenaltyConfig[];
+      //     const unsubscribe = onSnapshot(collection(db, 'rewardPenaltyConfig'), (snapshot) => {
+      //       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as RewardPenaltyConfig[];
       setConfigs(data);
     });
     return () => unsubscribe();
@@ -146,7 +146,7 @@ export const StaffRewardPenalty: React.FC = () => {
         createdBy: 'Admin'
       };
       
-      await addDoc(collection(db, 'staffRewardPenalty'), recordData);
+      // await addDoc(collection(db, 'staffRewardPenalty'), recordData);
       setShowAddModal(false);
       setNewRecord({
         type: 'reward',
@@ -191,14 +191,14 @@ export const StaffRewardPenalty: React.FC = () => {
       };
 
       if (newConfig.id) {
-        await updateDoc(doc(db, 'rewardPenaltyConfig', newConfig.id), {
-          ...configData,
-          updatedAt: new Date().toISOString()
+      //         await updateDoc(doc(db, 'rewardPenaltyConfig', newConfig.id), {
+      //           ...configData,
+      //           updatedAt: new Date().toISOString()
         });
       } else {
-        await addDoc(collection(db, 'rewardPenaltyConfig'), {
-          ...configData,
-          createdAt: new Date().toISOString()
+      //         await addDoc(collection(db, 'rewardPenaltyConfig'), {
+      //           ...configData,
+      //           createdAt: new Date().toISOString()
         });
       }
       
@@ -226,7 +226,7 @@ export const StaffRewardPenalty: React.FC = () => {
   const handleDeleteRecord = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa?')) return;
     try {
-      await deleteDoc(doc(db, 'staffRewardPenalty', id));
+      // await deleteDoc(doc(db, 'staffRewardPenalty', id));
     } catch (err) {
       console.error('Error deleting:', err);
     }
@@ -236,7 +236,7 @@ export const StaffRewardPenalty: React.FC = () => {
   const handleDeleteConfig = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa cấu hình này?')) return;
     try {
-      await deleteDoc(doc(db, 'rewardPenaltyConfig', id));
+      // await deleteDoc(doc(db, 'rewardPenaltyConfig', id));
     } catch (err) {
       console.error('Error deleting config:', err);
     }
@@ -245,9 +245,9 @@ export const StaffRewardPenalty: React.FC = () => {
   // Update record status
   const handleUpdateStatus = async (id: string, newStatus: 'pending' | 'approved' | 'paid') => {
     try {
-      await updateDoc(doc(db, 'staffRewardPenalty', id), {
-        status: newStatus,
-        updatedAt: new Date().toISOString()
+      //       await updateDoc(doc(db, 'staffRewardPenalty', id), {
+      //         status: newStatus,
+      //         updatedAt: new Date().toISOString()
       });
     } catch (err: any) {
       console.error('Error updating status:', err);

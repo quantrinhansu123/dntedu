@@ -55,7 +55,7 @@ export class AuthService {
       const user = userCredential.user;
       
       // Fetch staff data
-      const staffDoc = await getDoc(doc(db, 'staff', user.uid));
+      // const staffDoc = await getDoc(doc(db, 'staff', user.uid));
       if (staffDoc.exists()) {
         return {
           ...user,
@@ -105,7 +105,7 @@ export class AuthService {
       });
       
       // Create staff document in Firestore
-      await setDoc(doc(db, 'staff', user.uid), {
+      // await setDoc(doc(db, 'staff', user.uid), {
         uid: user.uid,
         email: email,
         ...staffData,
@@ -138,7 +138,7 @@ export class AuthService {
     return onAuthStateChanged(auth, async (user) => {
       if (user) {
         // Fetch staff data
-        const staffDoc = await getDoc(doc(db, 'staff', user.uid));
+        // const staffDoc = await getDoc(doc(db, 'staff', user.uid));
         if (staffDoc.exists()) {
           callback({
             ...user,

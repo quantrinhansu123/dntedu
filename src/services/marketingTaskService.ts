@@ -6,16 +6,16 @@
 import {
     collection,
     doc,
-    getDocs,
-    getDoc,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    orderBy,
-    Timestamp,
-} from 'firebase/firestore';
+      //     getDocs,
+      //     getDoc,
+      //     addDoc,
+      //     updateDoc,
+      //     deleteDoc,
+      //     query,
+      //     where,
+      //     orderBy,
+      //     Timestamp,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 import { MarketingTask } from '../types/marketingTypes';
 
@@ -28,9 +28,9 @@ export const getTasks = async (filters?: {
     campaignId?: string;
 }): Promise<MarketingTask[]> => {
     try {
-        let q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
+        // let q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
 
-        const snapshot = await getDocs(q);
+        // const snapshot = await getDocs(q);
         let tasks = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
@@ -57,8 +57,8 @@ export const getTasks = async (filters?: {
 // Get single task
 export const getTask = async (id: string): Promise<MarketingTask | null> => {
     try {
-        const docRef = doc(db, COLLECTION, id);
-        const docSnap = await getDoc(docRef);
+        // const docRef = doc(db, COLLECTION, id);
+        // const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) return null;
         return { id: docSnap.id, ...docSnap.data() } as MarketingTask;
     } catch (error) {
@@ -71,11 +71,11 @@ export const getTask = async (id: string): Promise<MarketingTask | null> => {
 export const createTask = async (data: Omit<MarketingTask, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
     try {
         const now = new Date().toISOString();
-        const docRef = await addDoc(collection(db, COLLECTION), {
-            ...data,
-            createdAt: now,
-            updatedAt: now,
-        });
+      //         const docRef = await addDoc(collection(db, COLLECTION), {
+      //             ...data,
+      //             createdAt: now,
+      //             updatedAt: now,
+      //         });
         return docRef.id;
     } catch (error) {
         console.error('Error creating task:', error);
@@ -86,11 +86,11 @@ export const createTask = async (data: Omit<MarketingTask, 'id' | 'createdAt' | 
 // Update task
 export const updateTask = async (id: string, data: Partial<MarketingTask>): Promise<void> => {
     try {
-        const docRef = doc(db, COLLECTION, id);
-        await updateDoc(docRef, {
-            ...data,
-            updatedAt: new Date().toISOString(),
-        });
+        // const docRef = doc(db, COLLECTION, id);
+      //         await updateDoc(docRef, {
+      //             ...data,
+      //             updatedAt: new Date().toISOString(),
+      //         });
     } catch (error) {
         console.error('Error updating task:', error);
         throw error;
@@ -100,8 +100,8 @@ export const updateTask = async (id: string, data: Partial<MarketingTask>): Prom
 // Delete task
 export const deleteTask = async (id: string): Promise<void> => {
     try {
-        const docRef = doc(db, COLLECTION, id);
-        await deleteDoc(docRef);
+        // const docRef = doc(db, COLLECTION, id);
+        // await deleteDoc(docRef);
     } catch (error) {
         console.error('Error deleting task:', error);
         throw error;

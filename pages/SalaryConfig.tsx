@@ -110,7 +110,7 @@ export const SalaryConfig: React.FC = () => {
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const snapshot = await getDocs(collection(db, 'staff'));
+        // const snapshot = await getDocs(collection(db, 'staff'));
         const staffData: StaffOption[] = [];
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
@@ -171,7 +171,7 @@ export const SalaryConfig: React.FC = () => {
       
       setLoadingClasses(true);
       try {
-        const snapshot = await getDocs(collection(db, 'classes'));
+        // const snapshot = await getDocs(collection(db, 'classes'));
         const classData: ClassOption[] = [];
         const staffName = selectedStaff.name;
         const staffId = selectedStaff.id;

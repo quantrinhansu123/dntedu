@@ -77,10 +77,10 @@ export const StudentDetail: React.FC = () => {
       if (!id) return;
       try {
         const q = query(
-          collection(db, 'studentAttendance'),
-          where('studentId', '==', id)
+      //           collection(db, 'studentAttendance'),
+      //           where('studentId', '==', id)
         );
-        const snapshot = await getDocs(q);
+        // const snapshot = await getDocs(q);
         const records = snapshot.docs.map(d => d.data()).filter(r => r.status && r.status !== '');
         
         const total = records.length;
@@ -129,10 +129,10 @@ export const StudentDetail: React.FC = () => {
       try {
         // Fetch enrollments
         const enrollQ = query(
-          collection(db, 'enrollments'),
-          where('studentId', '==', id)
+      //           collection(db, 'enrollments'),
+      //           where('studentId', '==', id)
         );
-        const enrollSnap = await getDocs(enrollQ);
+        // const enrollSnap = await getDocs(enrollQ);
         const enrollList = enrollSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         // Sort by createdAt desc
         enrollList.sort((a: any, b: any) => {
@@ -144,10 +144,10 @@ export const StudentDetail: React.FC = () => {
 
         // Fetch contracts
         const contractQ = query(
-          collection(db, 'contracts'),
-          where('studentId', '==', id)
+      //           collection(db, 'contracts'),
+      //           where('studentId', '==', id)
         );
-        const contractSnap = await getDocs(contractQ);
+        // const contractSnap = await getDocs(contractQ);
         const contractList = contractSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         contractList.sort((a: any, b: any) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -236,10 +236,10 @@ export const StudentDetail: React.FC = () => {
       
       // Get all sessions for this class
       const sessionsQuery = query(
-        collection(db, 'classSessions'),
-        where('classId', '==', classId)
+      //         collection(db, 'classSessions'),
+      //         where('classId', '==', classId)
       );
-      const sessionsSnap = await getDocs(sessionsQuery);
+      // const sessionsSnap = await getDocs(sessionsQuery);
       // Sort by sessionNumber locally (Firestore index not available)
       const sessions = sessionsSnap.docs.map(doc => ({
         id: doc.id,

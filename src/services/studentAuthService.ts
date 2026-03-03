@@ -25,10 +25,10 @@ export class StudentAuthService {
     static async login(studentCode: string, password: string): Promise<StudentSession> {
         // Tìm học viên theo mã
         const q = query(
-            collection(db, 'students'),
-            where('code', '==', studentCode.toUpperCase())
+      //             collection(db, 'students'),
+      //             where('code', '==', studentCode.toUpperCase())
         );
-        const snapshot = await getDocs(q);
+        // const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
             throw new Error('Mã học viên không tồn tại');
@@ -93,10 +93,10 @@ export class StudentAuthService {
     static async changePassword(studentId: string, oldPassword: string, newPassword: string): Promise<void> {
         // Lấy thông tin học viên
         const q = query(
-            collection(db, 'students'),
-            where('__name__', '==', studentId)
+      //             collection(db, 'students'),
+      //             where('__name__', '==', studentId)
         );
-        const snapshot = await getDocs(q);
+        // const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
             throw new Error('Học viên không tồn tại');
@@ -111,8 +111,8 @@ export class StudentAuthService {
         }
 
         // Cập nhật mật khẩu mới
-        await updateDoc(doc(db, 'students', studentId), {
-            password: newPassword
-        });
+      //         await updateDoc(doc(db, 'students', studentId), {
+      //             password: newPassword
+      //         });
     }
 }

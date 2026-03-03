@@ -30,11 +30,11 @@ export const getDebtRecords = async (): Promise<DebtRecord[]> => {
   try {
     // Get contracts with Debt status
     const q = query(
-      collection(db, CONTRACTS_COLLECTION),
-      where('status', 'in', ['Debt', 'Nợ phí'])
+      //       collection(db, CONTRACTS_COLLECTION),
+      //       where('status', 'in', ['Debt', 'Nợ phí'])
     );
     
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
     return snapshot.docs.map(docSnap => {
       const data = docSnap.data();
@@ -67,13 +67,13 @@ export const getDebtRecords = async (): Promise<DebtRecord[]> => {
 
 export const markAsPaid = async (contractId: string, paidAmount?: number): Promise<void> => {
   try {
-    const docRef = doc(db, CONTRACTS_COLLECTION, contractId);
-    await updateDoc(docRef, {
-      status: 'Paid',
-      paidAmount: paidAmount,
-      paidAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    // const docRef = doc(db, CONTRACTS_COLLECTION, contractId);
+      //     await updateDoc(docRef, {
+      //       status: 'Paid',
+      //       paidAmount: paidAmount,
+      //       paidAt: new Date().toISOString(),
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error marking as paid:', error);
     throw new Error('Không thể cập nhật trạng thái');
@@ -82,11 +82,11 @@ export const markAsPaid = async (contractId: string, paidAmount?: number): Promi
 
 export const updateDebtNote = async (contractId: string, note: string): Promise<void> => {
   try {
-    const docRef = doc(db, CONTRACTS_COLLECTION, contractId);
-    await updateDoc(docRef, {
-      note,
-      updatedAt: new Date().toISOString(),
-    });
+    // const docRef = doc(db, CONTRACTS_COLLECTION, contractId);
+      //     await updateDoc(docRef, {
+      //       note,
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error updating note:', error);
     throw new Error('Không thể cập nhật ghi chú');

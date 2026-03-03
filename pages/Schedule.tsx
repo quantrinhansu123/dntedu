@@ -105,8 +105,8 @@ export const Schedule: React.FC = () => {
   const handleColorChange = async (classId: string, colorIndex: number | undefined) => {
     setSavingColorId(classId);
     try {
-      await updateDoc(doc(db, 'classes', classId), {
-        color: colorIndex ?? null // null = auto (hash-based)
+      //       await updateDoc(doc(db, 'classes', classId), {
+      //         color: colorIndex ?? null // null = auto (hash-based)
       });
       setShowColorPicker(null);
     } catch (error) {
@@ -878,8 +878,8 @@ const ClassDetailModal: React.FC<ClassDetailModalProps> = ({ classData, allStude
     const fetchSessions = async () => {
       setLoading(true);
       try {
-        const sessionsSnap = await getDocs(
-          query(collection(db, 'classSessions'), where('classId', '==', classData.id))
+      //         const sessionsSnap = await getDocs(
+      //           query(collection(db, 'classSessions'), where('classId', '==', classData.id))
         );
         const data = sessionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setSessions(data);

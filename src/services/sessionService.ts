@@ -7,16 +7,16 @@
 import {
   collection,
   doc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  writeBatch,
-  Timestamp,
-} from 'firebase/firestore';
+      //   getDocs,
+      //   addDoc,
+      //   updateDoc,
+      //   deleteDoc,
+      //   query,
+      //   where,
+      //   orderBy,
+      //   writeBatch,
+      //   Timestamp,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 
 export interface ClassSession {
@@ -180,11 +180,11 @@ export const generateSessionsForClass = async (
 export const saveSessionsToFirestore = async (sessions: ClassSession[]): Promise<number> => {
   if (sessions.length === 0) return 0;
   
-  const batch = writeBatch(db);
+  // const batch = writeBatch(db);
   let count = 0;
   
   for (const session of sessions) {
-    const docRef = doc(collection(db, COLLECTION_NAME));
+    // const docRef = doc(collection(db, COLLECTION_NAME));
     batch.set(docRef, {
       ...session,
       createdAt: new Date().toISOString(),
@@ -215,12 +215,12 @@ export const getSessionsByClass = async (
 ): Promise<ClassSession[]> => {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME),
-      where('classId', '==', classId),
-      orderBy('date', 'asc')
+      //       collection(db, COLLECTION_NAME),
+      //       where('classId', '==', classId),
+      //       orderBy('date', 'asc')
     );
     
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     let sessions = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -271,13 +271,13 @@ export const getAllPendingSessions = async (
     const today = options?.fromDate || new Date().toISOString().split('T')[0];
     
     const q = query(
-      collection(db, COLLECTION_NAME),
-      where('status', '==', 'Chưa học'),
-      where('date', '>=', today),
-      orderBy('date', 'asc')
+      //       collection(db, COLLECTION_NAME),
+      //       where('status', '==', 'Chưa học'),
+      //       where('date', '>=', today),
+      //       orderBy('date', 'asc')
     );
     
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     let sessions = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -306,12 +306,12 @@ export const updateSessionStatus = async (
   attendanceId?: string
 ): Promise<void> => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, sessionId);
-    await updateDoc(docRef, {
-      status,
-      attendanceId: attendanceId || null,
-      updatedAt: new Date().toISOString(),
-    });
+    // const docRef = doc(db, COLLECTION_NAME, sessionId);
+      //     await updateDoc(docRef, {
+      //       status,
+      //       attendanceId: attendanceId || null,
+      //       updatedAt: new Date().toISOString(),
+      //     });
   } catch (error) {
     console.error('Error updating session:', error);
     throw error;
@@ -324,12 +324,12 @@ export const updateSessionStatus = async (
 export const deleteSessionsByClass = async (classId: string): Promise<number> => {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME),
-      where('classId', '==', classId)
+      //       collection(db, COLLECTION_NAME),
+      //       where('classId', '==', classId)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
-    const batch = writeBatch(db);
+    // const batch = writeBatch(db);
     snapshot.docs.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
     
@@ -349,11 +349,11 @@ export const getSessionByClassAndDate = async (
 ): Promise<ClassSession | null> => {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME),
-      where('classId', '==', classId),
-      where('date', '==', date)
+      //       collection(db, COLLECTION_NAME),
+      //       where('classId', '==', classId),
+      //       where('date', '==', date)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     
     if (snapshot.empty) return null;
     
@@ -398,7 +398,7 @@ export const addMakeupSession = async (
       createdAt: new Date().toISOString(),
     };
     
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), session);
+    // const docRef = await addDoc(collection(db, COLLECTION_NAME), session);
     return docRef.id;
   } catch (error) {
     console.error('Error adding makeup session:', error);

@@ -41,11 +41,11 @@ export const SalaryReportTeacher: React.FC = () => {
     const loadActualSalaries = async () => {
       try {
         const q = query(
-          collection(db, 'actualSalaries'),
-          where('month', '==', selectedMonth),
-          where('year', '==', selectedYear)
+      //           collection(db, 'actualSalaries'),
+      //           where('month', '==', selectedMonth),
+      //           where('year', '==', selectedYear)
         );
-        const snapshot = await getDocs(q);
+        // const snapshot = await getDocs(q);
         const salaries: Record<string, number> = {};
         snapshot.forEach((doc) => {
           const data = doc.data() as ActualSalary;
@@ -70,13 +70,13 @@ export const SalaryReportTeacher: React.FC = () => {
     setSavingActual(true);
     try {
       const docId = `${staffId}_${selectedMonth}_${selectedYear}`;
-      await setDoc(doc(db, 'actualSalaries', docId), {
-        staffId,
-        month: selectedMonth,
-        year: selectedYear,
-        actualSalary: tempActualSalary,
-        updatedAt: new Date().toISOString(),
-      });
+      //       await setDoc(doc(db, 'actualSalaries', docId), {
+      //         staffId,
+      //         month: selectedMonth,
+      //         year: selectedYear,
+      //         actualSalary: tempActualSalary,
+      //         updatedAt: new Date().toISOString(),
+      //       });
       
       setActualSalaries(prev => ({
         ...prev,
@@ -100,11 +100,11 @@ export const SalaryReportTeacher: React.FC = () => {
     
     try {
       // Save to Firebase
-      const docRef = doc(db, 'workDetails', editingSession.id);
-      await setDoc(docRef, {
-        ...editingSession,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      // const docRef = doc(db, 'workDetails', editingSession.id);
+      //       await setDoc(docRef, {
+      //         ...editingSession,
+      //         updatedAt: new Date().toISOString(),
+      //       }, { merge: true });
       
       // Refresh data
       await refresh(selectedMonth, selectedYear);

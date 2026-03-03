@@ -73,8 +73,8 @@ export const CustomerDatabase: React.FC = () => {
   useEffect(() => {
     const loadStatusConfig = async () => {
       try {
-        const docRef = doc(db, 'settings', 'leadStatusConfig');
-        const docSnap = await getDoc(docRef);
+        // const docRef = doc(db, 'settings', 'leadStatusConfig');
+        // const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setStatusConfigs(docSnap.data().statuses || []);
         } else {
@@ -108,7 +108,7 @@ export const CustomerDatabase: React.FC = () => {
   // Save status config
   const saveStatusConfig = async (configs: StatusConfig[]) => {
     try {
-      await setDoc(doc(db, 'settings', 'leadStatusConfig'), { statuses: configs });
+      // await setDoc(doc(db, 'settings', 'leadStatusConfig'), { statuses: configs });
       setStatusConfigs(configs);
     } catch (err) {
       console.error('Error saving status config:', err);

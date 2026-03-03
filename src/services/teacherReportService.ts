@@ -6,15 +6,15 @@
 import {
   collection,
   doc,
-  getDocs,
-  getDoc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-} from 'firebase/firestore';
+      //   getDocs,
+      //   getDoc,
+      //   addDoc,
+      //   updateDoc,
+      //   deleteDoc,
+      //   query,
+      //   where,
+      //   orderBy,
+      // } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 import { 
   TeacherDetailReport, 
@@ -40,14 +40,14 @@ export const getTeacherReports = async (period?: string): Promise<TeacherDetailR
     let q;
     if (period) {
       q = query(
-        collection(db, TEACHER_REPORTS_COLLECTION),
-        where('period', '==', period),
-        orderBy('teacherName', 'asc')
+      //         collection(db, TEACHER_REPORTS_COLLECTION),
+      //         where('period', '==', period),
+      //         orderBy('teacherName', 'asc')
       );
     } else {
-      q = query(collection(db, TEACHER_REPORTS_COLLECTION), orderBy('createdAt', 'desc'));
+      // q = query(collection(db, TEACHER_REPORTS_COLLECTION), orderBy('createdAt', 'desc'));
     }
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherDetailReport[];
   } catch (error) {
     console.error('Error fetching teacher reports:', error);
@@ -61,7 +61,7 @@ export const createTeacherReport = async (data: Omit<TeacherDetailReport, 'id'>)
       ...data,
       createdAt: new Date().toISOString(),
     };
-    const docRef = await addDoc(collection(db, TEACHER_REPORTS_COLLECTION), reportData);
+    // const docRef = await addDoc(collection(db, TEACHER_REPORTS_COLLECTION), reportData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating teacher report:', error);
@@ -71,8 +71,8 @@ export const createTeacherReport = async (data: Omit<TeacherDetailReport, 'id'>)
 
 export const updateTeacherReport = async (id: string, data: Partial<TeacherDetailReport>): Promise<void> => {
   try {
-    const docRef = doc(db, TEACHER_REPORTS_COLLECTION, id);
-    await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+    // const docRef = doc(db, TEACHER_REPORTS_COLLECTION, id);
+    // await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
   } catch (error) {
     console.error('Error updating teacher report:', error);
     throw error;
@@ -81,7 +81,7 @@ export const updateTeacherReport = async (id: string, data: Partial<TeacherDetai
 
 export const deleteTeacherReport = async (id: string): Promise<void> => {
   try {
-    await deleteDoc(doc(db, TEACHER_REPORTS_COLLECTION, id));
+    // await deleteDoc(doc(db, TEACHER_REPORTS_COLLECTION, id));
   } catch (error) {
     console.error('Error deleting teacher report:', error);
     throw error;
@@ -98,14 +98,14 @@ export const getTeacherTasks = async (status?: TaskStatus): Promise<TeacherTask[
     let q;
     if (status) {
       q = query(
-        collection(db, TEACHER_TASKS_COLLECTION),
-        where('status', '==', status),
-        orderBy('createdAt', 'desc')
+      //         collection(db, TEACHER_TASKS_COLLECTION),
+      //         where('status', '==', status),
+      //         orderBy('createdAt', 'desc')
       );
     } else {
-      q = query(collection(db, TEACHER_TASKS_COLLECTION), orderBy('createdAt', 'desc'));
+      // q = query(collection(db, TEACHER_TASKS_COLLECTION), orderBy('createdAt', 'desc'));
     }
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherTask[];
   } catch (error) {
     console.error('Error fetching teacher tasks:', error);
@@ -116,11 +116,11 @@ export const getTeacherTasks = async (status?: TaskStatus): Promise<TeacherTask[
 export const getTasksByStaff = async (staffId: string): Promise<TeacherTask[]> => {
   try {
     const q = query(
-      collection(db, TEACHER_TASKS_COLLECTION),
-      where('assignedTo', 'array-contains', staffId),
-      orderBy('createdAt', 'desc')
+      //       collection(db, TEACHER_TASKS_COLLECTION),
+      //       where('assignedTo', 'array-contains', staffId),
+      //       orderBy('createdAt', 'desc')
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherTask[];
   } catch (error) {
     console.error('Error fetching tasks by staff:', error);
@@ -136,7 +136,7 @@ export const createTeacherTask = async (data: Omit<TeacherTask, 'id'>): Promise<
       progress: data.progress || 0,
       createdAt: new Date().toISOString(),
     };
-    const docRef = await addDoc(collection(db, TEACHER_TASKS_COLLECTION), taskData);
+    // const docRef = await addDoc(collection(db, TEACHER_TASKS_COLLECTION), taskData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating teacher task:', error);
@@ -146,8 +146,8 @@ export const createTeacherTask = async (data: Omit<TeacherTask, 'id'>): Promise<
 
 export const updateTeacherTask = async (id: string, data: Partial<TeacherTask>): Promise<void> => {
   try {
-    const docRef = doc(db, TEACHER_TASKS_COLLECTION, id);
-    await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+    // const docRef = doc(db, TEACHER_TASKS_COLLECTION, id);
+    // await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
   } catch (error) {
     console.error('Error updating teacher task:', error);
     throw error;
@@ -158,15 +158,15 @@ export const deleteTeacherTask = async (id: string): Promise<void> => {
   try {
     // Delete all assignments for this task
     const assignmentsQuery = query(
-      collection(db, TASK_ASSIGNMENTS_COLLECTION),
-      where('taskId', '==', id)
+      //       collection(db, TASK_ASSIGNMENTS_COLLECTION),
+      //       where('taskId', '==', id)
     );
-    const assignmentsSnap = await getDocs(assignmentsQuery);
+    // const assignmentsSnap = await getDocs(assignmentsQuery);
     for (const doc of assignmentsSnap.docs) {
-      await deleteDoc(doc.ref);
+      // await deleteDoc(doc.ref);
     }
     
-    await deleteDoc(doc(db, TEACHER_TASKS_COLLECTION, id));
+    // await deleteDoc(doc(db, TEACHER_TASKS_COLLECTION, id));
   } catch (error) {
     console.error('Error deleting teacher task:', error);
     throw error;
@@ -180,10 +180,10 @@ export const deleteTeacherTask = async (id: string): Promise<void> => {
 export const getTaskAssignments = async (taskId: string): Promise<TaskAssignment[]> => {
   try {
     const q = query(
-      collection(db, TASK_ASSIGNMENTS_COLLECTION),
-      where('taskId', '==', taskId)
+      //       collection(db, TASK_ASSIGNMENTS_COLLECTION),
+      //       where('taskId', '==', taskId)
     );
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TaskAssignment[];
   } catch (error) {
     console.error('Error fetching task assignments:', error);
@@ -193,8 +193,8 @@ export const getTaskAssignments = async (taskId: string): Promise<TaskAssignment
 
 export const updateTaskAssignment = async (id: string, data: Partial<TaskAssignment>): Promise<void> => {
   try {
-    const docRef = doc(db, TASK_ASSIGNMENTS_COLLECTION, id);
-    await updateDoc(docRef, data);
+    // const docRef = doc(db, TASK_ASSIGNMENTS_COLLECTION, id);
+    // await updateDoc(docRef, data);
   } catch (error) {
     console.error('Error updating task assignment:', error);
     throw error;
@@ -207,9 +207,9 @@ export const updateTaskAssignment = async (id: string, data: Partial<TaskAssignm
 
 export const getTeacherGoals = async (staffId?: string, period?: string): Promise<TeacherGoal[]> => {
   try {
-    let q = query(collection(db, TEACHER_GOALS_COLLECTION), orderBy('createdAt', 'desc'));
+    // let q = query(collection(db, TEACHER_GOALS_COLLECTION), orderBy('createdAt', 'desc'));
     
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     let goals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherGoal[];
     
     if (staffId) {
@@ -235,7 +235,7 @@ export const createTeacherGoal = async (data: Omit<TeacherGoal, 'id'>): Promise<
       status: data.status || 'active',
       createdAt: new Date().toISOString(),
     };
-    const docRef = await addDoc(collection(db, TEACHER_GOALS_COLLECTION), goalData);
+    // const docRef = await addDoc(collection(db, TEACHER_GOALS_COLLECTION), goalData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating teacher goal:', error);
@@ -245,12 +245,12 @@ export const createTeacherGoal = async (data: Omit<TeacherGoal, 'id'>): Promise<
 
 export const updateTeacherGoal = async (id: string, data: Partial<TeacherGoal>): Promise<void> => {
   try {
-    const docRef = doc(db, TEACHER_GOALS_COLLECTION, id);
+    // const docRef = doc(db, TEACHER_GOALS_COLLECTION, id);
     // Auto calculate kpiResult
     if (data.kpiActual !== undefined && data.kpiTarget !== undefined) {
       data.kpiResult = data.kpiTarget > 0 ? Math.round((data.kpiActual / data.kpiTarget) * 100) : 0;
     }
-    await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+    // await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
   } catch (error) {
     console.error('Error updating teacher goal:', error);
     throw error;
@@ -259,7 +259,7 @@ export const updateTeacherGoal = async (id: string, data: Partial<TeacherGoal>):
 
 export const deleteTeacherGoal = async (id: string): Promise<void> => {
   try {
-    await deleteDoc(doc(db, TEACHER_GOALS_COLLECTION, id));
+    // await deleteDoc(doc(db, TEACHER_GOALS_COLLECTION, id));
   } catch (error) {
     console.error('Error deleting teacher goal:', error);
     throw error;
@@ -275,14 +275,14 @@ export const getTeacherPerformance = async (period?: string): Promise<TeacherPer
     let q;
     if (period) {
       q = query(
-        collection(db, TEACHER_PERFORMANCE_COLLECTION),
-        where('period', '==', period),
-        orderBy('staffName', 'asc')
+      //         collection(db, TEACHER_PERFORMANCE_COLLECTION),
+      //         where('period', '==', period),
+      //         orderBy('staffName', 'asc')
       );
     } else {
-      q = query(collection(db, TEACHER_PERFORMANCE_COLLECTION), orderBy('createdAt', 'desc'));
+      // q = query(collection(db, TEACHER_PERFORMANCE_COLLECTION), orderBy('createdAt', 'desc'));
     }
-    const snapshot = await getDocs(q);
+    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherPerformance[];
   } catch (error) {
     console.error('Error fetching teacher performance:', error);
@@ -348,16 +348,16 @@ export const saveTeacherPerformance = async (data: Omit<TeacherPerformance, 'id'
     const found = existing.find(p => p.staffId === data.staffId);
     
     if (found) {
-      await updateDoc(doc(db, TEACHER_PERFORMANCE_COLLECTION, found.id), {
-        ...data,
-        updatedAt: new Date().toISOString(),
-      });
+      //       await updateDoc(doc(db, TEACHER_PERFORMANCE_COLLECTION, found.id), {
+      //         ...data,
+      //         updatedAt: new Date().toISOString(),
+      //       });
       return found.id;
     } else {
-      const docRef = await addDoc(collection(db, TEACHER_PERFORMANCE_COLLECTION), {
-        ...data,
-        createdAt: new Date().toISOString(),
-      });
+      //       const docRef = await addDoc(collection(db, TEACHER_PERFORMANCE_COLLECTION), {
+      //         ...data,
+      //         createdAt: new Date().toISOString(),
+      //       });
       return docRef.id;
     }
   } catch (error) {

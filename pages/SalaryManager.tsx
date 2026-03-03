@@ -21,8 +21,8 @@ export const SalaryManager: React.FC = () => {
     useEffect(() => {
         const fetchConfig = async () => {
             try {
-                const docRef = doc(db, 'settings', 'salaryConfig');
-                const docSnap = await getDoc(docRef);
+                // const docRef = doc(db, 'settings', 'salaryConfig');
+                // const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setGlobalBaseSalary(docSnap.data().baseSalary || 1800000);
                 }
@@ -58,9 +58,9 @@ Hành động này sẽ lưu mức lương hiện tại của tất cả nhân v
     // Save global configuration
     const saveGlobalConfig = async () => {
         try {
-            await setDoc(doc(db, 'settings', 'salaryConfig'), {
-                baseSalary: globalBaseSalary,
-                updatedAt: new Date().toISOString()
+      //             await setDoc(doc(db, 'settings', 'salaryConfig'), {
+      //                 baseSalary: globalBaseSalary,
+      //                 updatedAt: new Date().toISOString()
             });
             alert('Đã lưu mức lương cơ sở!');
             // Re-calculate all visible staff? Or just let user click calculate

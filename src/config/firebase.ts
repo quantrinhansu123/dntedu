@@ -3,6 +3,6 @@
 
 // Mock exports để tránh lỗi khi import
 export const auth = null as any;
-export const db = null as any;
+// export const db = null as any;
 export const storage = null as any;
 export default null as any;

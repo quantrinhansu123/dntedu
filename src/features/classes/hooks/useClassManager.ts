@@ -80,10 +80,10 @@ export function useClassManager(options?: { searchTerm?: string }) {
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      collection(db, 'students'),
-      (snapshot) => {
-        const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      //     const unsubscribe = onSnapshot(
+      //       collection(db, 'students'),
+      //       (snapshot) => {
+      //         const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const PRICE_PER_SESSION = 150000;
         const counts: Record<string, ClassStudentCounts> = {};
 
@@ -145,10 +145,10 @@ export function useClassManager(options?: { searchTerm?: string }) {
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      collection(db, 'classSessions'),
-      (snapshot) => {
-        const stats: Record<string, ClassSessionStats> = {};
+      //     const unsubscribe = onSnapshot(
+      //       collection(db, 'classSessions'),
+      //       (snapshot) => {
+      //         const stats: Record<string, ClassSessionStats> = {};
 
         classes.forEach(cls => {
           stats[cls.id] = { completed: 0, total: 0 };
