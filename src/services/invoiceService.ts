@@ -3,12 +3,6 @@
  * Handle book/product invoices CRUD
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   orderBy,
-
 const INVOICES_COLLECTION = 'invoices';
 
 export type InvoiceStatus = 'Chờ thanh toán' | 'Đã thanh toán' | 'Đã hủy';
@@ -66,10 +60,17 @@ export const createInvoice = async (data: Omit<Invoice, 'id' | 'invoiceCode'>): 
 
 export const getInvoices = async (): Promise<Invoice[]> => {
   try {
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as Invoice));
+    // TODO: Implement Supabase query
+    // const { data, error } = await supabase
+    //   .from(INVOICES_COLLECTION)
+    //   .select('*')
+    //   .order('created_at', { ascending: false });
+    // if (error) throw error;
+    // return (data || []).map(item => ({
+    //   id: item.id,
+    //   ...item,
+    // } as Invoice));
+    return [];
   } catch (error) {
     console.error('Error getting invoices:', error);
     throw new Error('Không thể tải danh sách hóa đơn');

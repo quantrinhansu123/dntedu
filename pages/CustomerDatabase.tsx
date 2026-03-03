@@ -69,18 +69,24 @@ export const CustomerDatabase: React.FC = () => {
 
   // Load status config from Firestore
   useEffect(() => {
-    const loadStatusConfig = async () => {
-      try {
-        if (docSnap.exists()) {
-          setStatusConfigs(docSnap.data().statuses || []);
-        } else {
+      const loadStatusConfig = async () => {
+        try {
+          // TODO: Implement Supabase query for status config
+          // const { data } = await supabase
+          //   .from('statusConfigs')
+          //   .select('*')
+          //   .single();
+          
+          // if (data) {
+          //   setStatusConfigs(data.options || DEFAULT_STATUS_OPTIONS);
+          // } else {
           // Initialize with default statuses
           const defaultConfigs = DEFAULT_STATUS_OPTIONS.map(name => ({
             name,
             color: DEFAULT_STATUS_COLORS[name] || AVAILABLE_COLORS[0].value
           }));
           setStatusConfigs(defaultConfigs);
-        }
+          // }
       } catch (err) {
         console.error('Error loading status config:', err);
         // Fallback to defaults

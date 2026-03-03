@@ -59,20 +59,26 @@ export const TeacherDetailReport: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [staffSnap, classesSnap, studentsSnap, attendanceSnap, reportsSnap] = await Promise.all([
-      //       ]);
+      // TODO: Implement Supabase queries
+      // const [staffData, classesData, studentsData, attendanceData, reportsData] = await Promise.all([
+      //   supabase.from('staff').select('*'),
+      //   supabase.from('classes').select('*'),
+      //   supabase.from('students').select('*'),
+      //   supabase.from('attendance').select('*'),
+      //   supabase.from('teacherReports').select('*')
+      // ]);
       
-      const allStaff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Staff[];
+      const allStaff: Staff[] = []; // staffData?.data || [];
       const teacherStaff = allStaff.filter(s => 
         s.role === 'Giáo viên' || s.role === 'Trợ giảng' || 
         s.roles?.includes('Giáo viên') || s.roles?.includes('Trợ giảng')
       );
       
       setTeachers(teacherStaff);
-      setClasses(classesSnap.docs.map(d => ({ id: d.id, ...d.data() })) as ClassModel[]);
-      setStudents(studentsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Student[]);
-      setAttendance(attendanceSnap.docs.map(d => ({ id: d.id, ...d.data() })) as StudentAttendance[]);
-      setSavedReports(reportsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as TeacherReport[]);
+      setClasses([]); // classesData?.data || []
+      setStudents([]); // studentsData?.data || []
+      setAttendance([]); // attendanceData?.data || []
+      setSavedReports([]); // reportsData?.data || []
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {

@@ -3,12 +3,6 @@
  * Báo cáo chi tiết giáo viên, task, mục tiêu
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
 import { 
   TeacherDetailReport, 
   TeacherTask, 
@@ -33,10 +27,8 @@ export const getTeacherReports = async (period?: string): Promise<TeacherDetailR
     let q;
     if (period) {
       //         orderBy('teacherName', 'asc')
-      );
     } else {
     }
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherDetailReport[];
   } catch (error) {
     console.error('Error fetching teacher reports:', error);
     throw error;
@@ -82,10 +74,8 @@ export const getTeacherTasks = async (status?: TaskStatus): Promise<TeacherTask[
     let q;
     if (status) {
       //         orderBy('createdAt', 'desc')
-      );
     } else {
     }
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherTask[];
   } catch (error) {
     console.error('Error fetching teacher tasks:', error);
     throw error;
@@ -94,8 +84,6 @@ export const getTeacherTasks = async (status?: TaskStatus): Promise<TeacherTask[
 
 export const getTasksByStaff = async (staffId: string): Promise<TeacherTask[]> => {
   try {
-    );
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherTask[];
   } catch (error) {
     console.error('Error fetching tasks by staff:', error);
     throw error;
@@ -128,7 +116,6 @@ export const updateTeacherTask = async (id: string, data: Partial<TeacherTask>):
 export const deleteTeacherTask = async (id: string): Promise<void> => {
   try {
     // Delete all assignments for this task
-    );
     for (const doc of assignmentsSnap.docs) {
     }
     
@@ -144,8 +131,6 @@ export const deleteTeacherTask = async (id: string): Promise<void> => {
 
 export const getTaskAssignments = async (taskId: string): Promise<TaskAssignment[]> => {
   try {
-    );
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TaskAssignment[];
   } catch (error) {
     console.error('Error fetching task assignments:', error);
     throw error;
@@ -228,10 +213,8 @@ export const getTeacherPerformance = async (period?: string): Promise<TeacherPer
     let q;
     if (period) {
       //         orderBy('staffName', 'asc')
-      );
     } else {
     }
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TeacherPerformance[];
   } catch (error) {
     console.error('Error fetching teacher performance:', error);
     throw error;

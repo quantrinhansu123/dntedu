@@ -3,12 +3,6 @@
  * CRUD operations cho Marketing Tasks
  */
 
-import {
-    collection,
-    doc,
-      //     query,
-      //     where,
-      //     orderBy,
 import { MarketingTask } from '../types/marketingTypes';
 
 const COLLECTION = 'marketingTasks';
@@ -47,8 +41,6 @@ export const getTasks = async (filters?: {
 // Get single task
 export const getTask = async (id: string): Promise<MarketingTask | null> => {
     try {
-        if (!docSnap.exists()) return null;
-        return { id: docSnap.id, ...docSnap.data() } as MarketingTask;
     } catch (error) {
         console.error('Error getting task:', error);
         throw error;

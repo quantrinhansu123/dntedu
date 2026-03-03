@@ -45,7 +45,6 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
             // Sort by createdAt descending
             data.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
-            setConfigs(data);
         } catch (err: any) {
             console.error('Error fetching bonus configs:', err);
             setError(err.message || 'Không thể tải cấu hình thưởng');

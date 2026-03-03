@@ -11,8 +11,6 @@ export const useSalaryScale = () => {
     try {
       setLoading(true);
       const data: SalaryScale[] = [];
-      snapshot.forEach((docSnap) => {
-        data.push({ id: docSnap.id, ...docSnap.data() } as SalaryScale);
       });
       setSalaryScales(data);
     } catch (error) {

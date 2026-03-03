@@ -39,24 +39,26 @@ export const useLeads = (props?: UseLeadsProps): UseLeadsReturn => {
     setLoading(true);
     setError(null);
 
-    
-      //       q,
-      //       (snapshot) => {
-      //         const data = snapshot.docs.map(doc => ({
-      //           id: doc.id,
-      //           ...doc.data(),
-      //         } as Lead));
+    const fetchLeads = async () => {
+      try {
+        // TODO: Implement Supabase query
+        // const { data } = await supabase
+        //   .from('leads')
+        //   .select('*')
+        //   .order('created_at', { ascending: false });
+        
+        const data: Lead[] = []; // data || [];
         setAllLeads(data);
         setLoading(false);
-      },
-      (err) => {
+      } catch (err: any) {
         console.error('Error listening to leads:', err);
         setError(err.message || 'Không thể tải danh sách khách hàng');
         setLoading(false);
       }
-    );
+    };
+    
+    fetchLeads();
 
-    return () => unsubscribe();
   }, []);
 
   // Filter leads based on props

@@ -103,8 +103,14 @@ export const Schedule: React.FC = () => {
   const handleColorChange = async (classId: string, colorIndex: number | undefined) => {
     setSavingColorId(classId);
     try {
-      //         color: colorIndex ?? null // null = auto (hash-based)
-      });
+      // TODO: Implement Supabase update for class color
+      // const { error } = await supabase
+      //   .from('classes')
+      //   .update({ color: colorIndex ?? null })
+      //   .eq('id', classId);
+      
+      // if (error) throw error;
+      
       setShowColorPicker(null);
     } catch (error) {
       console.error('Error updating class color:', error);
@@ -874,7 +880,6 @@ const ClassDetailModal: React.FC<ClassDetailModalProps> = ({ classData, allStude
     const fetchSessions = async () => {
       setLoading(true);
       try {
-        );
         const data = sessionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setSessions(data);
       } catch (err) {

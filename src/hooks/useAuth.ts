@@ -25,7 +25,6 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {

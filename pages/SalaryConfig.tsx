@@ -109,7 +109,6 @@ export const SalaryConfig: React.FC = () => {
     const fetchStaff = async () => {
       try {
         const staffData: StaffOption[] = [];
-        snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           const normalizedPos = normalizePosition(data.position || '');
           // Get roles array or create from single position
@@ -118,7 +117,6 @@ export const SalaryConfig: React.FC = () => {
             : [normalizedPos || data.role || 'Nhân viên'];
           // Include all staff for salary configuration
           staffData.push({
-            id: docSnap.id,
             name: data.name || '',
             position: normalizedPos,
             department: data.department || '',
@@ -172,7 +170,6 @@ export const SalaryConfig: React.FC = () => {
         const staffName = selectedStaff.name;
         const staffId = selectedStaff.id;
         
-        snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           
           // Check multiple ways: ID match OR name match
@@ -198,7 +195,6 @@ export const SalaryConfig: React.FC = () => {
           
           if (isTeacher || isAssistant || isForeignTeacher || isInScheduleDetails) {
             classData.push({
-              id: docSnap.id,
               name: data.name || '',
               code: data.code || data.id || '',
               teacherId: data.teacherId,

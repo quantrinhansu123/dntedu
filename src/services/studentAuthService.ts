@@ -3,7 +3,8 @@
  * Xác thực học viên bằng mã học viên + mật khẩu
  */
 
-// ;
+import { supabase } from '../config/supabase';
+import { transformStudentFromSupabase } from './studentSupabaseService';
 
 export interface StudentSession {
     studentId: string;
@@ -22,36 +23,44 @@ export class StudentAuthService {
      * Đăng nhập học viên bằng mã học viên + password
      */
     static async login(studentCode: string, password: string): Promise<StudentSession> {
-        // Tìm học viên theo mã
-        );
+        try {
+            // Tìm học viên theo mã
+            const { data, error } = await supabase
+                .from('students')
+                .select('*')
+                .eq('code', studentCode)
+                .single();
 
-        if (snapshot.empty) {
-            throw new Error('Mã học viên không tồn tại');
+            if (error || !data) {
+                throw new Error('Mã học viên không tồn tại');
+            }
+
+            const student = transformStudentFromSupabase(data);
+
+            // Kiểm tra password (mặc định là 123456 nếu chưa đổi)
+            const storedPassword = student.password || DEFAULT_PASSWORD;
+            if (password !== storedPassword) {
+                throw new Error('Mật khẩu không đúng');
+            }
+
+            // Tạo session
+            const session: StudentSession = {
+                studentId: student.id,
+                studentCode: student.code,
+                studentName: student.fullName || 'Học viên',
+                classId: student.classId,
+                className: student.class,
+                loginAt: new Date().toISOString()
+            };
+
+            // Lưu session vào localStorage
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+            return session;
+        } catch (error: any) {
+            console.error('Login error:', error);
+            throw error;
         }
-
-        const studentDoc = snapshot.docs[0];
-        const studentData = studentDoc.data();
-
-        // Kiểm tra password (mặc định là 123456 nếu chưa đổi)
-        const storedPassword = studentData.password || DEFAULT_PASSWORD;
-        if (password !== storedPassword) {
-            throw new Error('Mật khẩu không đúng');
-        }
-
-        // Tạo session
-        const session: StudentSession = {
-            studentId: studentDoc.id,
-            studentCode: studentData.code,
-            studentName: studentData.fullName || studentData.name || 'Học viên',
-            classId: studentData.classId,
-            className: studentData.class || studentData.className,
-            loginAt: new Date().toISOString()
-        };
-
-        // Lưu session vào localStorage
-        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-        return session;
     }
 
     /**
@@ -86,23 +95,37 @@ export class StudentAuthService {
      * Đổi mật khẩu
      */
     static async changePassword(studentId: string, oldPassword: string, newPassword: string): Promise<void> {
-        // Lấy thông tin học viên
-        );
+        try {
+            // Lấy thông tin học viên
+            const { data, error } = await supabase
+                .from('students')
+                .select('*')
+                .eq('id', studentId)
+                .single();
 
-        if (snapshot.empty) {
-            throw new Error('Học viên không tồn tại');
+            if (error || !data) {
+                throw new Error('Học viên không tồn tại');
+            }
+
+            const student = transformStudentFromSupabase(data);
+            const storedPassword = student.password || DEFAULT_PASSWORD;
+
+            if (oldPassword !== storedPassword) {
+                throw new Error('Mật khẩu cũ không đúng');
+            }
+
+            // Cập nhật mật khẩu mới
+            const { error: updateError } = await supabase
+                .from('students')
+                .update({ password: newPassword })
+                .eq('id', studentId);
+
+            if (updateError) {
+                throw new Error('Không thể cập nhật mật khẩu');
+            }
+        } catch (error: any) {
+            console.error('Change password error:', error);
+            throw error;
         }
-
-        const studentDoc = snapshot.docs[0];
-        const studentData = studentDoc.data();
-        const storedPassword = studentData.password || DEFAULT_PASSWORD;
-
-        if (oldPassword !== storedPassword) {
-            throw new Error('Mật khẩu cũ không đúng');
-        }
-
-        // Cập nhật mật khẩu mới
-      //             password: newPassword
-      //         });
     }
 }

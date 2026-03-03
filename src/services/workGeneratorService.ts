@@ -76,7 +76,6 @@ export const getHolidays = async (startDate: string, endDate: string): Promise<s
   try {
     const holidays: string[] = [];
     
-    snapshot.docs.forEach(doc => {
       const data = doc.data();
       const holidayDate = data.date?.toDate?.()?.toISOString().split('T')[0] || data.date;
       if (holidayDate >= startDate && holidayDate <= endDate) {
@@ -98,8 +97,6 @@ const checkExistingSession = async (
   className: string
 ): Promise<boolean> => {
   try {
-    );
-    return !snapshot.empty;
   } catch (error) {
     console.error('Error checking existing session:', error);
     return false;

@@ -9,7 +9,7 @@ import { Student, CareLog } from '../../types';
 /**
  * Chuyển đổi Student từ format Supabase sang StudentModel
  */
-const transformStudentFromSupabase = (data: any): Student => {
+export const transformStudentFromSupabase = (data: any): Student => {
   return {
     id: data.id,
     code: data.code || '',

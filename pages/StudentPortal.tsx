@@ -188,7 +188,6 @@ export const StudentPortal: React.FC = () => {
             // Load class info
             if (studentSession.classId) {
                 try {
-                    );
                     if (!classDoc.empty) {
                         const classData = { id: classDoc.docs[0].id, ...classDoc.docs[0].data() } as any;
                         setClassInfo(classData);
@@ -220,7 +219,6 @@ export const StudentPortal: React.FC = () => {
 
                 // Load schedules for this class
                 try {
-                    );
                     setSchedules(schedulesSnapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data()
@@ -231,7 +229,6 @@ export const StudentPortal: React.FC = () => {
 
                 // Load homeworks - simple query without orderBy to avoid index requirement
                 try {
-                    );
                     const hwList = homeworksSnapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data()

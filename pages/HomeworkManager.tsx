@@ -176,11 +176,9 @@ export const HomeworkManager: React.FC = () => {
   // Load global statuses from Firestore
   useEffect(() => {
     const loadStatuses = async () => {
-      try {
-        if (docSnap.exists()) {
-          setGlobalStatuses(docSnap.data().statuses || DEFAULT_HOMEWORK_STATUSES);
-        }
-      } catch (err) {
+        try {
+          // TODO: Implement Supabase query
+        } catch (err) {
         console.error('Error loading statuses:', err);
       }
     };
@@ -197,10 +195,14 @@ export const HomeworkManager: React.FC = () => {
 
       setLoadingSessions(true);
       try {
-        );
-        const data = sessionsSnap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
-          .sort((a: any, b: any) => a.sessionNumber - b.sessionNumber);
+        // TODO: Implement Supabase query for sessions
+        // const { data } = await supabase
+        //   .from('sessions')
+        //   .select('*')
+        //   .eq('classId', selectedClassId)
+        //   .order('sessionNumber', { ascending: true });
+        
+        const data: any[] = []; // data || [];
         setSessions(data);
       } catch (err) {
         console.error('Error loading sessions:', err);
@@ -224,16 +226,20 @@ export const HomeworkManager: React.FC = () => {
 
       setLoading(true);
       try {
-          )
-        );
+        // TODO: Implement Supabase query for homework records
+        // const { data: recordsData } = await supabase
+        //   .from('homeworkRecords')
+        //   .select('*')
+        //   .eq('classId', selectedClassId)
+        //   .eq('sessionId', selectedSessionId)
+        //   .limit(1)
+        //   .single();
 
-        if (!recordsSnap.empty) {
-          const record = recordsSnap.docs[0];
-          const data = record.data() as HomeworkSession;
-          setExistingRecordId(record.id);
-          setHomeworks(data.homeworks || []);
-          setStudentRecords(data.studentRecords || []);
-        } else {
+        // if (recordsData) {
+        //   setExistingRecordId(recordsData.id);
+        //   setHomeworks(recordsData.homeworks || []);
+        //   setStudentRecords(recordsData.studentRecords || []);
+          // } else {
           setExistingRecordId(null);
           setHomeworks([]);
           setStudentRecords(
@@ -244,7 +250,7 @@ export const HomeworkManager: React.FC = () => {
               note: ''
             }))
           );
-        }
+          // }
       } catch (err) {
         console.error('Error loading homework record:', err);
       } finally {
@@ -262,8 +268,14 @@ export const HomeworkManager: React.FC = () => {
 
       setLoadingMonthly(true);
       try {
-        );
-        const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as MonthlyComment[];
+        // TODO: Implement Supabase query for monthly comments
+        // const { data } = await supabase
+        //   .from('monthlyComments')
+        //   .select('*')
+        //   .eq('classId', selectedClassId)
+        //   .eq('month', selectedMonth);
+        
+        const data: MonthlyComment[] = []; // data || [];
         setMonthlyComments(data);
       } catch (err) {
         console.error('Error loading monthly comments:', err);
@@ -281,8 +293,14 @@ export const HomeworkManager: React.FC = () => {
 
       setLoadingTests(true);
       try {
-        );
-        const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as TestComment[];
+        // TODO: Implement Supabase query for test comments
+        // const { data } = await supabase
+        //   .from('testComments')
+        //   .select('*')
+        //   .eq('classId', selectedClassId)
+        //   .order('testDate', { ascending: false });
+        
+        const data: TestComment[] = []; // data || [];
         data.sort((a, b) => (b.testDate || '').localeCompare(a.testDate || ''));
         setTestComments(data);
       } catch (err) {
@@ -399,9 +417,20 @@ export const HomeworkManager: React.FC = () => {
       };
 
       if (existingRecordId) {
+        // TODO: Implement Supabase update
+        // const { error } = await supabase
+        //   .from('homeworkRecords')
+        //   .update(recordData)
+        //   .eq('id', existingRecordId);
       } else {
         recordData.createdAt = new Date().toISOString();
-        setExistingRecordId(docRef.id);
+        // TODO: Implement Supabase insert
+        // const { data, error } = await supabase
+        //   .from('homeworkRecords')
+        //   .insert(recordData)
+        //   .select()
+        //   .single();
+        // if (data) setExistingRecordId(data.id);
       }
 
       alert('Đã lưu thành công!');
@@ -468,9 +497,13 @@ export const HomeworkManager: React.FC = () => {
       for (const classId of selectedBulkClassIds) {
         const selectedClass = classes.find(c => c.id === classId);
 
-        // Get all sessions for this class
-        );
-        const classSessions = sessionsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // TODO: Implement Supabase query for sessions
+        // const { data: sessionsData } = await supabase
+        //   .from('sessions')
+        //   .select('*')
+        //   .eq('classId', classId);
+        
+        const classSessions: any[] = []; // sessionsData || [];
 
         const homeworkList = validHomeworks.map(name => ({
           id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
@@ -479,37 +512,41 @@ export const HomeworkManager: React.FC = () => {
         }));
 
         for (const session of classSessions) {
-          );
 
-          if (!existingSnap.empty) {
-            const existingDoc = existingSnap.docs[0];
-            const existingData = existingDoc.data();
-            const existingHomeworks = existingData.homeworks || [];
+          // TODO: Check if homework record exists for this session
+          // const { data: existingRecord } = await supabase
+          //   .from('homeworkRecords')
+          //   .select('*')
+          //   .eq('classId', classId)
+          //   .eq('sessionId', session.id)
+          //   .limit(1)
+          //   .single();
 
-            const newHomeworks = homeworkList.filter(
-              h => !existingHomeworks.some((eh: any) => eh.name === h.name)
-            );
-
-            if (newHomeworks.length > 0) {
-      //                 homeworks: [...existingHomeworks, ...newHomeworks],
-      //                 updatedAt: new Date().toISOString()
-              });
-              totalUpdated++;
-            }
-          } else {
-              classId,
-              className: selectedClass?.name || '',
-              sessionId: session.id,
-              sessionNumber: (session as any).sessionNumber || 0,
-              sessionDate: (session as any).date || '',
-              homeworks: homeworkList,
-              studentRecords: [],
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              createdBy: staffData?.name || user?.displayName || 'Unknown'
-            });
+          // if (existingRecord) {
+          //   const existingHomeworks = existingRecord.homeworks || [];
+          //   const newHomeworks = homeworkList.filter(
+          //     h => !existingHomeworks.some((eh: any) => eh.name === h.name)
+          //   );
+          //   if (newHomeworks.length > 0) {
+          //     // TODO: Update with Supabase
+          //     totalUpdated++;
+          //   }
+          // } else {
+            // TODO: Insert with Supabase
+            // const recordData = {
+            //   classId,
+            //   className: selectedClass?.name || '',
+            //   sessionId: session.id,
+            //   sessionNumber: (session as any).sessionNumber || 0,
+            //   sessionDate: (session as any).date || '',
+            //   homeworks: homeworkList,
+            //   studentRecords: [],
+            //   createdAt: new Date().toISOString(),
+            //   updatedAt: new Date().toISOString(),
+            //   createdBy: staffData?.name || user?.displayName || 'Unknown'
+            // };
             totalCreated++;
-          }
+          // }
         }
       }
 
@@ -532,7 +569,6 @@ export const HomeworkManager: React.FC = () => {
       if (existing?.id) {
       //           comment,
       //           updatedAt: new Date().toISOString()
-        });
       } else {
       //           classId: selectedClassId,
       //           studentId,
@@ -544,9 +580,13 @@ export const HomeworkManager: React.FC = () => {
       //           createdBy: staffData?.name || user?.displayName || 'Unknown'
       //         });
       }
-      // Reload
-      );
-      setMonthlyComments(snap.docs.map(d => ({ id: d.id, ...d.data() })) as MonthlyComment[]);
+      // TODO: Reload monthly comments from Supabase
+      // const { data } = await supabase
+      //   .from('monthlyComments')
+      //   .select('*')
+      //   .eq('classId', selectedClassId)
+      //   .eq('month', selectedMonth);
+      // if (data) setMonthlyComments(data as MonthlyComment[]);
     } catch (err) {
       console.error('Error saving monthly comment:', err);
       alert('Có lỗi xảy ra!');
@@ -561,22 +601,30 @@ export const HomeworkManager: React.FC = () => {
       //           comment,
       //           score,
       //           updatedAt: new Date().toISOString()
-        });
       } else {
-          classId: selectedClassId,
-          studentId,
-          studentName,
-          testName,
-          testDate: '',
-          comment,
-          score,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdBy: staffData?.name || user?.displayName || 'Unknown'
-        });
+        // TODO: Insert test comment with Supabase
+        // const { error } = await supabase
+        //   .from('testComments')
+        //   .insert({
+        //     classId: selectedClassId,
+        //     studentId,
+        //     studentName,
+        //     testName,
+        //     testDate: '',
+        //     comment,
+        //     score,
+        //     createdAt: new Date().toISOString(),
+        //     updatedAt: new Date().toISOString(),
+        //     createdBy: staffData?.name || user?.displayName || 'Unknown'
+        //   });
       }
-      // Reload
-      setTestComments(snap.docs.map(d => ({ id: d.id, ...d.data() })) as TestComment[]);
+      // TODO: Reload test comments from Supabase
+      // const { data } = await supabase
+      //   .from('testComments')
+      //   .select('*')
+      //   .eq('classId', selectedClassId)
+      //   .order('testDate', { ascending: false });
+      // if (data) setTestComments(data as TestComment[]);
     } catch (err) {
       console.error('Error saving test comment:', err);
     }
@@ -1247,22 +1295,28 @@ export const HomeworkManager: React.FC = () => {
                     return;
                   }
                   try {
-                    // Create test records for all students
-                    for (const student of studentsInClass) {
-                        classId: selectedClassId,
-                        studentId: student.id,
-                        studentName: student.fullName || student.name || '',
-                        testName: newTestName,
-                        testDate: newTestDate,
-                        comment: '',
-                        score: null,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        createdBy: staffData?.name || user?.displayName || 'Unknown'
-                      });
-                    }
-                    // Reload
-                    setTestComments(snap.docs.map(d => ({ id: d.id, ...d.data() })) as TestComment[]);
+                    // TODO: Create test records for all students with Supabase
+                    // for (const student of studentsInClass) {
+                    //   await supabase.from('testComments').insert({
+                    //     classId: selectedClassId,
+                    //     studentId: student.id,
+                    //     studentName: student.fullName || student.name || '',
+                    //     testName: newTestName,
+                    //     testDate: newTestDate,
+                    //     comment: '',
+                    //     score: null,
+                    //     createdAt: new Date().toISOString(),
+                    //     updatedAt: new Date().toISOString(),
+                    //     createdBy: staffData?.name || user?.displayName || 'Unknown'
+                    //   });
+                    // }
+                    // TODO: Reload test comments from Supabase
+                    // const { data } = await supabase
+                    //   .from('testComments')
+                    //   .select('*')
+                    //   .eq('classId', selectedClassId)
+                    //   .order('testDate', { ascending: false });
+                    // if (data) setTestComments(data as TestComment[]);
                     setShowAddTestModal(false);
                     setNewTestName('');
                     setNewTestDate('');

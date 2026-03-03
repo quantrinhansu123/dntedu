@@ -19,9 +19,16 @@ export const SalaryManager: React.FC = () => {
     useEffect(() => {
         const fetchConfig = async () => {
             try {
-                if (docSnap.exists()) {
-                    setGlobalBaseSalary(docSnap.data().baseSalary || 1800000);
-                }
+                // TODO: Implement Supabase query for global salary config
+                // const { data } = await supabase
+                //   .from('settings')
+                //   .select('value')
+                //   .eq('key', 'globalBaseSalary')
+                //   .single();
+                
+                // if (data) {
+                //   setGlobalBaseSalary(parseFloat(data.value) || 1800000);
+                // }
             } catch (err) {
                 console.error('Error fetching salary config:', err);
             } finally {
@@ -54,9 +61,17 @@ Hành động này sẽ lưu mức lương hiện tại của tất cả nhân v
     // Save global configuration
     const saveGlobalConfig = async () => {
         try {
-      //                 baseSalary: globalBaseSalary,
-      //                 updatedAt: new Date().toISOString()
-            });
+            // TODO: Implement Supabase update for global salary config
+            // const { error } = await supabase
+            //   .from('settings')
+            //   .upsert({
+            //     key: 'globalBaseSalary',
+            //     value: globalBaseSalary,
+            //     updatedAt: new Date().toISOString()
+            //   });
+            
+            // if (error) throw error;
+            
             alert('Đã lưu mức lương cơ sở!');
             // Re-calculate all visible staff? Or just let user click calculate
         } catch (err) {

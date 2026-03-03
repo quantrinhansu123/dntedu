@@ -3,12 +3,6 @@
  * Handle monthly comments and report generation
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
 import { 
   MonthlyComment, 
   MonthlyReportStats, 
@@ -68,30 +62,40 @@ export const getMonthlyComment = async (
   year: number
 ): Promise<MonthlyComment | null> => {
   try {
-    // Try format 1: month and year as separate fields
-    );
+    // TODO: Try format 1: month and year as separate fields with Supabase
+    // const { data: data1 } = await supabase
+    //   .from(MONTHLY_COMMENTS_COLLECTION)
+    //   .select('*')
+    //   .eq('studentId', studentId)
+    //   .eq('month', month)
+    //   .eq('year', year)
+    //   .limit(1)
+    //   .single();
     
-    if (!snapshot1.empty) {
-      const docData = snapshot1.docs[0];
-      return { id: docData.id, ...docData.data() } as MonthlyComment;
-    }
+    // if (data1) {
+    //   return data1 as MonthlyComment;
+    // }
     
-    // Try format 2: month as "YYYY-MM" string (from HomeworkManager)
-    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-    );
+    // TODO: Try format 2: month as "YYYY-MM" string (from HomeworkManager)
+    // const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+    // const { data: data2 } = await supabase
+    //   .from(MONTHLY_COMMENTS_COLLECTION)
+    //   .select('*')
+    //   .eq('studentId', studentId)
+    //   .eq('month', monthStr)
+    //   .limit(1)
+    //   .single();
     
-    if (!snapshot2.empty) {
-      const docData = snapshot2.docs[0];
-      const data = docData.data();
-      // Normalize to standard format
-      return { 
-        id: docData.id, 
-        ...data,
-        teacherComment: data.teacherComment || data.comment || '',
-        month,
-        year,
-      } as MonthlyComment;
-    }
+    // if (data2) {
+    //   const data = data2;
+    //   return { 
+    //     id: data.id, 
+    //     ...data,
+    //     teacherComment: data.teacherComment || data.comment || '',
+    //     month,
+    //     year,
+    //   } as MonthlyComment;
+    // }
     
     return null;
   } catch (error) {
@@ -109,12 +113,15 @@ export const getStudentMonthlyComments = async (
   year: number
 ): Promise<MonthlyComment[]> => {
   try {
-    );
-    
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as MonthlyComment));
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from(MONTHLY_COMMENTS_COLLECTION)
+    //   .select('*')
+    //   .eq('studentId', studentId)
+    //   .eq('month', month)
+    //   .eq('year', year);
+    // return data || [];
+    return [];
   } catch (error) {
     console.error('Error getting student monthly comments:', error);
     return [];
@@ -150,18 +157,22 @@ export const getStudentTestComments = async (
   classId: string
 ): Promise<TestCommentData[]> => {
   try {
-    );
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from('testComments')
+    //   .select('*')
+    //   .eq('studentId', studentId)
+    //   .eq('classId', classId)
+    //   .order('testDate', { ascending: false });
     
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        testName: data.testName || '',
-        testDate: data.testDate || '',
-        comment: data.comment || '',
-        score: data.score ?? null,
-      };
-    }).sort((a, b) => (b.testDate || '').localeCompare(a.testDate || ''));
+    // return (data || []).map((doc: any) => ({
+    //   id: doc.id,
+    //   testName: doc.testName || '',
+    //   testDate: doc.testDate || '',
+    //   comment: doc.comment || '',
+    //   score: doc.score ?? null,
+    // }));
+    return [];
   } catch (error) {
     console.error('Error getting test comments:', error);
     return [];
@@ -195,41 +206,44 @@ export const getStudentHomeworkSummary = async (
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
     
-    );
+    // TODO: Implement Supabase query for homework records
+    // const { data: homeworkRecords } = await supabase
+    //   .from('homeworkRecords')
+    //   .select('*')
+    //   .eq('classId', classId)
+    //   .gte('sessionDate', startDate)
+    //   .lte('sessionDate', endDate);
     
     let totalHomeworks = 0;
     let completedHomeworks = 0;
     const homeworkDetails: HomeworkSummary['homeworkDetails'] = [];
     
-    snapshot.docs.forEach(doc => {
-      const data = doc.data();
-      const sessionDate = data.sessionDate || '';
-      
-      // Filter by date range
-      if (sessionDate < startDate || sessionDate > endDate) return;
-      
-      const studentRecord = (data.studentRecords || []).find(
-        (r: any) => r.studentId === studentId
-      );
-      
-      if (!studentRecord) return;
-      
-      const homeworks = data.homeworks || [];
-      homeworks.forEach((hw: any) => {
-        totalHomeworks++;
-        const hwStatus = studentRecord.homeworks?.[hw.id]?.status || 'not_completed';
-        if (hwStatus === 'completed') {
-          completedHomeworks++;
-        }
-        
-        homeworkDetails.push({
-          sessionNumber: data.sessionNumber || 0,
-          sessionDate,
-          homeworkName: hw.name || '',
-          status: hwStatus,
-        });
-      });
-    });
+    // if (homeworkRecords) {
+    //   homeworkRecords.forEach((record: any) => {
+    //     const sessionDate = record.sessionDate || '';
+    //     const studentRecord = (record.studentRecords || []).find(
+    //       (r: any) => r.studentId === studentId
+    //     );
+    //     
+    //     if (!studentRecord) return;
+    //     
+    //     const homeworks = record.homeworks || [];
+    //     homeworks.forEach((hw: any) => {
+    //       totalHomeworks++;
+    //       const hwStatus = studentRecord.homeworks?.[hw.id]?.status || 'not_completed';
+    //       if (hwStatus === 'completed') {
+    //         completedHomeworks++;
+    //       }
+    //       
+    //       homeworkDetails.push({
+    //         sessionNumber: record.sessionNumber || 0,
+    //         sessionDate,
+    //         homeworkName: hw.name || '',
+    //         status: hwStatus,
+    //       });
+    //     });
+    //   });
+    // }
     
     return {
       totalHomeworks,
@@ -263,24 +277,29 @@ export const getStudentMonthlyAttendance = async (
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
     
-    );
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from(STUDENT_ATTENDANCE_COLLECTION)
+    //   .select('*')
+    //   .eq('studentId', studentId)
+    //   .eq('classId', classId)
+    //   .gte('date', startDate)
+    //   .lte('date', endDate)
+    //   .order('date', { ascending: true });
     
     // Filter by date range client-side (check both date and createdAt fields)
-    const records = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as StudentAttendance))
-      .filter(record => {
-        let recordDate = record.date;
-        if (!recordDate && record.createdAt) {
-          recordDate = record.createdAt.substring(0, 10);
-        }
-        if (!recordDate) return false;
-        return recordDate >= startDate && recordDate <= endDate;
-      })
-      .sort((a, b) => {
-        const dateA = a.date || (a.createdAt?.substring(0, 10) || '');
-        const dateB = b.date || (b.createdAt?.substring(0, 10) || '');
-        return dateA.localeCompare(dateB);
-      });
+    const records: StudentAttendance[] = []; // (data || []).filter(record => {
+    //   let recordDate = record.date;
+    //   if (!recordDate && record.createdAt) {
+    //     recordDate = record.createdAt.substring(0, 10);
+    //   }
+    //   if (!recordDate) return false;
+    //   return recordDate >= startDate && recordDate <= endDate;
+    // }).sort((a, b) => {
+    //   const dateA = a.date || (a.createdAt?.substring(0, 10) || '');
+    //   const dateB = b.date || (b.createdAt?.substring(0, 10) || '');
+    //   return dateA.localeCompare(dateB);
+    // });
     
     return records;
   } catch (error) {
@@ -301,26 +320,28 @@ export const getStudentAllClassesMonthlyAttendance = async (
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
     
-    );
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from(STUDENT_ATTENDANCE_COLLECTION)
+    //   .select('*')
+    //   .eq('studentId', studentId)
+    //   .gte('date', startDate)
+    //   .lte('date', endDate)
+    //   .order('date', { ascending: true });
     
     // Filter by date range client-side (check both date and createdAt fields)
-    const records = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as StudentAttendance))
-      .filter(record => {
-        // Try date field first, then createdAt
-        let recordDate = record.date;
-        if (!recordDate && record.createdAt) {
-          // Extract date from createdAt (format: 2025-12-09T10:30:00.000Z)
-          recordDate = record.createdAt.substring(0, 10);
-        }
-        if (!recordDate) return false;
-        return recordDate >= startDate && recordDate <= endDate;
-      })
-      .sort((a, b) => {
-        const dateA = a.date || (a.createdAt?.substring(0, 10) || '');
-        const dateB = b.date || (b.createdAt?.substring(0, 10) || '');
-        return dateA.localeCompare(dateB);
-      });
+    const records: StudentAttendance[] = []; // (data || []).filter(record => {
+    //   let recordDate = record.date;
+    //   if (!recordDate && record.createdAt) {
+    //     recordDate = record.createdAt.substring(0, 10);
+    //   }
+    //   if (!recordDate) return false;
+    //   return recordDate >= startDate && recordDate <= endDate;
+    // }).sort((a, b) => {
+    //   const dateA = a.date || (a.createdAt?.substring(0, 10) || '');
+    //   const dateB = b.date || (b.createdAt?.substring(0, 10) || '');
+    //   return dateA.localeCompare(dateB);
+    // });
     
     return records;
   } catch (error) {
@@ -534,9 +555,15 @@ export const updateStudentAttendanceGrade = async (
   }
 ): Promise<void> => {
   try {
-      //       ...gradeData,
-      //       updatedAt: new Date().toISOString()
-    });
+    // TODO: Implement Supabase update
+    // const { error } = await supabase
+    //   .from(STUDENT_ATTENDANCE_COLLECTION)
+    //   .update({
+    //     ...gradeData,
+    //     updated_at: new Date().toISOString()
+    //   })
+    //   .eq('id', attendanceId);
+    // if (error) throw error;
   } catch (error) {
     console.error('Error updating attendance grade:', error);
     throw new Error('Không thể cập nhật điểm số');

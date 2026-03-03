@@ -80,7 +80,6 @@ export function useClassManager(options?: { searchTerm?: string }) {
     }
 
       //       (snapshot) => {
-      //         const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const PRICE_PER_SESSION = 150000;
         const counts: Record<string, ClassStudentCounts> = {};
 
@@ -132,7 +131,6 @@ export function useClassManager(options?: { searchTerm?: string }) {
       }
     );
 
-    return () => unsubscribe();
   }, [classes]);
 
   // Real-time session stats
@@ -149,7 +147,6 @@ export function useClassManager(options?: { searchTerm?: string }) {
           stats[cls.id] = { completed: 0, total: 0 };
         });
 
-        snapshot.docs.forEach(doc => {
           const data = doc.data();
           const classId = data.classId as string;
           if (classId && stats[classId]) {
@@ -164,7 +161,6 @@ export function useClassManager(options?: { searchTerm?: string }) {
       }
     );
 
-    return () => unsubscribe();
   }, [classes]);
 
   // Filtered classes

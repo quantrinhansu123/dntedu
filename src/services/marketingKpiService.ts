@@ -3,12 +3,6 @@
  * CRUD operations cho Marketing KPIs
  */
 
-import {
-    collection,
-    doc,
-      //     query,
-      //     where,
-      //     orderBy,
 import { MarketingKpi, StaffPerformance } from '../types/marketingTypes';
 
 const COLLECTION = 'marketingKpis';
@@ -43,8 +37,6 @@ export const getKpis = async (filters?: {
 // Get single KPI
 export const getKpi = async (id: string): Promise<MarketingKpi | null> => {
     try {
-        if (!docSnap.exists()) return null;
-        return { id: docSnap.id, ...docSnap.data() } as MarketingKpi;
     } catch (error) {
         console.error('Error getting KPI:', error);
         throw error;

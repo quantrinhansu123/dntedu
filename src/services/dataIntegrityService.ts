@@ -28,9 +28,7 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
   let attendanceDeleted = 0;
 
   // Update students
-  );
   studentsSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
       classId: null,
       className: null,
       class: null,
@@ -40,10 +38,7 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
 
   // Also check students by className (legacy field)
   if (className) {
-    );
     studentsByNameSnap.forEach((docSnap) => {
-      if (!studentsSnap.docs.find(d => d.id === docSnap.id)) {
-        batch.update(docSnap.ref, {
           classId: null,
           className: null,
           class: null,
@@ -54,9 +49,7 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
   }
 
   // Update work sessions
-  );
   workSessionsSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
       classId: null,
       className: '[Lớp đã xóa]',
     });
@@ -64,15 +57,12 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
   });
 
   // Delete attendance records for this class
-  );
   for (const docSnap of attendanceSnap.docs) {
     // Delete student attendance records first
-    );
     studentAttendanceSnap.forEach((saDoc) => {
       batch.delete(saDoc.ref);
     });
     // Delete main attendance record
-    batch.delete(docSnap.ref);
     attendanceDeleted++;
   }
 
@@ -99,7 +89,6 @@ export const cascadeUpdateParent = async (
     if (updates.phone) updateData.parentPhone = updates.phone;
 
     if (Object.keys(updateData).length > 0) {
-      batch.update(docSnap.ref, updateData);
       studentsUpdated++;
     }
   });
@@ -123,9 +112,7 @@ export const cascadeDeleteStaff = async (staffId: string): Promise<{
   let workSessionsUpdated = 0;
 
   // Update classes where this staff is teacher
-  );
   classesTeacherSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
       teacherId: null,
       teacher: '[Giáo viên đã xóa]',
     });
@@ -133,9 +120,7 @@ export const cascadeDeleteStaff = async (staffId: string): Promise<{
   });
 
   // Update work sessions
-  );
   workSessionsSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
       staffId: null,
       staffName: '[Nhân viên đã xóa]',
     });
@@ -160,7 +145,6 @@ export const cascadeUpdateClassName = async (
   );
 
   studentsSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
       className: newClassName,
       class: newClassName,
     });
@@ -190,7 +174,6 @@ export interface ValidationResult {
  */
 export const validateDeleteClass = async (classId: string): Promise<ValidationResult> => {
   // Check for students in this class
-  );
 
   if (studentsSnap.size > 0) {
     const studentNames = studentsSnap.docs
@@ -224,7 +207,6 @@ export const validateDeleteClass = async (classId: string): Promise<ValidationRe
  * Validate before deleting a parent
  */
 export const validateDeleteParent = async (parentId: string): Promise<ValidationResult> => {
-  );
 
   if (studentsSnap.size > 0) {
     const studentNames = studentsSnap.docs
@@ -247,7 +229,6 @@ export const validateDeleteParent = async (parentId: string): Promise<Validation
  */
 export const validateDeleteStaff = async (staffId: string): Promise<ValidationResult> => {
   // Check if teaching any classes
-  );
 
   if (classesSnap.size > 0) {
     const classNames = classesSnap.docs
@@ -263,7 +244,6 @@ export const validateDeleteStaff = async (staffId: string): Promise<ValidationRe
   }
 
   // Check for pending work sessions
-  );
 
   if (workSessionsSnap.size > 0) {
     return {
@@ -281,7 +261,6 @@ export const validateDeleteStaff = async (staffId: string): Promise<ValidationRe
  */
 export const validateDeleteStudent = async (studentId: string): Promise<ValidationResult> => {
   // Check for unpaid contracts
-  );
 
   if (contractsSnap.size > 0) {
     return {
@@ -493,23 +472,17 @@ export const cascadeUpdateStaffName = async (
   let workSessionsUpdated = 0;
 
   // Update classes where this staff is teacher
-  );
   classesSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, { teacher: newName });
     classesUpdated++;
   });
 
   // Update classes where this staff is assistant
-  );
   assistantSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, { assistant: newName });
     classesUpdated++;
   });
 
   // Update work sessions
-  );
   workSessionsSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, { staffName: newName });
     workSessionsUpdated++;
   });
 
@@ -529,7 +502,6 @@ export const cascadeUpdateStaffName = async (
  */
 export const validateDeleteStudentFinance = async (studentId: string): Promise<ValidationResult> => {
   // Check for unpaid contracts
-  );
   
   const unpaidContracts = contractsSnap.docs.filter(d => {
     const data = d.data();
@@ -545,7 +517,6 @@ export const validateDeleteStudentFinance = async (studentId: string): Promise<V
   }
 
   // Check for invoices
-  );
 
   if (invoicesSnap.size > 0) {
     return {
@@ -571,9 +542,7 @@ export const cascadeDeleteStudent = async (studentId: string, studentName?: stri
   let attendanceDeleted = 0;
 
   // Update contracts
-  );
   contractsSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
       studentId: null,
       studentName: studentName ? `[Đã xóa] ${studentName}` : '[Học viên đã xóa]',
     });
@@ -581,9 +550,7 @@ export const cascadeDeleteStudent = async (studentId: string, studentName?: stri
   });
 
   // Update invoices
-  );
   invoicesSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
       studentId: null,
       studentName: studentName ? `[Đã xóa] ${studentName}` : '[Học viên đã xóa]',
     });
@@ -591,9 +558,7 @@ export const cascadeDeleteStudent = async (studentId: string, studentName?: stri
   });
 
   // Delete attendance records
-  );
   attendanceSnap.forEach((docSnap) => {
-    batch.delete(docSnap.ref);
     attendanceDeleted++;
   });
 
@@ -635,7 +600,6 @@ export const validateDeleteContract = async (contractId: string): Promise<Valida
  */
 export const validateDeleteRoom = async (roomId: string, roomName?: string): Promise<ValidationResult> => {
   // Check if any class uses this room
-  );
 
   if (classesSnap.size > 0) {
     const classNames = classesSnap.docs.slice(0, 5).map(d => d.data().name);
@@ -659,7 +623,6 @@ export const cascadeDeleteRoom = async (roomName: string): Promise<number> => {
   );
   
   classesSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, { room: null });
     classesUpdated++;
   });
 
@@ -681,7 +644,6 @@ export const validateDeleteSalaryConfig = async (configId: string): Promise<Vali
   const config = configDoc.data();
   
   // Check if any staff uses this config
-  );
 
   if (staffSnap.size > 0) {
     return {
@@ -702,7 +664,6 @@ export const validateDeleteSalaryConfig = async (configId: string): Promise<Vali
  * Validate before deleting a campaign
  */
 export const validateDeleteCampaign = async (campaignId: string): Promise<ValidationResult> => {
-  );
 
   if (leadsSnap.size > 0) {
     return {
@@ -724,7 +685,6 @@ export const cascadeDeleteCampaign = async (campaignId: string): Promise<number>
   );
 
   leadsSnap.forEach((docSnap) => {
-    batch.update(docSnap.ref, { 
       campaignId: null,
       campaignName: '[Chiến dịch đã xóa]'
     });

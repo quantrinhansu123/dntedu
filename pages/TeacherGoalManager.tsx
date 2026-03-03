@@ -55,12 +55,17 @@ export const TeacherGoalManager: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [goalsData, performanceData, staffSnap] = await Promise.all([
+      const [goalsData, performanceData] = await Promise.all([
         teacherReportService.getTeacherGoals(undefined, selectedPeriod),
         teacherReportService.getTeacherPerformance(selectedPeriod),
-      //       ]);
+      ]);
       
-      const allStaff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Staff[];
+      // TODO: Implement Supabase query for staff
+      // const { data: staffData } = await supabase
+      //   .from('staff')
+      //   .select('*');
+      
+      const allStaff: Staff[] = []; // staffData || [];
       const teacherStaff = allStaff.filter(s => 
         s.role === 'Giáo viên' || s.role === 'Trợ giảng' ||
         s.roles?.includes('Giáo viên') || s.roles?.includes('Trợ giảng')

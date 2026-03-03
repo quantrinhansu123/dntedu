@@ -3,14 +3,6 @@
  * Handle tutoring CRUD operations with Firestore
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
-      //   QueryConstraint,
-
 const TUTORING_COLLECTION = 'tutoring';
 
 export type TutoringType = 'Nghỉ học' | 'Học yếu';
@@ -60,9 +52,7 @@ export const createTutoring = async (data: Omit<TutoringData, 'id'>): Promise<st
 export const getTutoring = async (id: string): Promise<TutoringData | null> => {
   try {
     
-    if (!docSnap.exists()) return null;
     
-    return { id: docSnap.id, ...docSnap.data() } as TutoringData;
   } catch (error) {
     console.error('Error getting tutoring:', error);
     throw new Error('Không thể tải thông tin bồi bài');
@@ -79,21 +69,27 @@ export const getTutoringList = async (filters?: {
   classId?: string;
 }): Promise<TutoringData[]> => {
   try {
-    const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
-    
-    if (filters?.type) {
-    
-    if (filters?.status) {
-    
-    if (filters?.studentId) {
-    
-    if (filters?.classId) {
-    
-    
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as TutoringData));
+    // TODO: Implement Supabase query
+    // let query = supabase.from('tutoring').select('*');
+    // if (filters?.type) {
+    //   query = query.eq('type', filters.type);
+    // }
+    // if (filters?.status) {
+    //   query = query.eq('status', filters.status);
+    // }
+    // if (filters?.studentId) {
+    //   query = query.eq('studentId', filters.studentId);
+    // }
+    // if (filters?.classId) {
+    //   query = query.eq('classId', filters.classId);
+    // }
+    // const { data, error } = await query.order('created_at', { ascending: false });
+    // if (error) throw error;
+    // return (data || []).map(item => ({
+    //   id: item.id,
+    //   ...item,
+    // } as TutoringData));
+    return [];
   } catch (error) {
     console.error('Error getting tutoring list:', error);
     throw new Error('Không thể tải danh sách bồi bài');

@@ -37,12 +37,19 @@ export const SalaryReportTeacher: React.FC = () => {
   useEffect(() => {
     const loadActualSalaries = async () => {
       try {
-        );
+        // TODO: Implement Supabase query for actual salaries
+        // const { data } = await supabase
+        //   .from('actualSalaries')
+        //   .select('*')
+        //   .eq('month', selectedMonth)
+        //   .eq('year', selectedYear);
+        
         const salaries: Record<string, number> = {};
-        snapshot.forEach((doc) => {
-          const data = doc.data() as ActualSalary;
-          salaries[data.staffId] = data.actualSalary;
-        });
+        // if (data) {
+        //   data.forEach((item: ActualSalary) => {
+        //     salaries[item.staffId] = item.actualSalary;
+        //   });
+        // }
         setActualSalaries(salaries);
       } catch (err) {
         console.error('Error loading actual salaries:', err);
@@ -60,13 +67,19 @@ export const SalaryReportTeacher: React.FC = () => {
   const saveActualSalary = async (staffId: string) => {
     setSavingActual(true);
     try {
-      const docId = `${staffId}_${selectedMonth}_${selectedYear}`;
-      //         staffId,
-      //         month: selectedMonth,
-      //         year: selectedYear,
-      //         actualSalary: tempActualSalary,
-      //         updatedAt: new Date().toISOString(),
-      //       });
+      // TODO: Implement Supabase update for actual salary
+      // const { error } = await supabase
+      //   .from('actualSalaries')
+      //   .upsert({
+      //     id: `${staffId}_${selectedMonth}_${selectedYear}`,
+      //     staffId,
+      //     month: selectedMonth,
+      //     year: selectedYear,
+      //     actualSalary: tempActualSalary,
+      //     updatedAt: new Date().toISOString(),
+      //   });
+      
+      // if (error) throw error;
       
       setActualSalaries(prev => ({
         ...prev,
@@ -89,9 +102,16 @@ export const SalaryReportTeacher: React.FC = () => {
     if (!editingSession) return;
     
     try {
-      //         ...editingSession,
-      //         updatedAt: new Date().toISOString(),
-      //       }, { merge: true });
+      // TODO: Implement Supabase update for session
+      // const { error } = await supabase
+      //   .from('workSessions')
+      //   .update({
+      //     ...editingSession,
+      //     updatedAt: new Date().toISOString(),
+      //   })
+      //   .eq('id', editingSession.id);
+      
+      // if (error) throw error;
       
       // Refresh data
       await refresh(selectedMonth, selectedYear);

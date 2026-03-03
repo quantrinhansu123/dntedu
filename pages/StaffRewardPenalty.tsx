@@ -84,27 +84,57 @@ export const StaffRewardPenalty: React.FC = () => {
 
   // Fetch records - simplified query without compound index requirement
   useEffect(() => {
-      //       const allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as RewardPenaltyRecord[];
-      // Filter by month/year in client
-      const filtered = allData
-        .filter(r => r.month === filterMonth && r.year === filterYear)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      setRecords(filtered);
-      setLoading(false);
-    }, (error) => {
-      console.error('Error fetching records:', error);
-      setLoading(false);
-    });
+    const fetchRecords = async () => {
+      try {
+        setLoading(true);
+        // TODO: Implement Supabase query for reward/penalty records
+        // const { data } = await supabase
+        //   .from('rewardPenaltyRecords')
+        //   .select('*')
+        //   .eq('month', filterMonth)
+        //   .eq('year', filterYear)
+        //   .order('created_at', { ascending: false });
+        
+        // if (data) {
+        //   setRecords(data as RewardPenaltyRecord[]);
+        // } else {
+        //   setRecords([]);
+        // }
+        setRecords([]);
+      } catch (error) {
+        console.error('Error fetching records:', error);
+        setRecords([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => unsubscribe();
+    fetchRecords();
   }, [filterMonth, filterYear]);
 
   // Fetch configs
   useEffect(() => {
-      //       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as RewardPenaltyConfig[];
-      setConfigs(data);
-    });
-    return () => unsubscribe();
+    const fetchConfigs = async () => {
+      try {
+        // TODO: Implement Supabase query for reward/penalty configs
+        // const { data } = await supabase
+        //   .from('rewardPenaltyConfigs')
+        //   .select('*')
+        //   .order('created_at', { ascending: false });
+        
+        // if (data) {
+        //   setConfigs(data as RewardPenaltyConfig[]);
+        // } else {
+        //   setConfigs([]);
+        // }
+        setConfigs([]);
+      } catch (error) {
+        console.error('Error fetching configs:', error);
+        setConfigs([]);
+      }
+    };
+
+    fetchConfigs();
   }, []);
 
   // Filtered records
@@ -188,11 +218,9 @@ export const StaffRewardPenalty: React.FC = () => {
       if (newConfig.id) {
       //           ...configData,
       //           updatedAt: new Date().toISOString()
-        });
       } else {
       //           ...configData,
       //           createdAt: new Date().toISOString()
-        });
       }
       
       // Reset form
@@ -238,7 +266,6 @@ export const StaffRewardPenalty: React.FC = () => {
     try {
       //         status: newStatus,
       //         updatedAt: new Date().toISOString()
-      });
     } catch (err: any) {
       console.error('Error updating status:', err);
       alert('Lỗi cập nhật: ' + (err.message || 'Unknown'));

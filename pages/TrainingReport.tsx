@@ -64,15 +64,20 @@ export const TrainingReport: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch all collections
-      const [classesSnap, studentsSnap, attendanceSnap, tutoringSnap, contractsSnap] = await Promise.all([
-      //       ]);
+      // TODO: Implement Supabase queries
+      // const [classesData, studentsData, attendanceData, tutoringData, contractsData] = await Promise.all([
+      //   supabase.from('classes').select('*'),
+      //   supabase.from('students').select('*'),
+      //   supabase.from('attendance').select('*'),
+      //   supabase.from('tutoring').select('*'),
+      //   supabase.from('contracts').select('*')
+      // ]);
 
-      const classes = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const attendance = attendanceSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const tutoring = tutoringSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const contracts = contractsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const classes: any[] = []; // classesData?.data || [];
+      const students: any[] = []; // studentsData?.data || [];
+      const attendance: any[] = []; // attendanceData?.data || [];
+      const tutoring: any[] = []; // tutoringData?.data || [];
+      const contracts: any[] = []; // contractsData?.data || [];
 
       // Calculate summary - Normalize status (Vietnamese)
       const normalizeClassStatus = (status: string) => {

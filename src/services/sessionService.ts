@@ -4,13 +4,6 @@
  * Mỗi buổi học được tạo tự động từ lịch học của lớp
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
-
 export interface ClassSession {
   id?: string;
   classId: string;
@@ -204,7 +197,6 @@ export const getSessionsByClass = async (
   }
 ): Promise<ClassSession[]> => {
   try {
-    );
     
     let sessions = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -255,12 +247,22 @@ export const getAllPendingSessions = async (
   try {
     const today = options?.fromDate || new Date().toISOString().split('T')[0];
     
-    );
+    // TODO: Implement Supabase query
+    // let query = supabase.from('class_sessions').select('*').eq('status', 'pending');
+    // if (options?.fromDate) {
+    //   query = query.gte('date', options.fromDate);
+    // }
+    // if (options?.toDate) {
+    //   query = query.lte('date', options.toDate);
+    // }
+    // const { data, error } = await query;
+    // if (error) throw error;
+    // let sessions = (data || []).map(item => ({
+    //   id: item.id,
+    //   ...item,
+    // })) as ClassSession[];
     
-    let sessions = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as ClassSession[];
+    let sessions: ClassSession[] = [];
     
     if (options?.classIds && options.classIds.length > 0) {
       sessions = sessions.filter(s => options.classIds!.includes(s.classId));
@@ -300,12 +302,9 @@ export const updateSessionStatus = async (
  */
 export const deleteSessionsByClass = async (classId: string): Promise<number> => {
   try {
-    );
     
-    snapshot.docs.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
     
-    return snapshot.size;
   } catch (error) {
     console.error('Error deleting sessions:', error);
     throw error;
@@ -320,13 +319,9 @@ export const getSessionByClassAndDate = async (
   date: string
 ): Promise<ClassSession | null> => {
   try {
-    );
     
-    if (snapshot.empty) return null;
     
     return {
-      id: snapshot.docs[0].id,
-      ...snapshot.docs[0].data(),
     } as ClassSession;
   } catch (error) {
     console.error('Error getting session:', error);

@@ -121,7 +121,6 @@ export const createScheduleChangeNotification = async (
       //         isRead: false,
       //         createdAt: new Date().toISOString(),
       //       })
-    );
     await Promise.all(promises);
   } catch (error) {
     console.error('Error creating schedule change notifications:', error);
@@ -136,12 +135,10 @@ export const getStudentNotifications = async (
   unreadOnly: boolean = false
 ): Promise<StudentNotification[]> => {
   try {
-    );
 
     if (unreadOnly) {
     }
 
-    return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     } as StudentNotification));

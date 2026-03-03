@@ -18,7 +18,6 @@ export const useSurveyTemplates = () => {
       setTemplates(data);
       setLoading(false);
     });
-    return () => unsubscribe();
   }, []);
 
   const createTemplate = async (data: Omit<SurveyTemplate, 'id' | 'createdAt'>) => {
@@ -73,7 +72,6 @@ export const useSurveyAssignments = (filters?: {
       setAssignments(filtered);
       setLoading(false);
     }, filters?.studentId);
-    return () => unsubscribe();
   }, [filters?.templateId, filters?.studentId, filters?.status]);
 
   const assignSurvey = async (
@@ -117,7 +115,6 @@ export const useStudentSurveys = (studentId: string) => {
       setLoading(false);
     }, studentId);
 
-    return () => unsubscribe();
   }, [studentId]);
 
   const submitResponse = async (data: Omit<SurveyResponse, 'id'>) => {
@@ -160,7 +157,6 @@ export const useSurveyResponses = (filters?: {
       setResponses(filtered);
       setLoading(false);
     });
-    return () => unsubscribe();
   }, [filters?.templateId, filters?.classId, filters?.fromDate, filters?.toDate]);
 
   const getStatistics = useCallback(async () => {

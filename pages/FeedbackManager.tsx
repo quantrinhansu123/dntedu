@@ -35,7 +35,6 @@ export const FeedbackManager: React.FC = () => {
     const unsubscribe = FeedbackCampaignService.onCampaignsChange((data) => {
       setCampaigns(data);
     });
-    return () => unsubscribe();
   }, []);
 
   // Load submissions for dashboard
@@ -43,7 +42,6 @@ export const FeedbackManager: React.FC = () => {
     const unsubscribe = FeedbackCampaignService.onSubmissionsChange((data) => {
       setSubmissions(data);
     });
-    return () => unsubscribe();
   }, []);
 
   const handleDelete = async (id: string) => {

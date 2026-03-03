@@ -3,13 +3,6 @@
  * Handle parent feedback CRUD operations
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
-
 const FEEDBACKS_COLLECTION = 'feedbacks';
 
 export type FeedbackType = 'Call' | 'Form';

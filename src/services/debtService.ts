@@ -28,17 +28,13 @@ export interface DebtRecord {
 export const getDebtRecords = async (): Promise<DebtRecord[]> => {
   try {
     // Get contracts with Debt status
-    );
     
     
-    return snapshot.docs.map(docSnap => {
       const data = docSnap.data();
       const totalAmount = data.finalTotal || data.totalAmount || 0;
       const paidAmount = data.paidAmount || 0;
       
       return {
-        id: docSnap.id,
-        contractCode: data.contractCode || docSnap.id,
         studentId: data.studentId || '',
         studentName: data.studentName || 'N/A',
         classId: data.classId,

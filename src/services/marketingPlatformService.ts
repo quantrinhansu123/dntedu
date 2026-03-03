@@ -3,12 +3,6 @@
  * CRUD operations cho Marketing Platforms và Stats
  */
 
-import {
-    collection,
-    doc,
-      //     query,
-      //     where,
-      //     orderBy,
 import { MarketingPlatform, PlatformMonthlyStats } from '../types/marketingTypes';
 
 const PLATFORMS_COLLECTION = 'marketingPlatforms';
@@ -30,10 +24,17 @@ export const DEFAULT_PLATFORMS = [
 // Get all platforms
 export const getPlatforms = async (): Promise<MarketingPlatform[]> => {
     try {
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        } as MarketingPlatform));
+        // TODO: Implement Supabase query
+        // const { data, error } = await supabase
+        //   .from('marketing_platforms')
+        //   .select('*')
+        //   .order('platform_name', { ascending: true });
+        // if (error) throw error;
+        // return (data || []).map(item => ({
+        //   id: item.id,
+        //   ...item,
+        // } as MarketingPlatform));
+        return [];
     } catch (error) {
         console.error('Error getting platforms:', error);
         throw error;
@@ -100,25 +101,21 @@ export const initializeDefaultPlatforms = async (): Promise<void> => {
 // Get stats by month
 export const getStatsByMonth = async (month: string): Promise<PlatformMonthlyStats[]> => {
     try {
-      //             orderBy('platformName', 'asc')
-        );
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        } as PlatformMonthlyStats));
+        // TODO: Implement Supabase query
+        // const { data, error } = await supabase
+        //   .from('marketing_platform_stats')
+        //   .select('*')
+        //   .eq('month', month)
+        //   .order('platform_name', { ascending: true });
+        // if (error) throw error;
+        // return (data || []).map(item => ({
+        //   id: item.id,
+        //   ...item,
+        // } as PlatformMonthlyStats));
+        return [];
     } catch (error) {
         console.error('Error getting stats:', error);
-        // Fallback without orderBy if index not created
-        try {
-            );
-            return snapshot2.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            } as PlatformMonthlyStats));
-        } catch (err2) {
-            console.error('Fallback also failed:', err2);
-            return [];
-        }
+        return [];
     }
 };
 

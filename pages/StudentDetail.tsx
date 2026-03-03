@@ -73,17 +73,23 @@ export const StudentDetail: React.FC = () => {
     const fetchAttendanceStats = async () => {
       if (!id) return;
       try {
-        );
-        const records = snapshot.docs.map(d => d.data()).filter(r => r.status && r.status !== '');
+        // TODO: Implement Supabase query for attendance records
+        // const { data } = await supabase
+        //   .from('attendance')
+        //   .select('*')
+        //   .eq('studentId', id);
         
-        const total = records.length;
-        const present = records.filter(r => r.status === 'Có mặt').length;
-        const absent = records.filter(r => r.status === 'Vắng').length;
+        const records: any[] = []; // data || [];
+        const filteredRecords = records.filter(r => r.status && r.status !== '');
+        
+        const total = filteredRecords.length;
+        const present = filteredRecords.filter(r => r.status === 'Có mặt').length;
+        const absent = filteredRecords.filter(r => r.status === 'Vắng').length;
         
         // Calculate late sessions from punctuality field
         let late = 0;
         let onTime = 0;
-        records.forEach(r => {
+        filteredRecords.forEach(r => {
           if (r.status === 'Có mặt') {
             if (r.punctuality === 'late' || r.isLate) {
               late++;
@@ -120,25 +126,23 @@ export const StudentDetail: React.FC = () => {
       if (!id) return;
       setFinanceLoading(true);
       try {
-        // Fetch enrollments
-        );
-        const enrollList = enrollSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Sort by createdAt desc
-        enrollList.sort((a: any, b: any) => {
-          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateB - dateA;
-        });
+        // TODO: Implement Supabase queries for enrollments and contracts
+        // const { data: enrollData } = await supabase
+        //   .from('enrollments')
+        //   .select('*')
+        //   .eq('studentId', id)
+        //   .order('created_at', { ascending: false });
+        
+        // const { data: contractData } = await supabase
+        //   .from('contracts')
+        //   .select('*')
+        //   .eq('studentId', id)
+        //   .order('created_at', { ascending: false });
+        
+        const enrollList: any[] = []; // enrollData || [];
+        const contractList: any[] = []; // contractData || [];
+        
         setEnrollments(enrollList);
-
-        // Fetch contracts
-        );
-        const contractList = contractSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        contractList.sort((a: any, b: any) => {
-          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateB - dateA;
-        });
         setContracts(contractList);
       } catch (error) {
         console.error('Error fetching finance data:', error);
@@ -219,7 +223,6 @@ export const StudentDetail: React.FC = () => {
       const today = new Date().toISOString().split('T')[0];
       
       // Get all sessions for this class
-      );
       // Sort by sessionNumber locally (Firestore index not available)
       const sessions = sessionsSnap.docs.map(doc => ({
         id: doc.id,

@@ -17,8 +17,9 @@
  * - FinancialTransaction → Student/Contract/Invoice
  */
 
-import { collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase removed - using Supabase
+// import { collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 
 // Helper functions
 const getCurrentMonth = () => {
@@ -397,6 +398,11 @@ const generateInvoices = (studentIds: string[], studentNames: string[]) => {
 // ============ MAIN SEED FUNCTION ============
 
 export const seedAllData = async () => {
+  // TODO: Migrate to Supabase
+  throw new Error('seedAllData function needs to be migrated to Supabase');
+  
+  // Firebase code commented out
+  /*
   console.log('🚀 Starting comprehensive data seeding...\n');
   const results: Record<string, number> = {};
   
@@ -632,10 +638,16 @@ export const seedAllData = async () => {
     console.error('❌ Error during seeding:', error);
     throw error;
   }
+  */
 };
 
 // Clear all data (preserves admin staff)
 export const clearAllData = async () => {
+  // TODO: Migrate to Supabase
+  throw new Error('clearAllData function needs to be migrated to Supabase');
+  
+  // Firebase code commented out
+  /*
   console.log('🗑️ Clearing all data...\n');
   
   const collections = [
@@ -684,6 +696,7 @@ export const clearAllData = async () => {
   }
   
   console.log('\n✅ All data cleared!');
+  */
 };
 
 export default seedAllData;

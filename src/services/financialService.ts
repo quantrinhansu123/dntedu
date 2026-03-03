@@ -8,13 +8,6 @@ import {
     StaffSalaryRecord,
     DepreciationHistory
 } from '../../types';
-import {
-    collection,
-      //     doc,
-      //     query,
-      //     where,
-      //     orderBy,
-
 // Collection references
 const TRANSACTIONS_COLLECTION = 'transactions';
 const ASSETS_COLLECTION = 'assets';
@@ -30,7 +23,6 @@ export const financialService = {
         try {
       //                 ...transaction,
       //                 createdAt: new Date().toISOString()
-            });
             return { id: docRef.id, ...transaction };
         } catch (error) {
             console.error('Error adding transaction:', error);
@@ -47,7 +39,6 @@ export const financialService = {
             if (type) {
             }
 
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinancialTransaction));
         } catch (error) {
             console.error('Error getting transactions:', error);
             return [];
@@ -75,7 +66,6 @@ export const financialService = {
       //                 status: 'Đang khấu hao',
       //                 createdAt: new Date().toISOString(),
       //                 updatedAt: new Date().toISOString()
-            });
             return { id: docRef.id, ...asset, monthlyDepreciation };
         } catch (error) {
             console.error('Error adding asset:', error);
@@ -85,7 +75,6 @@ export const financialService = {
 
     async getAssets() {
         try {
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset));
         } catch (error) {
             console.error('Error getting assets:', error);
             return [];
@@ -119,7 +108,6 @@ export const financialService = {
       //                     residualValue: newResidual,
       //                     status: newResidual <= 0 ? 'Đã khấu hao xong' : 'Đang khấu hao',
       //                     updatedAt: new Date().toISOString()
-                });
 
                 // Log history
       //                     assetId: asset.id,
@@ -128,7 +116,6 @@ export const financialService = {
       //                     year,
       //                     amount: asset.monthlyDepreciation,
       //                     date: new Date().toISOString()
-                });
             }
         } catch (error) {
             console.error('Error running depreciation:', error);
@@ -150,30 +137,47 @@ export const financialService = {
     // ==========================================
 
     async updateTeacherDebt(record: Omit<TeacherDebtRecord, 'id'>) {
-        // Check if record exists for this teacher/month/class
-        );
+        // TODO: Implement Supabase query to check if record exists
+        // const { data: existing } = await supabase
+        //   .from(TEACHER_DEBT_COLLECTION)
+        //   .select('*')
+        //   .eq('teacherId', record.teacherId)
+        //   .eq('month', record.month)
+        //   .eq('classId', record.classId)
+        //   .limit(1)
+        //   .single();
 
-        if (!snapshot.empty) {
-            // Update
-            const docId = snapshot.docs[0].id;
-      //                 ...record,
-      //                 remainingDebt: record.totalSalary - record.paidAmount,
-      //                 status: record.totalSalary - record.paidAmount <= 0 ? 'Đã trả hết' : (record.paidAmount > 0 ? 'Trả một phần' : 'Chưa trả')
-            });
-        } else {
-            // Create
-      //                 ...record,
-      //                 remainingDebt: record.totalSalary - record.paidAmount,
-      //                 status: record.totalSalary - record.paidAmount <= 0 ? 'Đã trả hết' : (record.paidAmount > 0 ? 'Trả một phần' : 'Chưa trả')
-            });
-        }
+        const remainingDebt = record.totalSalary - record.paidAmount;
+        const status = remainingDebt <= 0 ? 'Đã trả hết' : (record.paidAmount > 0 ? 'Trả một phần' : 'Chưa trả');
+
+        // if (existing) {
+        //   // Update
+        //   const { error } = await supabase
+        //     .from(TEACHER_DEBT_COLLECTION)
+        //     .update({
+        //       ...record,
+        //       remainingDebt,
+        //       status
+        //     })
+        //     .eq('id', existing.id);
+        //   if (error) throw error;
+        // } else {
+        //   // Create
+        //   const { error } = await supabase
+        //     .from(TEACHER_DEBT_COLLECTION)
+        //     .insert({
+        //       ...record,
+        //       remainingDebt,
+        //       status
+        //     });
+        //   if (error) throw error;
+        // }
     },
 
     async getTeacherDebts(teacherId?: string) {
         try {
             if (teacherId) {
             }
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TeacherDebtRecord));
         } catch (error) {
             console.error('Error getting teacher debts:', error);
             return [];

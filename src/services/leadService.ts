@@ -3,13 +3,6 @@
  * Handle customer leads/potential students CRUD
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
-
 const LEADS_COLLECTION = 'leads';
 
 export type LeadStatus = 'Mới' | 'Đang liên hệ' | 'Quan tâm' | 'Hẹn test' | 'Đã test' | 'Đăng ký' | 'Từ chối';

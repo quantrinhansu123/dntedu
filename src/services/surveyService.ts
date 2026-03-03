@@ -4,13 +4,6 @@
  */
 
 import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
-      //   Unsubscribe,
-import {
   SurveyTemplate,
   SurveyAssignment,
   SurveyResponse,
@@ -33,42 +26,76 @@ export class SurveyService {
   // ========================================
 
   static async getTemplates(): Promise<SurveyTemplate[]> {
-    );
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as SurveyTemplate[];
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from(TEMPLATES_COLLECTION)
+    //   .select('*')
+    //   .order('created_at', { ascending: false });
+    // return data || [];
+    return [];
   }
 
   static async getTemplate(id: string): Promise<SurveyTemplate | null> {
-    if (!docSnap.exists()) return null;
-    return { id: docSnap.id, ...docSnap.data() } as SurveyTemplate;
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from(TEMPLATES_COLLECTION)
+    //   .select('*')
+    //   .eq('id', id)
+    //   .single();
+    // return data || null;
+    return null;
   }
 
   static async createTemplate(data: Omit<SurveyTemplate, 'id' | 'createdAt'>): Promise<string> {
-      //       ...data,
-      //       createdAt: new Date().toISOString()
-    });
-    return docRef.id;
+    // TODO: Implement Supabase insert
+    // const { data: result, error } = await supabase
+    //   .from(TEMPLATES_COLLECTION)
+    //   .insert({
+    //     ...data,
+    //     created_at: new Date().toISOString()
+    //   })
+    //   .select()
+    //   .single();
+    // if (error) throw error;
+    // return result.id;
+    throw new Error('Not implemented');
   }
 
   static async updateTemplate(id: string, data: Partial<SurveyTemplate>): Promise<void> {
-      //       ...data,
-      //       updatedAt: new Date().toISOString()
-    });
+    // TODO: Implement Supabase update
+    // const { error } = await supabase
+    //   .from(TEMPLATES_COLLECTION)
+    //   .update({
+    //     ...data,
+    //     updated_at: new Date().toISOString()
+    //   })
+    //   .eq('id', id);
+    // if (error) throw error;
   }
 
   static async deleteTemplate(id: string): Promise<void> {
+    // TODO: Implement Supabase delete
+    // const { error } = await supabase
+    //   .from(TEMPLATES_COLLECTION)
+    //   .delete()
+    //   .eq('id', id);
+    // if (error) throw error;
   }
 
-  static onTemplatesChange(callback: (templates: SurveyTemplate[]) => void): Unsubscribe {
-    );
-      //       const templates = snapshot.docs.map(doc => ({
-      //         id: doc.id,
-      //         ...doc.data()
-      })) as SurveyTemplate[];
-      callback(templates);
-    });
+  static onTemplatesChange(callback: (templates: SurveyTemplate[]) => void): () => void {
+    // TODO: Implement Supabase realtime subscription
+    // const channel = supabase
+    //   .channel('survey-templates')
+    //   .on('postgres_changes', {
+    //     event: '*',
+    //     schema: 'public',
+    //     table: TEMPLATES_COLLECTION
+    //   }, () => {
+    //     this.getTemplates().then(callback);
+    //   })
+    //   .subscribe();
+    // return () => supabase.removeChannel(channel);
+    return () => {};
   }
 
   // Initialize default templates if none exist
@@ -98,27 +125,40 @@ export class SurveyService {
     const assignments: SurveyAssignment[] = [];
 
     for (const student of students) {
-      // Check if already assigned and pending
-      );
+      // TODO: Check if already assigned with Supabase
+      // const { data: existing } = await supabase
+      //   .from(ASSIGNMENTS_COLLECTION)
+      //   .select('*')
+      //   .eq('templateId', templateId)
+      //   .eq('studentId', student.id)
+      //   .eq('status', 'pending')
+      //   .limit(1)
+      //   .single();
 
-      if (existingSnapshot.empty) {
+      // if (!existing) {
         const token = generateToken();
-          templateId,
-          templateName: template.name,
-          studentId: student.id,
-          studentName: student.name,
-          studentCode: student.code || null,
-          classId: student.classId || null,
-          className: student.className || null,
-          status: 'pending',
-          token,
-          assignedAt: new Date().toISOString(),
-          assignedBy: assignedBy || null,
-          expiresAt: expiresAt || null
-        });
+        // TODO: Insert with Supabase
+        // const { data: result } = await supabase
+        //   .from(ASSIGNMENTS_COLLECTION)
+        //   .insert({
+        //     templateId,
+        //     templateName: template.name,
+        //     studentId: student.id,
+        //     studentName: student.name,
+        //     studentCode: student.code || null,
+        //     classId: student.classId || null,
+        //     className: student.className || null,
+        //     status: 'pending',
+        //     token,
+        //     assigned_at: new Date().toISOString(),
+        //     assigned_by: assignedBy || null,
+        //     expires_at: expiresAt || null
+        //   })
+        //   .select()
+        //   .single();
 
         assignments.push({
-          id: docRef.id,
+          id: '', // result?.id || '',
           templateId,
           templateName: template.name,
           studentId: student.id,
@@ -132,7 +172,7 @@ export class SurveyService {
           assignedBy,
           expiresAt
         });
-      }
+      // }
     }
 
     return assignments;
@@ -143,70 +183,72 @@ export class SurveyService {
     studentId?: string;
     status?: 'pending' | 'submitted' | 'expired';
   }): Promise<SurveyAssignment[]> {
-
-    let assignments = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as SurveyAssignment[];
-
-    // Filter in memory (Firestore doesn't support multiple where with orderBy easily)
-    if (filters?.templateId) {
-      assignments = assignments.filter(a => a.templateId === filters.templateId);
-    }
-    if (filters?.studentId) {
-      assignments = assignments.filter(a => a.studentId === filters.studentId);
-    }
-    if (filters?.status) {
-      assignments = assignments.filter(a => a.status === filters.status);
-    }
-
-    return assignments;
+    // TODO: Implement Supabase query
+    // let query = supabase.from(ASSIGNMENTS_COLLECTION).select('*');
+    // if (filters?.templateId) {
+    //   query = query.eq('templateId', filters.templateId);
+    // }
+    // if (filters?.studentId) {
+    //   query = query.eq('studentId', filters.studentId);
+    // }
+    // if (filters?.status) {
+    //   query = query.eq('status', filters.status);
+    // }
+    // const { data } = await query.order('assigned_at', { ascending: false });
+    // return data || [];
+    return [];
   }
 
   static async getAssignmentByToken(token: string): Promise<SurveyAssignment | null> {
-    );
-    if (snapshot.empty) return null;
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as SurveyAssignment;
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from(ASSIGNMENTS_COLLECTION)
+    //   .select('*')
+    //   .eq('token', token)
+    //   .limit(1)
+    //   .single();
+    // return data || null;
+    return null;
   }
 
   static async getStudentPendingSurveys(studentId: string): Promise<SurveyAssignment[]> {
-    // Query all assignments and filter in memory
-    const allAssignments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as SurveyAssignment);
-    
-    // Debug: log all assignments to see what studentIds exist
-    console.log('All assignments in DB:', allAssignments.map(a => ({
-      id: a.id,
-      studentId: a.studentId,
-      studentName: a.studentName,
-      status: a.status
-    })));
-    console.log('Looking for studentId:', studentId);
-    
-    return allAssignments.filter(a => a.studentId === studentId && a.status === 'pending');
+    // TODO: Implement Supabase query
+    // const { data } = await supabase
+    //   .from(ASSIGNMENTS_COLLECTION)
+    //   .select('*')
+    //   .eq('studentId', studentId)
+    //   .eq('status', 'pending')
+    //   .order('assigned_at', { ascending: false });
+    // return data || [];
+    return [];
   }
 
   static async cancelAssignment(assignmentId: string): Promise<void> {
+    // TODO: Implement Supabase delete
+    // const { error } = await supabase
+    //   .from(ASSIGNMENTS_COLLECTION)
+    //   .delete()
+    //   .eq('id', assignmentId);
+    // if (error) throw error;
   }
 
   static onAssignmentsChange(
     callback: (assignments: SurveyAssignment[]) => void,
     studentId?: string
-  ): Unsubscribe {
-    let q;
-    if (studentId) {
-      //         orderBy('assignedAt', 'desc')
-      );
-    } else {
-      //         orderBy('assignedAt', 'desc')
-      );
-    }
-      //       const assignments = snapshot.docs.map(doc => ({
-      //         id: doc.id,
-      //         ...doc.data()
-      })) as SurveyAssignment[];
-      callback(assignments);
-    });
+  ): () => void {
+    // TODO: Implement Supabase realtime subscription
+    // const channel = supabase
+    //   .channel('survey-assignments')
+    //   .on('postgres_changes', {
+    //     event: '*',
+    //     schema: 'public',
+    //     table: ASSIGNMENTS_COLLECTION
+    //   }, () => {
+    //     this.getAssignments({ studentId }).then(callback);
+    //   })
+    //   .subscribe();
+    // return () => supabase.removeChannel(channel);
+    return () => {};
   }
 
 
@@ -235,8 +277,8 @@ export class SurveyService {
       studentId: data.studentId,
       studentName: data.studentName,
       answers: data.answers || {},
-      submittedAt: new Date().toISOString(),
-      submittedBy: data.submittedBy || 'student',
+      submitted_at: new Date().toISOString(),
+      submitted_by: data.submittedBy || 'student',
     };
 
     // Only add optional fields if they have values
@@ -252,15 +294,28 @@ export class SurveyService {
     if (data.submitterName) responseData.submitterName = data.submitterName;
     if (data.submitterPhone) responseData.submitterPhone = data.submitterPhone;
 
+    // TODO: Insert with Supabase
+    // const { data: result, error } = await supabase
+    //   .from(RESPONSES_COLLECTION)
+    //   .insert(responseData)
+    //   .select()
+    //   .single();
+    // if (error) throw error;
 
     // Update assignment status
     if (data.assignmentId) {
-      //         status: 'submitted',
-      //         submittedAt: new Date().toISOString()
-      });
+      // TODO: Update assignment with Supabase
+      // await supabase
+      //   .from(ASSIGNMENTS_COLLECTION)
+      //   .update({
+      //     status: 'submitted',
+      //     submitted_at: new Date().toISOString()
+      //   })
+      //   .eq('id', data.assignmentId);
     }
 
-    return docRef.id;
+    // return result.id;
+    throw new Error('Not implemented');
   }
 
   static async getResponses(filters?: {
@@ -270,40 +325,42 @@ export class SurveyService {
     fromDate?: string;
     toDate?: string;
   }): Promise<SurveyResponse[]> {
-    );
-    let responses = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as SurveyResponse[];
-
-    // Filter in memory
-    if (filters?.templateId) {
-      responses = responses.filter(r => r.templateId === filters.templateId);
-    }
-    if (filters?.studentId) {
-      responses = responses.filter(r => r.studentId === filters.studentId);
-    }
-    if (filters?.classId) {
-      responses = responses.filter(r => r.classId === filters.classId);
-    }
-    if (filters?.fromDate) {
-      responses = responses.filter(r => r.submittedAt >= filters.fromDate!);
-    }
-    if (filters?.toDate) {
-      responses = responses.filter(r => r.submittedAt <= filters.toDate!);
-    }
-
-    return responses;
+    // TODO: Implement Supabase query
+    // let query = supabase.from(RESPONSES_COLLECTION).select('*');
+    // if (filters?.templateId) {
+    //   query = query.eq('templateId', filters.templateId);
+    // }
+    // if (filters?.studentId) {
+    //   query = query.eq('studentId', filters.studentId);
+    // }
+    // if (filters?.classId) {
+    //   query = query.eq('classId', filters.classId);
+    // }
+    // if (filters?.fromDate) {
+    //   query = query.gte('submitted_at', filters.fromDate);
+    // }
+    // if (filters?.toDate) {
+    //   query = query.lte('submitted_at', filters.toDate);
+    // }
+    // const { data } = await query.order('submitted_at', { ascending: false });
+    // return data || [];
+    return [];
   }
 
-  static onResponsesChange(callback: (responses: SurveyResponse[]) => void): Unsubscribe {
-    );
-      //       const responses = snapshot.docs.map(doc => ({
-      //         id: doc.id,
-      //         ...doc.data()
-      })) as SurveyResponse[];
-      callback(responses);
-    });
+  static onResponsesChange(callback: (responses: SurveyResponse[]) => void): () => void {
+    // TODO: Implement Supabase realtime subscription
+    // const channel = supabase
+    //   .channel('survey-responses')
+    //   .on('postgres_changes', {
+    //     event: '*',
+    //     schema: 'public',
+    //     table: RESPONSES_COLLECTION
+    //   }, () => {
+    //     this.getResponses().then(callback);
+    //   })
+    //   .subscribe();
+    // return () => supabase.removeChannel(channel);
+    return () => {};
   }
 
   // ========================================

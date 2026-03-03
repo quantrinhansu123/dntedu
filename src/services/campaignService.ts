@@ -3,13 +3,6 @@
  * Handle marketing campaigns CRUD
  */
 
-import {
-  collection,
-  doc,
-      //   query,
-      //   where,
-      //   orderBy,
-
 const CAMPAIGNS_COLLECTION = 'campaigns';
 
 export type CampaignStatus = 'Đang mở' | 'Tạm dừng' | 'Kết thúc';
@@ -41,7 +34,15 @@ export const createCampaign = async (data: Omit<Campaign, 'id'>): Promise<string
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    return docRef.id;
+    // TODO: Implement Supabase insert
+    // const { data: result, error } = await supabase
+    //   .from(CAMPAIGNS_COLLECTION)
+    //   .insert(campaignData)
+    //   .select()
+    //   .single();
+    // if (error) throw error;
+    // return result.id;
+    throw new Error('Not implemented');
   } catch (error) {
     console.error('Error creating campaign:', error);
     throw new Error('Không thể tạo chiến dịch');
@@ -50,44 +51,32 @@ export const createCampaign = async (data: Omit<Campaign, 'id'>): Promise<string
 
 export const getCampaigns = async (includeEnded: boolean = false): Promise<Campaign[]> => {
   try {
-    
-    if (!includeEnded) {
-    }
-    
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      const conversionRate = data.targetCount > 0 
-        ? (data.registeredCount / data.targetCount) * 100 
-        : 0;
-      return {
-        id: doc.id,
-        ...data,
-        conversionRate,
-      } as Campaign;
-    });
+    // TODO: Implement Supabase query
+    // let query = supabase.from(CAMPAIGNS_COLLECTION).select('*');
+    // if (!includeEnded) {
+    //   query = query.neq('status', 'Kết thúc');
+    // }
+    // const { data, error } = await query.order('created_at', { ascending: false });
+    // if (error) throw error;
+    // return (data || []).map(item => {
+    //   const conversionRate = item.targetCount > 0 
+    //     ? (item.registeredCount / item.targetCount) * 100 
+    //     : 0;
+    //   return {
+    //     id: item.id,
+    //     ...item,
+    //     conversionRate,
+    //   } as Campaign;
+    // });
+    return [];
   } catch (error) {
     console.error('Error getting campaigns:', error);
-    // Fallback without complex query
-    let campaigns = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        conversionRate: data.targetCount > 0 ? (data.registeredCount / data.targetCount) * 100 : 0,
-      } as Campaign;
-    });
-    
-    if (!includeEnded) {
-      campaigns = campaigns.filter(c => c.status !== 'Kết thúc');
-    }
-    
-    return campaigns.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    return [];
   }
 };
 
 export const updateCampaign = async (id: string, data: Partial<Campaign>): Promise<void> => {
   try {
-    
     // Recalculate conversion rate if counts changed
     let updateData = { ...data };
     if (data.registeredCount !== undefined || data.targetCount !== undefined) {
@@ -96,9 +85,15 @@ export const updateCampaign = async (id: string, data: Partial<Campaign>): Promi
       updateData.conversionRate = target > 0 ? (registered / target) * 100 : 0;
     }
     
-      //       ...updateData,
-      //       updatedAt: new Date().toISOString(),
-      //     });
+    // TODO: Implement Supabase update
+    // const { error } = await supabase
+    //   .from(CAMPAIGNS_COLLECTION)
+    //   .update({
+    //     ...updateData,
+    //     updated_at: new Date().toISOString(),
+    //   })
+    //   .eq('id', id);
+    // if (error) throw error;
   } catch (error) {
     console.error('Error updating campaign:', error);
     throw new Error('Không thể cập nhật chiến dịch');
@@ -107,6 +102,12 @@ export const updateCampaign = async (id: string, data: Partial<Campaign>): Promi
 
 export const deleteCampaign = async (id: string): Promise<void> => {
   try {
+    // TODO: Implement Supabase delete
+    // const { error } = await supabase
+    //   .from(CAMPAIGNS_COLLECTION)
+    //   .delete()
+    //   .eq('id', id);
+    // if (error) throw error;
   } catch (error) {
     console.error('Error deleting campaign:', error);
     throw new Error('Không thể xóa chiến dịch');

@@ -4,13 +4,6 @@
  */
 
 import {
-    collection,
-    doc,
-      //     query,
-      //     where,
-      //     orderBy,
-      //     Unsubscribe
-import {
     FeedbackCampaign,
     FeedbackToken,
     FeedbackSubmission,
@@ -33,52 +26,91 @@ export class FeedbackCampaignService {
     // ========================================
 
     static async getCampaigns(): Promise<FeedbackCampaign[]> {
-      //             orderBy('createdAt', 'desc')
-        );
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as FeedbackCampaign[];
+        // TODO: Implement Supabase query
+        // const { data } = await supabase
+        //   .from(CAMPAIGNS_COLLECTION)
+        //   .select('*')
+        //   .order('created_at', { ascending: false });
+        // return data || [];
+        return [];
     }
 
     static async getCampaign(id: string): Promise<FeedbackCampaign | null> {
-        if (!docSnap.exists()) return null;
-        return { id: docSnap.id, ...docSnap.data() } as FeedbackCampaign;
+        // TODO: Implement Supabase query
+        // const { data } = await supabase
+        //   .from(CAMPAIGNS_COLLECTION)
+        //   .select('*')
+        //   .eq('id', id)
+        //   .single();
+        // return data || null;
+        return null;
     }
 
     static async createCampaign(data: Omit<FeedbackCampaign, 'id' | 'createdAt'>): Promise<string> {
-      //             ...data,
-      //             questions: data.questions || DEFAULT_FEEDBACK_QUESTIONS,
-      //             status: data.status || 'draft',
-      //             createdAt: new Date().toISOString()
-        });
-        return docRef.id;
+        // TODO: Implement Supabase insert
+        // const { data: result, error } = await supabase
+        //   .from(CAMPAIGNS_COLLECTION)
+        //   .insert({
+        //     ...data,
+        //     questions: data.questions || DEFAULT_FEEDBACK_QUESTIONS,
+        //     status: data.status || 'draft',
+        //     created_at: new Date().toISOString()
+        //   })
+        //   .select()
+        //   .single();
+        // if (error) throw error;
+        // return result.id;
+        throw new Error('Not implemented');
     }
 
     static async updateCampaign(id: string, data: Partial<FeedbackCampaign>): Promise<void> {
+        // TODO: Implement Supabase update
+        // const { error } = await supabase
+        //   .from(CAMPAIGNS_COLLECTION)
+        //   .update(data)
+        //   .eq('id', id);
+        // if (error) throw error;
     }
 
     static async deleteCampaign(id: string): Promise<void> {
-        // Delete all tokens and submissions for this campaign
-        );
-        for (const tokenDoc of tokensSnapshot.docs) {
-        }
-
-        );
-        for (const subDoc of submissionsSnapshot.docs) {
-        }
-
+        // TODO: Delete all tokens and submissions for this campaign with Supabase
+        // const { data: tokens } = await supabase
+        //   .from(TOKENS_COLLECTION)
+        //   .select('id')
+        //   .eq('campaignId', id);
+        // if (tokens) {
+        //   for (const token of tokens) {
+        //     await supabase.from(TOKENS_COLLECTION).delete().eq('id', token.id);
+        //   }
+        // }
+        
+        // const { data: submissions } = await supabase
+        //   .from(SUBMISSIONS_COLLECTION)
+        //   .select('id')
+        //   .eq('campaignId', id);
+        // if (submissions) {
+        //   for (const sub of submissions) {
+        //     await supabase.from(SUBMISSIONS_COLLECTION).delete().eq('id', sub.id);
+        //   }
+        // }
+        
+        // await supabase.from(CAMPAIGNS_COLLECTION).delete().eq('id', id);
     }
 
-    static onCampaignsChange(callback: (campaigns: FeedbackCampaign[]) => void): Unsubscribe {
-      //             orderBy('createdAt', 'desc')
-        );
-      //             const campaigns = snapshot.docs.map(doc => ({
-      //                 id: doc.id,
-      //                 ...doc.data()
-            })) as FeedbackCampaign[];
-            callback(campaigns);
-        });
+    static onCampaignsChange(callback: (campaigns: FeedbackCampaign[]) => void): () => void {
+        // TODO: Implement Supabase realtime subscription
+        // const channel = supabase
+        //   .channel('feedback-campaigns')
+        //   .on('postgres_changes', {
+        //     event: '*',
+        //     schema: 'public',
+        //     table: CAMPAIGNS_COLLECTION
+        //   }, () => {
+        //     this.getCampaigns().then(callback);
+        //   })
+        //   .subscribe();
+        // return () => supabase.removeChannel(channel);
+        return () => {};
     }
 
     // ========================================
@@ -92,22 +124,35 @@ export class FeedbackCampaignService {
         const tokens: FeedbackToken[] = [];
 
         for (const student of students) {
-            // Check if token already exists
-            );
+            // TODO: Check if token already exists with Supabase
+            // const { data: existing } = await supabase
+            //   .from(TOKENS_COLLECTION)
+            //   .select('*')
+            //   .eq('campaignId', campaignId)
+            //   .eq('studentId', student.id)
+            //   .limit(1)
+            //   .single();
 
-            if (existingSnapshot.empty) {
+            // if (!existing) {
                 const token = generateToken();
-      //                     campaignId,
-      //                     studentId: student.id,
-      //                     studentName: student.name,
-      //                     classId: student.classId || null,
-      //                     className: student.className || null,
-      //                     token,
-      //                     status: 'pending',
-      //                     createdAt: new Date().toISOString()
-                });
+                // TODO: Insert with Supabase
+                // const { data: result } = await supabase
+                //   .from(TOKENS_COLLECTION)
+                //   .insert({
+                //     campaignId,
+                //     studentId: student.id,
+                //     studentName: student.name,
+                //     classId: student.classId || null,
+                //     className: student.className || null,
+                //     token,
+                //     status: 'pending',
+                //     created_at: new Date().toISOString()
+                //   })
+                //   .select()
+                //   .single();
+                
                 tokens.push({
-                    id: docRef.id,
+                    id: '', // result?.id || '',
                     campaignId,
                     studentId: student.id,
                     studentName: student.name,
@@ -117,34 +162,43 @@ export class FeedbackCampaignService {
                     status: 'pending',
                     createdAt: new Date().toISOString()
                 });
-            } else {
-                const existingToken = existingSnapshot.docs[0];
-                tokens.push({
-                    id: existingToken.id,
-                    ...existingToken.data()
-                } as FeedbackToken);
-            }
+            // } else {
+            //     tokens.push(existing as FeedbackToken);
+            // }
         }
 
         return tokens;
     }
 
     static async getTokensByCampaign(campaignId: string): Promise<FeedbackToken[]> {
-        );
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as FeedbackToken[];
+        // TODO: Implement Supabase query
+        // const { data } = await supabase
+        //   .from(TOKENS_COLLECTION)
+        //   .select('*')
+        //   .eq('campaignId', campaignId);
+        // return data || [];
+        return [];
     }
 
     static async getTokenByValue(token: string): Promise<FeedbackToken | null> {
-        );
-        if (snapshot.empty) return null;
-        const doc = snapshot.docs[0];
-        return { id: doc.id, ...doc.data() } as FeedbackToken;
+        // TODO: Implement Supabase query
+        // const { data } = await supabase
+        //   .from(TOKENS_COLLECTION)
+        //   .select('*')
+        //   .eq('token', token)
+        //   .limit(1)
+        //   .single();
+        // return data || null;
+        return null;
     }
 
     static async markTokenAsSubmitted(tokenId: string): Promise<void> {
+        // TODO: Implement Supabase update
+        // const { error } = await supabase
+        //   .from(TOKENS_COLLECTION)
+        //   .update({ status: 'submitted' })
+        //   .eq('id', tokenId);
+        // if (error) throw error;
     }
 
     // ========================================
@@ -164,52 +218,55 @@ export class FeedbackCampaignService {
             ? scores.reduce((a, b) => a + b, 0) / scores.length
             : 0;
 
-      //             ...data,
-      //             averageScore,
-      //             submittedAt: new Date().toISOString()
-        });
+        // TODO: Insert with Supabase
+        // const { data: result, error } = await supabase
+        //   .from(SUBMISSIONS_COLLECTION)
+        //   .insert({
+        //     ...data,
+        //     averageScore,
+        //     submitted_at: new Date().toISOString()
+        //   })
+        //   .select()
+        //   .single();
+        // if (error) throw error;
 
         // Mark token as submitted
         if (data.tokenId) {
             await this.markTokenAsSubmitted(data.tokenId);
         }
 
-        return docRef.id;
+        // return result.id;
+        throw new Error('Not implemented');
     }
 
     static async getSubmissions(campaignId?: string): Promise<FeedbackSubmission[]> {
-        let q;
-        if (campaignId) {
-      //                 orderBy('submittedAt', 'desc')
-            );
-        } else {
-      //                 orderBy('submittedAt', 'desc')
-            );
-        }
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as FeedbackSubmission[];
+        // TODO: Implement Supabase query
+        // let query = supabase.from(SUBMISSIONS_COLLECTION).select('*');
+        // if (campaignId) {
+        //   query = query.eq('campaignId', campaignId);
+        // }
+        // const { data } = await query.order('submitted_at', { ascending: false });
+        // return data || [];
+        return [];
     }
 
     static onSubmissionsChange(
         callback: (submissions: FeedbackSubmission[]) => void,
         campaignId?: string
-    ): Unsubscribe {
-        let q;
-        if (campaignId) {
-      //                 orderBy('submittedAt', 'desc')
-            );
-        } else {
-      //                 orderBy('submittedAt', 'desc')
-            );
-        }
-      //             const submissions = snapshot.docs.map(doc => ({
-      //                 id: doc.id,
-      //                 ...doc.data()
-            })) as FeedbackSubmission[];
-            callback(submissions);
-        });
+    ): () => void {
+        // TODO: Implement Supabase realtime subscription
+        // const channel = supabase
+        //   .channel('feedback-submissions')
+        //   .on('postgres_changes', {
+        //     event: '*',
+        //     schema: 'public',
+        //     table: SUBMISSIONS_COLLECTION
+        //   }, () => {
+        //     this.getSubmissions(campaignId).then(callback);
+        //   })
+        //   .subscribe();
+        // return () => supabase.removeChannel(channel);
+        return () => {};
     }
 
     // ========================================
