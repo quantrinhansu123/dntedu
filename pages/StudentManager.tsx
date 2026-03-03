@@ -11,7 +11,6 @@ import { useAuth } from '../src/hooks/useAuth';
 import { getFeedbacks, FeedbackRecord } from '../src/services/feedbackService';
 import { ClassModel } from '../types';
 import { createEnrollment } from '../src/services/enrollmentService';
-// Firebase đã được xóa - sử dụng Supabase thay thế
 import { ImportExportButtons } from '../components/ImportExportButtons';
 import { STUDENT_FIELDS, STUDENT_MAPPING, prepareStudentExport } from '../src/utils/excelUtils';
 // import { getCenters, Center } from '../src/services/centerService'; // Đã xóa cấu hình
@@ -119,7 +118,6 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const hideParentPhone = shouldHideParentPhone('students');
   const onlyOwnClasses = shouldShowOnlyOwnClasses('students');
 
-  // Fetch ALL students from Firebase (no server-side status filter to handle legacy status values like "Đã nghỉ")
   const { students: allStudents, loading, error, createStudent, updateStudent, deleteStudent } = useStudents();
 
   // Fetch parents for dropdown
@@ -179,7 +177,6 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       if (students.length === 0) return;
 
       try {
-        // Firebase đã được xóa - attendance data sẽ được tính từ Supabase sau
         // TODO: Fetch from Supabase attendance table
         const attendanceRecords: any[] = [];
 
@@ -579,8 +576,6 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-
 
           <select
             className="pl-2 pr-8 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm"

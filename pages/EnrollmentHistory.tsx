@@ -14,7 +14,6 @@ export const EnrollmentHistory: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<EnrollmentRecord | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Fetch from Firebase
   const { enrollments, loading, error } = useEnrollments({
     type: typeFilter !== 'ALL' ? typeFilter : undefined,
     month: monthFilter ? monthFilter : undefined,

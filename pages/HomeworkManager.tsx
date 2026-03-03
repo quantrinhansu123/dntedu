@@ -5,9 +5,7 @@ import { useStudents } from '../src/hooks/useStudents';
 import { useAuth } from '../src/hooks/useAuth';
 import { usePermissions } from '../src/hooks/usePermissions';
 import { useHolidays } from '../src/hooks/useHolidays';
-// Firebase imports removed - using Supabase
-// import { collection, addDoc, updateDoc, doc, getDocs, query, where, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 import { ClassModel, Student } from '../types';
 
 // Default homework statuses with colors
@@ -179,8 +177,6 @@ export const HomeworkManager: React.FC = () => {
   useEffect(() => {
     const loadStatuses = async () => {
       try {
-        // const docRef = doc(db, 'settings', 'homeworkStatuses');
-        // const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setGlobalStatuses(docSnap.data().statuses || DEFAULT_HOMEWORK_STATUSES);
         }
@@ -201,8 +197,6 @@ export const HomeworkManager: React.FC = () => {
 
       setLoadingSessions(true);
       try {
-      //         const sessionsSnap = await getDocs(
-      //           query(collection(db, 'classSessions'), where('classId', '==', selectedClassId))
         );
         const data = sessionsSnap.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
@@ -230,11 +224,6 @@ export const HomeworkManager: React.FC = () => {
 
       setLoading(true);
       try {
-      //         const recordsSnap = await getDocs(
-      //           query(
-      //             collection(db, 'homeworkRecords'),
-      //             where('classId', '==', selectedClassId),
-      //             where('sessionId', '==', selectedSessionId)
           )
         );
 
@@ -273,12 +262,7 @@ export const HomeworkManager: React.FC = () => {
 
       setLoadingMonthly(true);
       try {
-        const q = query(
-      //           collection(db, 'monthlyComments'),
-      //           where('classId', '==', selectedClassId),
-      //           where('month', '==', selectedMonth)
         );
-        // const snap = await getDocs(q);
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as MonthlyComment[];
         setMonthlyComments(data);
       } catch (err) {
@@ -297,11 +281,7 @@ export const HomeworkManager: React.FC = () => {
 
       setLoadingTests(true);
       try {
-        const q = query(
-      //           collection(db, 'testComments'),
-      //           where('classId', '==', selectedClassId)
         );
-        // const snap = await getDocs(q);
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as TestComment[];
         data.sort((a, b) => (b.testDate || '').localeCompare(a.testDate || ''));
         setTestComments(data);
@@ -419,10 +399,8 @@ export const HomeworkManager: React.FC = () => {
       };
 
       if (existingRecordId) {
-        // await updateDoc(doc(db, 'homeworkRecords', existingRecordId), recordData);
       } else {
         recordData.createdAt = new Date().toISOString();
-        // const docRef = await addDoc(collection(db, 'homeworkRecords'), recordData);
         setExistingRecordId(docRef.id);
       }
 
@@ -438,7 +416,6 @@ export const HomeworkManager: React.FC = () => {
   // Save global statuses
   const handleSaveStatuses = async () => {
     try {
-      // await setDoc(doc(db, 'settings', 'homeworkStatuses'), { statuses: globalStatuses });
       alert('Đã lưu cấu hình trạng thái!');
       setShowStatusConfig(false);
     } catch (err) {
@@ -492,8 +469,6 @@ export const HomeworkManager: React.FC = () => {
         const selectedClass = classes.find(c => c.id === classId);
 
         // Get all sessions for this class
-      //         const sessionsSnap = await getDocs(
-      //           query(collection(db, 'classSessions'), where('classId', '==', classId))
         );
         const classSessions = sessionsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -504,12 +479,7 @@ export const HomeworkManager: React.FC = () => {
         }));
 
         for (const session of classSessions) {
-          const existingQ = query(
-      //             collection(db, 'homeworkRecords'),
-      //             where('classId', '==', classId),
-      //             where('sessionId', '==', session.id)
           );
-          // const existingSnap = await getDocs(existingQ);
 
           if (!existingSnap.empty) {
             const existingDoc = existingSnap.docs[0];
@@ -521,14 +491,12 @@ export const HomeworkManager: React.FC = () => {
             );
 
             if (newHomeworks.length > 0) {
-      //               await updateDoc(doc(db, 'homeworkRecords', existingDoc.id), {
       //                 homeworks: [...existingHomeworks, ...newHomeworks],
       //                 updatedAt: new Date().toISOString()
               });
               totalUpdated++;
             }
           } else {
-            // await addDoc(collection(db, 'homeworkRecords'), {
               classId,
               className: selectedClass?.name || '',
               sessionId: session.id,
@@ -562,12 +530,10 @@ export const HomeworkManager: React.FC = () => {
     try {
       const existing = monthlyComments.find(c => c.studentId === studentId);
       if (existing?.id) {
-      //         await updateDoc(doc(db, 'monthlyComments', existing.id), {
       //           comment,
       //           updatedAt: new Date().toISOString()
         });
       } else {
-      //         await addDoc(collection(db, 'monthlyComments'), {
       //           classId: selectedClassId,
       //           studentId,
       //           studentName,
@@ -579,12 +545,7 @@ export const HomeworkManager: React.FC = () => {
       //         });
       }
       // Reload
-      const q = query(
-      //         collection(db, 'monthlyComments'),
-      //         where('classId', '==', selectedClassId),
-      //         where('month', '==', selectedMonth)
       );
-      // const snap = await getDocs(q);
       setMonthlyComments(snap.docs.map(d => ({ id: d.id, ...d.data() })) as MonthlyComment[]);
     } catch (err) {
       console.error('Error saving monthly comment:', err);
@@ -597,13 +558,11 @@ export const HomeworkManager: React.FC = () => {
     try {
       const existing = testComments.find(c => c.testName === testName && c.studentId === studentId);
       if (existing?.id) {
-      //         await updateDoc(doc(db, 'testComments', existing.id), {
       //           comment,
       //           score,
       //           updatedAt: new Date().toISOString()
         });
       } else {
-        // await addDoc(collection(db, 'testComments'), {
           classId: selectedClassId,
           studentId,
           studentName,
@@ -617,8 +576,6 @@ export const HomeworkManager: React.FC = () => {
         });
       }
       // Reload
-      // const q = query(collection(db, 'testComments'), where('classId', '==', selectedClassId));
-      // const snap = await getDocs(q);
       setTestComments(snap.docs.map(d => ({ id: d.id, ...d.data() })) as TestComment[]);
     } catch (err) {
       console.error('Error saving test comment:', err);
@@ -1292,7 +1249,6 @@ export const HomeworkManager: React.FC = () => {
                   try {
                     // Create test records for all students
                     for (const student of studentsInClass) {
-                      // await addDoc(collection(db, 'testComments'), {
                         classId: selectedClassId,
                         studentId: student.id,
                         studentName: student.fullName || student.name || '',
@@ -1306,8 +1262,6 @@ export const HomeworkManager: React.FC = () => {
                       });
                     }
                     // Reload
-                    // const q = query(collection(db, 'testComments'), where('classId', '==', selectedClassId));
-                    // const snap = await getDocs(q);
                     setTestComments(snap.docs.map(d => ({ id: d.id, ...d.data() })) as TestComment[]);
                     setShowAddTestModal(false);
                     setNewTestName('');

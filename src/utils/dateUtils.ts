@@ -4,13 +4,11 @@
 
 /**
  * Safely format a date value to ISO date string (YYYY-MM-DD)
- * Handles various input types: string, Date, Firestore Timestamp
  */
 export const formatDateSafe = (dateValue: unknown): string => {
     if (!dateValue) return '';
 
     try {
-        // Handle Firestore Timestamp
         if (typeof dateValue === 'object' && dateValue !== null && 'toDate' in dateValue) {
             const date = (dateValue as { toDate: () => Date }).toDate();
             return date.toISOString().split('T')[0];

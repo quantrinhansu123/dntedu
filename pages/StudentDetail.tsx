@@ -2,9 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, User, Phone, Mail, MapPin, Calendar, BookOpen, DollarSign, Clock, MessageSquare, FileText, X, GraduationCap, CheckCircle2, CalendarCheck, Circle, TrendingUp, AlertTriangle, History, CreditCard, AlertCircle, BadgeDollarSign } from 'lucide-react';
-// Firebase imports removed - using Supabase
-// import { collection, query, where, getDocs } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 import { useClasses } from '../src/hooks/useClasses';
 import { useStudents } from '../src/hooks/useStudents';
 import { useFeedback } from '../src/hooks/useFeedback';
@@ -51,7 +49,6 @@ export const StudentDetail: React.FC = () => {
   });
   const [processingManual, setProcessingManual] = useState(false);
   
-  // Get feedback data for this student from Firebase
   const { callFeedbacks, formFeedbacks, loading: feedbackLoading } = useFeedback({ studentId: id });
 
   // Get tutoring history for this student
@@ -76,11 +73,7 @@ export const StudentDetail: React.FC = () => {
     const fetchAttendanceStats = async () => {
       if (!id) return;
       try {
-        const q = query(
-      //           collection(db, 'studentAttendance'),
-      //           where('studentId', '==', id)
         );
-        // const snapshot = await getDocs(q);
         const records = snapshot.docs.map(d => d.data()).filter(r => r.status && r.status !== '');
         
         const total = records.length;
@@ -128,11 +121,7 @@ export const StudentDetail: React.FC = () => {
       setFinanceLoading(true);
       try {
         // Fetch enrollments
-        const enrollQ = query(
-      //           collection(db, 'enrollments'),
-      //           where('studentId', '==', id)
         );
-        // const enrollSnap = await getDocs(enrollQ);
         const enrollList = enrollSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         // Sort by createdAt desc
         enrollList.sort((a: any, b: any) => {
@@ -143,11 +132,7 @@ export const StudentDetail: React.FC = () => {
         setEnrollments(enrollList);
 
         // Fetch contracts
-        const contractQ = query(
-      //           collection(db, 'contracts'),
-      //           where('studentId', '==', id)
         );
-        // const contractSnap = await getDocs(contractQ);
         const contractList = contractSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         contractList.sort((a: any, b: any) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -164,7 +149,6 @@ export const StudentDetail: React.FC = () => {
     fetchFinanceData();
   }, [id]);
 
-  // Find student by ID from Firebase data
   const student = students.find(s => s.id === id);
   
   // Calculate remaining sessions and warning
@@ -235,11 +219,7 @@ export const StudentDetail: React.FC = () => {
       const today = new Date().toISOString().split('T')[0];
       
       // Get all sessions for this class
-      const sessionsQuery = query(
-      //         collection(db, 'classSessions'),
-      //         where('classId', '==', classId)
       );
-      // const sessionsSnap = await getDocs(sessionsQuery);
       // Sort by sessionNumber locally (Firestore index not available)
       const sessions = sessionsSnap.docs.map(doc => ({
         id: doc.id,

@@ -6,17 +6,10 @@
 // import {
 //   collection,
 //   doc,
-//   getDoc,
-//   getDocs,
-//   addDoc,
-//   updateDoc,
-//   deleteDoc,
 //   query,
 //   where,
 //   orderBy,
-// } from 'firebase/firestore';
-// import { db } from '../config/firebase';
-// Firebase đã được xóa - sử dụng Supabase thay thế
+// ;
 
 const SALARY_RULES_COLLECTION = 'salaryRules';
 const SALARY_RANGES_COLLECTION = 'salaryRanges';
@@ -65,14 +58,12 @@ export interface SalaryRangeConfig {
 // ============================================
 
 export const createSalaryRule = async (data: Omit<SalaryRule, 'id'>): Promise<string> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase create
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo salary rule.');
 };
 
 export const getSalaryRules = async (staffId?: string): Promise<SalaryRule[]> => {
   try {
-    // Firebase đã được xóa - sử dụng Supabase thay thế
     // TODO: Implement Supabase query for salary rules
     // const { data, error } = await supabase
     //   .from('salary_rules')
@@ -94,13 +85,11 @@ export const getSalaryRules = async (staffId?: string): Promise<SalaryRule[]> =>
 };
 
 export const updateSalaryRule = async (id: string, data: Partial<SalaryRule>): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase update
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật salary rule.');
 };
 
 export const deleteSalaryRule = async (id: string): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase delete
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa salary rule.');
 };
@@ -110,14 +99,12 @@ export const deleteSalaryRule = async (id: string): Promise<void> => {
 // ============================================
 
 export const createSalaryRange = async (data: Omit<SalaryRangeConfig, 'id'>): Promise<string> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase create
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo salary range.');
 };
 
 export const getSalaryRanges = async (type?: RangeType): Promise<SalaryRangeConfig[]> => {
   try {
-    // Firebase đã được xóa - sử dụng Supabase thay thế
     // TODO: Implement Supabase query for salary ranges
     // const { data, error } = await supabase
     //   .from('salary_ranges')
@@ -139,13 +126,11 @@ export const getSalaryRanges = async (type?: RangeType): Promise<SalaryRangeConf
 };
 
 export const updateSalaryRange = async (id: string, data: Partial<SalaryRangeConfig>): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase update
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật salary range.');
 };
 
 export const deleteSalaryRange = async (id: string): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase delete
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa salary range.');
 };

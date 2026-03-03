@@ -12,9 +12,7 @@ import { AlertTriangle, Clock, CreditCard, Phone, Calendar, ChevronDown, Chevron
 import { useStudents } from '../src/hooks/useStudents';
 import { useClasses } from '../src/hooks/useClasses';
 import { formatCurrency } from '../src/utils/currencyUtils';
-// Firebase imports removed - using Supabase
-// import { doc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 
 const SESSIONS_WARNING_THRESHOLD = 6; // Cảnh báo khi còn <= 6 buổi
 
@@ -38,13 +36,8 @@ export const DebtManagement: React.FC = () => {
   const syncContractDebt = async () => {
     setSyncing(true);
     try {
-      // Firebase đã được xóa - cần migrate sang Supabase
       // Get all contracts with "Nợ hợp đồng" status
-      // const contractsQuery = query(
-      //   collection(db, 'contracts'),
-      //   where('status', '==', 'Nợ hợp đồng')
       // );
-      // const contractsSnap = await getDocs(contractsQuery);
       
       // Group contracts by studentId and sum debt
       // const studentDebts: Record<string, { 
@@ -79,7 +72,6 @@ export const DebtManagement: React.FC = () => {
       // let updated = 0;
       // for (const [studentId, debt] of Object.entries(studentDebts)) {
       //   try {
-      //     await updateDoc(doc(db, 'students', studentId), {
       //       status: 'Nợ hợp đồng',
       //       contractDebt: debt.totalDebt,
       //       nextPaymentDate: debt.nextPaymentDate,
@@ -93,7 +85,6 @@ export const DebtManagement: React.FC = () => {
       
       // alert(`Đã đồng bộ ${updated} học viên (${contractsSnap.size} hợp đồng). Vui lòng refresh trang.`);
       // window.location.reload();
-      console.warn('syncContractDebt: Firebase đã được xóa. Cần migrate sang Supabase.');
       alert('Tính năng này cần được migrate sang Supabase.');
     } catch (err) {
       console.error('Error syncing:', err);
@@ -190,11 +181,8 @@ export const DebtManagement: React.FC = () => {
   const handleSavePaymentDate = async (studentId: string) => {
     if (!paymentDateValue) return;
     try {
-      // Firebase đã được xóa - cần migrate sang Supabase
-      // await updateDoc(doc(db, 'students', studentId), {
       //   nextPaymentDate: paymentDateValue,
       // });
-      console.warn('handleSavePaymentDate: Firebase đã được xóa. Cần migrate sang Supabase.');
       setEditingPaymentDate(null);
       setPaymentDateValue('');
     } catch (err) {

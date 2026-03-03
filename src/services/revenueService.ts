@@ -3,8 +3,7 @@
  * Aggregate revenue data from contracts
  */
 
-// import { collection, getDocs, query, where, orderBy } from 'firebase/ // Firebase đã được xóafirestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
+// ;
 
 const CONTRACTS_COLLECTION = 'contracts';
 
@@ -37,7 +36,6 @@ export interface RevenueSummary {
 
 export const getRevenueSummary = async (year?: number): Promise<RevenueSummary> => {
   try {
-    // const snapshot = await getDocs(collection(db, CONTRACTS_COLLECTION));
     const contracts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
     const targetYear = year || new Date().getFullYear();

@@ -72,7 +72,6 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
   // Fetch actual session count for existing classes without totalSessions
   // TODO: Implement with Supabase when sessions table is migrated
   useEffect(() => {
-    // Firebase đã được xóa - session count sẽ được tính từ Supabase sau
     // if (classData && !classData.totalSessions) {
     //   // TODO: Fetch from Supabase sessions table
     // }
@@ -350,7 +349,6 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
 
   // Auto-calculate student counts - TODO: Implement with Supabase when students table is migrated
   useEffect(() => {
-    // Firebase đã được xóa - student counts sẽ được tính từ Supabase sau
     // if (!classData?.id && !classData?.name) return;
     // TODO: Fetch from Supabase students table and calculate counts
     // For now, keep existing counts from classData if available

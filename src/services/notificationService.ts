@@ -4,8 +4,7 @@
  * KHÔNG phải là form nhập liệu - tự động trigger từ các action
  */
 
-// import { collection, addDoc, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/ // Firebase đã được xóafirestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
+// ;
 
 export type NotificationType = 
   | 'payment_due'      // Thông báo đóng học phí
@@ -39,7 +38,6 @@ export const createPaymentNotification = async (
   dueDate: string
 ): Promise<void> => {
   try {
-    // await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
       studentId,
       studentName,
       type: 'payment_due',
@@ -65,7 +63,6 @@ export const createFeedbackNotification = async (
   feedbackLink: string
 ): Promise<void> => {
   try {
-    // await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
       studentId,
       studentName,
       type: 'feedback_request',
@@ -91,7 +88,6 @@ export const createHomeworkNotification = async (
   dueDate: string
 ): Promise<void> => {
   try {
-    // await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
       studentId,
       studentName,
       type: 'homework',
@@ -117,7 +113,6 @@ export const createScheduleChangeNotification = async (
 ): Promise<void> => {
   try {
     const promises = studentIds.map(studentId =>
-      //       addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
       //         studentId,
       //         type: 'schedule_change',
       //         title: '📅 Thay đổi lịch học',
@@ -141,18 +136,11 @@ export const getStudentNotifications = async (
   unreadOnly: boolean = false
 ): Promise<StudentNotification[]> => {
   try {
-    let q = query(
-      //       collection(db, NOTIFICATIONS_COLLECTION),
-      //       where('studentId', '==', studentId),
-      //       orderBy('createdAt', 'desc'),
-      //       limit(50)
     );
 
     if (unreadOnly) {
-      // q = query(q, where('isRead', '==', false));
     }
 
-    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -168,9 +156,7 @@ export const getStudentNotifications = async (
  */
 export const markAsRead = async (notificationId: string): Promise<void> => {
   try {
-    // Firebase đã được xóa - cần migrate sang Supabase
-    // const { doc: docRef, updateDoc } = await import('firebase/firestore');
-    // await updateDoc(docRef(db, NOTIFICATIONS_COLLECTION, notificationId), {
+    // ;
     //   isRead: true,
     // });
     console.warn('markAsRead: Firebase đã được xóa. Cần migrate sang Supabase.');

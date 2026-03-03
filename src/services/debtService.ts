@@ -3,8 +3,7 @@
  * Handle student debt management
  */
 
-// import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/ // Firebase đã được xóafirestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
+// ;
 
 const CONTRACTS_COLLECTION = 'contracts';
 
@@ -29,12 +28,8 @@ export interface DebtRecord {
 export const getDebtRecords = async (): Promise<DebtRecord[]> => {
   try {
     // Get contracts with Debt status
-    const q = query(
-      //       collection(db, CONTRACTS_COLLECTION),
-      //       where('status', 'in', ['Debt', 'Nợ phí'])
     );
     
-    // const snapshot = await getDocs(q);
     
     return snapshot.docs.map(docSnap => {
       const data = docSnap.data();
@@ -67,8 +62,6 @@ export const getDebtRecords = async (): Promise<DebtRecord[]> => {
 
 export const markAsPaid = async (contractId: string, paidAmount?: number): Promise<void> => {
   try {
-    // const docRef = doc(db, CONTRACTS_COLLECTION, contractId);
-      //     await updateDoc(docRef, {
       //       status: 'Paid',
       //       paidAmount: paidAmount,
       //       paidAt: new Date().toISOString(),
@@ -82,8 +75,6 @@ export const markAsPaid = async (contractId: string, paidAmount?: number): Promi
 
 export const updateDebtNote = async (contractId: string, note: string): Promise<void> => {
   try {
-    // const docRef = doc(db, CONTRACTS_COLLECTION, contractId);
-      //     await updateDoc(docRef, {
       //       note,
       //       updatedAt: new Date().toISOString(),
       //     });

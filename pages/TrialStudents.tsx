@@ -6,9 +6,6 @@ import { useClasses } from '../src/hooks/useClasses';
 import { useStaff } from '../src/hooks/useStaff';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { formatSchedule } from '../src/utils/scheduleUtils';
-// Firebase imports removed - using Supabase
-// import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
 
 // Extended student type for trial students
 interface TrialStudent extends Student {
@@ -148,7 +145,6 @@ export const TrialStudents: React.FC = () => {
         gender: 'Nam',
         code: `HT${Date.now().toString().slice(-6)}`,
         careHistory: [],
-        // Extended fields stored in a way Firebase accepts
       } as any);
       
       setShowAddModal(false);
@@ -192,8 +188,6 @@ export const TrialStudents: React.FC = () => {
     }
 
     try {
-      // Firebase đã được xóa - cần migrate sang Supabase
-      // const studentRef = doc(db, 'students', selectedStudent.id);
       const newCall = {
         date: newCallForm.date,
         content: newCallForm.content,
@@ -201,8 +195,6 @@ export const TrialStudents: React.FC = () => {
         createdAt: new Date().toISOString(),
       };
       
-      // await updateDoc(studentRef, {
-      //   callHistory: arrayUnion(newCall),
       // });
       
       // Update local state
@@ -212,7 +204,6 @@ export const TrialStudents: React.FC = () => {
       } : null);
       
       // TODO: Save to Supabase using updateStudent hook
-      console.warn('handleAddCall: Firebase đã được xóa. Cần migrate sang Supabase.');
       
       alert('Đã lưu lịch sử cuộc gọi!');
       setShowAddCallModal(false);

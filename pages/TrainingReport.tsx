@@ -5,9 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Users, BookOpen, Calendar, TrendingUp, Clock, Award } from 'lucide-react';
-// Firebase imports removed - using Supabase
-// import { collection, getDocs } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 import { formatCurrency } from '../src/utils/currencyUtils';
 
 interface TrainingSummary {
@@ -68,11 +66,6 @@ export const TrainingReport: React.FC = () => {
 
       // Fetch all collections
       const [classesSnap, studentsSnap, attendanceSnap, tutoringSnap, contractsSnap] = await Promise.all([
-      //         getDocs(collection(db, 'classes')),
-      //         getDocs(collection(db, 'students')),
-      //         getDocs(collection(db, 'attendance')),
-      //         getDocs(collection(db, 'tutoring')),
-      //         getDocs(collection(db, 'contracts')),
       //       ]);
 
       const classes = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));

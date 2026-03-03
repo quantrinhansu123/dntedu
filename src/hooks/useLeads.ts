@@ -3,8 +3,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-// import { collection, query, orderBy, onSnapshot } from 'firebase/ // Firebase đã được xóafirestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
+// ;
 import * as leadService from '../services/leadService';
 import { Lead, LeadStatus, LeadSource } from '../services/leadService';
 
@@ -40,9 +39,7 @@ export const useLeads = (props?: UseLeadsProps): UseLeadsReturn => {
     setLoading(true);
     setError(null);
 
-    // const q = query(collection(db, 'leads'), orderBy('createdAt', 'desc'));
     
-      //     const unsubscribe = onSnapshot(
       //       q,
       //       (snapshot) => {
       //         const data = snapshot.docs.map(doc => ({

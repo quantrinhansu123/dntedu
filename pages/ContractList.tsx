@@ -82,12 +82,8 @@ export const ContractList: React.FC = () => {
         : Math.floor(totalSessions * (newPaidAmount / totalAmount));
       
       // Update student and create enrollment record
-      // Firebase đã được xóa - cần migrate sang Supabase
       // if (selectedContract.studentId) {
-      //   const { doc, updateDoc, getDoc } = await import('firebase/firestore');
-      //   const { db } = await import('../src/config/firebase');
-      //   const studentRef = doc(db, 'students', selectedContract.studentId);
-      //   const studentSnap = await getDoc(studentRef);
+      //   ;
       //   
       //   if (studentSnap.exists()) {
       //     const studentData = studentSnap.data();
@@ -99,13 +95,8 @@ export const ContractList: React.FC = () => {
       //     };
       //     
       //     // Check for other debt contracts of this student
-      //     const { collection, getDocs, query, where } = await import('firebase/firestore');
-      //     const otherDebtQuery = query(
-      //       collection(db, 'contracts'),
-      //       where('studentId', '==', selectedContract.studentId),
-      //       where('status', '==', 'Nợ hợp đồng')
+      //     ;
       //     );
-      //     const otherDebtSnap = await getDocs(otherDebtQuery);
       //     
       //     // Calculate total debt from ALL debt contracts (excluding current if it's now PAID)
       //     let totalDebt = 0;
@@ -128,7 +119,6 @@ export const ContractList: React.FC = () => {
       //       updateData.status = 'Đang học';
       //     }
       //     
-      //     await updateDoc(studentRef, updateData);
       //     
       //     // Create enrollment record for additional payment
       //     if (sessionDiff > 0) {

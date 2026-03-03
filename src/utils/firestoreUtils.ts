@@ -1,17 +1,12 @@
 /**
- * Firestore Utilities
- * Firebase đã được xóa - Utilities này đã bị disable
- * Sử dụng Supabase utilities thay thế
+ * Date/Time Utilities
+ * Convert timestamps and format dates
  */
 
-// import { Timestamp } from 'firebase/firestore';
-
 /**
- * Convert Firestore Timestamp or Date to ISO string
  */
 export const convertTimestamp = (value: unknown): string => {
   if (!value) return '';
-  // Firebase đã được xóa - chỉ xử lý string và Date
   if (typeof value === 'string') {
     return value;
   }

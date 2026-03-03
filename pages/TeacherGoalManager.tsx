@@ -8,9 +8,7 @@ import {
   Target, Plus, Edit, Trash2, X, Search, Filter, TrendingUp, Award,
   Users, Calendar, BarChart3, CheckCircle, AlertCircle
 } from 'lucide-react';
-// Firebase imports removed - using Supabase
-// import { collection, getDocs } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 import { Staff, TeacherGoal, TeacherPerformance } from '../types';
 import * as teacherReportService from '../src/services/teacherReportService';
 
@@ -60,7 +58,6 @@ export const TeacherGoalManager: React.FC = () => {
       const [goalsData, performanceData, staffSnap] = await Promise.all([
         teacherReportService.getTeacherGoals(undefined, selectedPeriod),
         teacherReportService.getTeacherPerformance(selectedPeriod),
-      //         getDocs(collection(db, 'staff')),
       //       ]);
       
       const allStaff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Staff[];

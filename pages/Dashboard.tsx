@@ -42,9 +42,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
-// import { collection, getDocs, query, where, orderBy, limit, doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
-// Firebase đã được xóa - sử dụng Supabase thay thế
+// ;
 import { formatCurrency } from '../src/utils/currencyUtils';
 import { getRevenueSummary, RevenueByCategory } from '../src/services/financialReportService';
 import { seedAllData, clearAllData } from '../scripts/seedAllData';
@@ -160,7 +158,6 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        // Firebase đã được xóa - sử dụng Supabase thay thế
         // TODO: Implement Supabase query
         setCenterList([]);
       } catch (err) {
@@ -237,7 +234,6 @@ export const Dashboard: React.FC = () => {
 
   // Load birthday gifts for current month/year
   useEffect(() => {
-    // Firebase đã được xóa - sử dụng Supabase thay thế
     // TODO: Implement Supabase query for birthday gifts
     // const thisYear = new Date().getFullYear();
     // const thisMonth = new Date().getMonth() + 1;
@@ -262,7 +258,6 @@ export const Dashboard: React.FC = () => {
 
   // Toggle gift status
   const toggleGiftStatus = async (studentId: string, studentName: string, field: 'giftPrepared' | 'giftGiven') => {
-    // Firebase đã được xóa - sử dụng Supabase thay thế
     // TODO: Implement Supabase update for birthday gifts
     // const thisYear = new Date().getFullYear();
     // const thisMonth = new Date().getMonth() + 1;
@@ -278,7 +273,6 @@ export const Dashboard: React.FC = () => {
     //   });
     // if (error) throw error;
     
-    // Firebase đã được xóa - không thể cập nhật
     alert('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật trạng thái quà sinh nhật.');
   };
 
@@ -286,7 +280,6 @@ export const Dashboard: React.FC = () => {
     try {
       setLoading(true);
 
-      // Firebase đã được xóa - sử dụng Supabase thay thế
       // TODO: Implement Supabase queries
       // const { data: studentsData } = await supabase.from('students').select('*');
       // const { data: classesData } = await supabase.from('classes').select('*');
@@ -368,7 +361,6 @@ export const Dashboard: React.FC = () => {
       // Products are now loaded via useProducts() hook with realtime updates
       // No need to fetch here - see allProducts from useProducts()
 
-      // Firebase đã được xóa - sử dụng Supabase thay thế
       // TODO: Implement Supabase query for staff
       // const { data: staffData } = await supabase.from('staff').select('*');
       // const staffList = staffData || [];
@@ -437,7 +429,6 @@ export const Dashboard: React.FC = () => {
         count: c.currentStudents || 0,
       }));
 
-      // Firebase đã được xóa - sử dụng Supabase thay thế
       // TODO: Implement Supabase query for work sessions
       // const { data: workSessionsData } = await supabase.from('work_sessions').select('*');
       // const workSessions = workSessionsData || [];
@@ -509,7 +500,6 @@ export const Dashboard: React.FC = () => {
       // Tính điểm hài lòng từ feedback
       let diemHaiLong = 0;
       try {
-        // Firebase đã được xóa - sử dụng Supabase thay thế
         // TODO: Implement Supabase query for feedbacks
         // const { data: feedbacksData } = await supabase.from('feedbacks').select('*');
         // if (feedbacksData && feedbacksData.length > 0) {

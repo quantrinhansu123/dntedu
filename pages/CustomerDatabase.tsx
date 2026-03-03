@@ -12,9 +12,7 @@ import { useStaff } from '../src/hooks/useStaff';
 import { Lead, LeadStatus, LeadSource } from '../src/services/leadService';
 import { Campaign } from '../src/services/campaignService';
 import { Staff } from '../types';
-// Firebase imports removed - using Supabase
-// import { db } from '../src/config/firebase';
-// import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
+// ;
 
 // Default status colors
 const DEFAULT_STATUS_COLORS: Record<string, string> = {
@@ -73,8 +71,6 @@ export const CustomerDatabase: React.FC = () => {
   useEffect(() => {
     const loadStatusConfig = async () => {
       try {
-        // const docRef = doc(db, 'settings', 'leadStatusConfig');
-        // const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setStatusConfigs(docSnap.data().statuses || []);
         } else {
@@ -108,7 +104,6 @@ export const CustomerDatabase: React.FC = () => {
   // Save status config
   const saveStatusConfig = async (configs: StatusConfig[]) => {
     try {
-      // await setDoc(doc(db, 'settings', 'leadStatusConfig'), { statuses: configs });
       setStatusConfigs(configs);
     } catch (err) {
       console.error('Error saving status config:', err);

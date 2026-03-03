@@ -8,9 +8,7 @@ import { useHolidays } from '../src/hooks/useHolidays';
 // import { useRooms } from '../src/hooks/useRooms'; // Đã xóa quản lý phòng học
 import { useStaff } from '../src/hooks/useStaff';
 import { ClassModel, Student, Holiday } from '../types';
-// import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
-// Firebase đã được xóa - sử dụng Supabase thay thế
+// ;
 import { getScheduleTime, getScheduleDays, formatSchedule } from '../src/utils/scheduleUtils';
 
 // ============================================
@@ -105,7 +103,6 @@ export const Schedule: React.FC = () => {
   const handleColorChange = async (classId: string, colorIndex: number | undefined) => {
     setSavingColorId(classId);
     try {
-      //       await updateDoc(doc(db, 'classes', classId), {
       //         color: colorIndex ?? null // null = auto (hash-based)
       });
       setShowColorPicker(null);
@@ -261,7 +258,6 @@ export const Schedule: React.FC = () => {
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        // Firebase đã được xóa - sử dụng Supabase thay thế
         // TODO: Implement Supabase query
         // const { data, error } = await supabase
         //   .from('centers')
@@ -878,8 +874,6 @@ const ClassDetailModal: React.FC<ClassDetailModalProps> = ({ classData, allStude
     const fetchSessions = async () => {
       setLoading(true);
       try {
-      //         const sessionsSnap = await getDocs(
-      //           query(collection(db, 'classSessions'), where('classId', '==', classData.id))
         );
         const data = sessionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setSessions(data);

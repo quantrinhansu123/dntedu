@@ -6,16 +6,9 @@
 import {
     collection,
     doc,
-      //     getDocs,
-      //     getDoc,
-      //     addDoc,
-      //     updateDoc,
-      //     deleteDoc,
       //     query,
       //     where,
       //     orderBy,
-      // } from 'firebase/firestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
 import { MarketingPlatform, PlatformMonthlyStats } from '../types/marketingTypes';
 
 const PLATFORMS_COLLECTION = 'marketingPlatforms';
@@ -37,8 +30,6 @@ export const DEFAULT_PLATFORMS = [
 // Get all platforms
 export const getPlatforms = async (): Promise<MarketingPlatform[]> => {
     try {
-        // const q = query(collection(db, PLATFORMS_COLLECTION), orderBy('name', 'asc'));
-        // const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
@@ -53,7 +44,6 @@ export const getPlatforms = async (): Promise<MarketingPlatform[]> => {
 export const createPlatform = async (data: Omit<MarketingPlatform, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
     try {
         const now = new Date().toISOString();
-      //         const docRef = await addDoc(collection(db, PLATFORMS_COLLECTION), {
       //             ...data,
       //             isActive: true,
       //             createdAt: now,
@@ -69,8 +59,6 @@ export const createPlatform = async (data: Omit<MarketingPlatform, 'id' | 'creat
 // Update platform
 export const updatePlatform = async (id: string, data: Partial<MarketingPlatform>): Promise<void> => {
     try {
-        // const docRef = doc(db, PLATFORMS_COLLECTION, id);
-      //         await updateDoc(docRef, {
       //             ...data,
       //             updatedAt: new Date().toISOString(),
       //         });
@@ -83,8 +71,6 @@ export const updatePlatform = async (id: string, data: Partial<MarketingPlatform
 // Delete platform
 export const deletePlatform = async (id: string): Promise<void> => {
     try {
-        // const docRef = doc(db, PLATFORMS_COLLECTION, id);
-        // await deleteDoc(docRef);
     } catch (error) {
         console.error('Error deleting platform:', error);
         throw error;
@@ -114,12 +100,8 @@ export const initializeDefaultPlatforms = async (): Promise<void> => {
 // Get stats by month
 export const getStatsByMonth = async (month: string): Promise<PlatformMonthlyStats[]> => {
     try {
-        const q = query(
-      //             collection(db, STATS_COLLECTION),
-      //             where('month', '==', month),
       //             orderBy('platformName', 'asc')
         );
-        // const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
@@ -128,11 +110,7 @@ export const getStatsByMonth = async (month: string): Promise<PlatformMonthlySta
         console.error('Error getting stats:', error);
         // Fallback without orderBy if index not created
         try {
-            const q2 = query(
-      //                 collection(db, STATS_COLLECTION),
-      //                 where('month', '==', month)
             );
-            // const snapshot2 = await getDocs(q2);
             return snapshot2.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
@@ -169,7 +147,6 @@ export const getOrCreateStats = async (
             updatedAt: now,
         };
 
-        // const docRef = await addDoc(collection(db, STATS_COLLECTION), newStats);
         return { id: docRef.id, ...newStats };
     } catch (error) {
         console.error('Error getting/creating stats:', error);
@@ -180,8 +157,6 @@ export const getOrCreateStats = async (
 // Update stats
 export const updateStats = async (id: string, data: Partial<PlatformMonthlyStats>): Promise<void> => {
     try {
-        // const docRef = doc(db, STATS_COLLECTION, id);
-      //         await updateDoc(docRef, {
       //             ...data,
       //             updatedAt: new Date().toISOString(),
       //         });
@@ -195,7 +170,6 @@ export const updateStats = async (id: string, data: Partial<PlatformMonthlyStats
 export const createStats = async (data: Omit<PlatformMonthlyStats, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
     try {
         const now = new Date().toISOString();
-      //         const docRef = await addDoc(collection(db, STATS_COLLECTION), {
       //             ...data,
       //             createdAt: now,
       //             updatedAt: now,

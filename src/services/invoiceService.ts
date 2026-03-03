@@ -6,14 +6,8 @@
 import {
   collection,
   doc,
-      //   getDocs,
-      //   addDoc,
-      //   updateDoc,
-      //   deleteDoc,
       //   query,
       //   orderBy,
-      // } from 'firebase/firestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const INVOICES_COLLECTION = 'invoices';
 
@@ -63,7 +57,6 @@ export const createInvoice = async (data: Omit<Invoice, 'id' | 'invoiceCode'>): 
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    // const docRef = await addDoc(collection(db, INVOICES_COLLECTION), invoiceData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating invoice:', error);
@@ -73,8 +66,6 @@ export const createInvoice = async (data: Omit<Invoice, 'id' | 'invoiceCode'>): 
 
 export const getInvoices = async (): Promise<Invoice[]> => {
   try {
-    // const q = query(collection(db, INVOICES_COLLECTION), orderBy('createdAt', 'desc'));
-    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -87,8 +78,6 @@ export const getInvoices = async (): Promise<Invoice[]> => {
 
 export const updateInvoice = async (id: string, data: Partial<Invoice>): Promise<void> => {
   try {
-    // const docRef = doc(db, INVOICES_COLLECTION, id);
-      //     await updateDoc(docRef, {
       //       ...data,
       //       updatedAt: new Date().toISOString(),
       //     });
@@ -111,8 +100,6 @@ export const cancelInvoice = async (id: string): Promise<void> => {
 
 export const deleteInvoice = async (id: string): Promise<void> => {
   try {
-    // const docRef = doc(db, INVOICES_COLLECTION, id);
-    // await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting invoice:', error);
     throw new Error('Không thể xóa hóa đơn');

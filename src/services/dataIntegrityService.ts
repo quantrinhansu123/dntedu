@@ -3,19 +3,11 @@
  * Handles cascading updates, validation, and consistency checks
  */
 
-// Firebase imports removed - using Supabase
 // import {
 //   collection,
 //   doc,
-//   getDocs,
-//   getDoc,
-//   updateDoc,
-//   deleteDoc,
 //   query,
 //   where,
-//   writeBatch,
-// } from 'firebase/firestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 // ============================================
 // 1. CASCADING OPERATIONS
@@ -31,17 +23,12 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
   workSessionsUpdated: number;
   attendanceDeleted: number;
 }> => {
-  // const batch = writeBatch(db);
   let studentsUpdated = 0;
   let workSessionsUpdated = 0;
   let attendanceDeleted = 0;
 
   // Update students
-  const studentsQuery = query(
-      //     collection(db, 'students'),
-      //     where('classId', '==', classId)
   );
-  // const studentsSnap = await getDocs(studentsQuery);
   studentsSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, {
       classId: null,
@@ -53,11 +40,7 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
 
   // Also check students by className (legacy field)
   if (className) {
-    const studentsByNameQuery = query(
-      //       collection(db, 'students'),
-      //       where('class', '==', className)
     );
-    // const studentsByNameSnap = await getDocs(studentsByNameQuery);
     studentsByNameSnap.forEach((docSnap) => {
       if (!studentsSnap.docs.find(d => d.id === docSnap.id)) {
         batch.update(docSnap.ref, {
@@ -71,11 +54,7 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
   }
 
   // Update work sessions
-  const workSessionsQuery = query(
-      //     collection(db, 'workSessions'),
-      //     where('classId', '==', classId)
   );
-  // const workSessionsSnap = await getDocs(workSessionsQuery);
   workSessionsSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, {
       classId: null,
@@ -85,18 +64,10 @@ export const cascadeDeleteClass = async (classId: string, className?: string): P
   });
 
   // Delete attendance records for this class
-  const attendanceQuery = query(
-      //     collection(db, 'attendance'),
-      //     where('classId', '==', classId)
   );
-  // const attendanceSnap = await getDocs(attendanceQuery);
   for (const docSnap of attendanceSnap.docs) {
     // Delete student attendance records first
-    const studentAttendanceQuery = query(
-      //       collection(db, 'studentAttendance'),
-      //       where('attendanceId', '==', docSnap.id)
     );
-    // const studentAttendanceSnap = await getDocs(studentAttendanceQuery);
     studentAttendanceSnap.forEach((saDoc) => {
       batch.delete(saDoc.ref);
     });
@@ -118,14 +89,9 @@ export const cascadeUpdateParent = async (
   parentId: string,
   updates: { name?: string; phone?: string }
 ): Promise<number> => {
-  // const batch = writeBatch(db);
   let studentsUpdated = 0;
 
-  const studentsQuery = query(
-      //     collection(db, 'students'),
-      //     where('parentId', '==', parentId)
   );
-  // const studentsSnap = await getDocs(studentsQuery);
 
   studentsSnap.forEach((docSnap) => {
     const updateData: any = {};
@@ -153,16 +119,11 @@ export const cascadeDeleteStaff = async (staffId: string): Promise<{
   classesUpdated: number;
   workSessionsUpdated: number;
 }> => {
-  // const batch = writeBatch(db);
   let classesUpdated = 0;
   let workSessionsUpdated = 0;
 
   // Update classes where this staff is teacher
-  const classesAsTeacher = query(
-      //     collection(db, 'classes'),
-      //     where('teacherId', '==', staffId)
   );
-  // const classesTeacherSnap = await getDocs(classesAsTeacher);
   classesTeacherSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, {
       teacherId: null,
@@ -172,11 +133,7 @@ export const cascadeDeleteStaff = async (staffId: string): Promise<{
   });
 
   // Update work sessions
-  const workSessionsQuery = query(
-      //     collection(db, 'workSessions'),
-      //     where('staffId', '==', staffId)
   );
-  // const workSessionsSnap = await getDocs(workSessionsQuery);
   workSessionsSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, {
       staffId: null,
@@ -198,14 +155,9 @@ export const cascadeUpdateClassName = async (
   classId: string,
   newClassName: string
 ): Promise<number> => {
-  // const batch = writeBatch(db);
   let studentsUpdated = 0;
 
-  const studentsQuery = query(
-      //     collection(db, 'students'),
-      //     where('classId', '==', classId)
   );
-  // const studentsSnap = await getDocs(studentsQuery);
 
   studentsSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, {
@@ -238,11 +190,7 @@ export interface ValidationResult {
  */
 export const validateDeleteClass = async (classId: string): Promise<ValidationResult> => {
   // Check for students in this class
-  const studentsQuery = query(
-      //     collection(db, 'students'),
-      //     where('classId', '==', classId)
   );
-  // const studentsSnap = await getDocs(studentsQuery);
 
   if (studentsSnap.size > 0) {
     const studentNames = studentsSnap.docs
@@ -259,12 +207,7 @@ export const validateDeleteClass = async (classId: string): Promise<ValidationRe
 
   // Check for upcoming work sessions
   const today = new Date().toISOString().split('T')[0];
-  const workSessionsQuery = query(
-      //     collection(db, 'workSessions'),
-      //     where('classId', '==', classId),
-      //     where('date', '>=', today)
   );
-  // const workSessionsSnap = await getDocs(workSessionsQuery);
 
   if (workSessionsSnap.size > 0) {
     return {
@@ -281,11 +224,7 @@ export const validateDeleteClass = async (classId: string): Promise<ValidationRe
  * Validate before deleting a parent
  */
 export const validateDeleteParent = async (parentId: string): Promise<ValidationResult> => {
-  const studentsQuery = query(
-      //     collection(db, 'students'),
-      //     where('parentId', '==', parentId)
   );
-  // const studentsSnap = await getDocs(studentsQuery);
 
   if (studentsSnap.size > 0) {
     const studentNames = studentsSnap.docs
@@ -308,11 +247,7 @@ export const validateDeleteParent = async (parentId: string): Promise<Validation
  */
 export const validateDeleteStaff = async (staffId: string): Promise<ValidationResult> => {
   // Check if teaching any classes
-  const classesQuery = query(
-      //     collection(db, 'classes'),
-      //     where('teacherId', '==', staffId)
   );
-  // const classesSnap = await getDocs(classesQuery);
 
   if (classesSnap.size > 0) {
     const classNames = classesSnap.docs
@@ -328,12 +263,7 @@ export const validateDeleteStaff = async (staffId: string): Promise<ValidationRe
   }
 
   // Check for pending work sessions
-  const workSessionsQuery = query(
-      //     collection(db, 'workSessions'),
-      //     where('staffId', '==', staffId),
-      //     where('status', '==', 'Chờ xác nhận')
   );
-  // const workSessionsSnap = await getDocs(workSessionsQuery);
 
   if (workSessionsSnap.size > 0) {
     return {
@@ -351,12 +281,7 @@ export const validateDeleteStaff = async (staffId: string): Promise<ValidationRe
  */
 export const validateDeleteStudent = async (studentId: string): Promise<ValidationResult> => {
   // Check for unpaid contracts
-  const contractsQuery = query(
-      //     collection(db, 'contracts'),
-      //     where('studentId', '==', studentId),
-      //     where('status', 'in', ['Nợ phí', 'Nháp'])
   );
-  // const contractsSnap = await getDocs(contractsQuery);
 
   if (contractsSnap.size > 0) {
     return {
@@ -402,10 +327,6 @@ export const checkDataConsistency = async (): Promise<ConsistencyReport> => {
 
   // Fetch all data
   const [studentsSnap, classesSnap, parentsSnap, staffSnap] = await Promise.all([
-      //     getDocs(collection(db, 'students')),
-      //     getDocs(collection(db, 'classes')),
-      //     getDocs(collection(db, 'parents')),
-      //     getDocs(collection(db, 'staff')),
       //   ]);
 
   const classesMap = new Map(classesSnap.docs.map(d => [d.id, d.data()]));
@@ -533,17 +454,14 @@ export const fixConsistencyIssues = async (issues: ConsistencyIssue[]): Promise<
 
   for (const issue of issues) {
     try {
-      // const docRef = doc(db, issue.collection, issue.documentId);
 
       if (issue.type === 'orphaned_reference') {
         // Clear orphaned references
-      //         await updateDoc(docRef, {
       //           [issue.field]: null,
       //         });
         fixed++;
       } else if (issue.type === 'data_mismatch' && issue.expectedValue !== undefined) {
         // Fix data mismatch
-      //         await updateDoc(docRef, {
       //           [issue.field]: issue.expectedValue,
       //         });
         fixed++;
@@ -571,38 +489,25 @@ export const cascadeUpdateStaffName = async (
   staffId: string,
   newName: string
 ): Promise<{ classesUpdated: number; workSessionsUpdated: number }> => {
-  // const batch = writeBatch(db);
   let classesUpdated = 0;
   let workSessionsUpdated = 0;
 
   // Update classes where this staff is teacher
-  const classesQuery = query(
-      //     collection(db, 'classes'),
-      //     where('teacherId', '==', staffId)
   );
-  // const classesSnap = await getDocs(classesQuery);
   classesSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, { teacher: newName });
     classesUpdated++;
   });
 
   // Update classes where this staff is assistant
-  const assistantQuery = query(
-      //     collection(db, 'classes'),
-      //     where('assistantId', '==', staffId)
   );
-  // const assistantSnap = await getDocs(assistantQuery);
   assistantSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, { assistant: newName });
     classesUpdated++;
   });
 
   // Update work sessions
-  const workSessionsQuery = query(
-      //     collection(db, 'workSessions'),
-      //     where('staffId', '==', staffId)
   );
-  // const workSessionsSnap = await getDocs(workSessionsQuery);
   workSessionsSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, { staffName: newName });
     workSessionsUpdated++;
@@ -624,11 +529,7 @@ export const cascadeUpdateStaffName = async (
  */
 export const validateDeleteStudentFinance = async (studentId: string): Promise<ValidationResult> => {
   // Check for unpaid contracts
-  const contractsQuery = query(
-      //     collection(db, 'contracts'),
-      //     where('studentId', '==', studentId)
   );
-  // const contractsSnap = await getDocs(contractsQuery);
   
   const unpaidContracts = contractsSnap.docs.filter(d => {
     const data = d.data();
@@ -644,12 +545,7 @@ export const validateDeleteStudentFinance = async (studentId: string): Promise<V
   }
 
   // Check for invoices
-  const invoicesQuery = query(
-      //     collection(db, 'invoices'),
-      //     where('studentId', '==', studentId),
-      //     where('status', '==', 'Chờ thanh toán')
   );
-  // const invoicesSnap = await getDocs(invoicesQuery);
 
   if (invoicesSnap.size > 0) {
     return {
@@ -670,17 +566,12 @@ export const cascadeDeleteStudent = async (studentId: string, studentName?: stri
   invoicesUpdated: number;
   attendanceDeleted: number;
 }> => {
-  // const batch = writeBatch(db);
   let contractsUpdated = 0;
   let invoicesUpdated = 0;
   let attendanceDeleted = 0;
 
   // Update contracts
-  const contractsQuery = query(
-      //     collection(db, 'contracts'),
-      //     where('studentId', '==', studentId)
   );
-  // const contractsSnap = await getDocs(contractsQuery);
   contractsSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, {
       studentId: null,
@@ -690,11 +581,7 @@ export const cascadeDeleteStudent = async (studentId: string, studentName?: stri
   });
 
   // Update invoices
-  const invoicesQuery = query(
-      //     collection(db, 'invoices'),
-      //     where('studentId', '==', studentId)
   );
-  // const invoicesSnap = await getDocs(invoicesQuery);
   invoicesSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, {
       studentId: null,
@@ -704,11 +591,7 @@ export const cascadeDeleteStudent = async (studentId: string, studentName?: stri
   });
 
   // Delete attendance records
-  const attendanceQuery = query(
-      //     collection(db, 'studentAttendance'),
-      //     where('studentId', '==', studentId)
   );
-  // const attendanceSnap = await getDocs(attendanceQuery);
   attendanceSnap.forEach((docSnap) => {
     batch.delete(docSnap.ref);
     attendanceDeleted++;
@@ -725,7 +608,6 @@ export const cascadeDeleteStudent = async (studentId: string, studentName?: stri
  * Validate before deleting a contract
  */
 export const validateDeleteContract = async (contractId: string): Promise<ValidationResult> => {
-  // const contractDoc = await getDoc(doc(db, 'contracts', contractId));
   if (!contractDoc.exists()) {
     return { canDelete: true };
   }
@@ -753,11 +635,7 @@ export const validateDeleteContract = async (contractId: string): Promise<Valida
  */
 export const validateDeleteRoom = async (roomId: string, roomName?: string): Promise<ValidationResult> => {
   // Check if any class uses this room
-  const classesQuery = query(
-      //     collection(db, 'classes'),
-      //     where('room', '==', roomName || roomId)
   );
-  // const classesSnap = await getDocs(classesQuery);
 
   if (classesSnap.size > 0) {
     const classNames = classesSnap.docs.slice(0, 5).map(d => d.data().name);
@@ -776,14 +654,9 @@ export const validateDeleteRoom = async (roomId: string, roomName?: string): Pro
  * Cascade when deleting a room
  */
 export const cascadeDeleteRoom = async (roomName: string): Promise<number> => {
-  // const batch = writeBatch(db);
   let classesUpdated = 0;
 
-  const classesQuery = query(
-      //     collection(db, 'classes'),
-      //     where('room', '==', roomName)
   );
-  // const classesSnap = await getDocs(classesQuery);
   
   classesSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, { room: null });
@@ -801,7 +674,6 @@ export const cascadeDeleteRoom = async (roomName: string): Promise<number> => {
  * Validate before deleting salary config
  */
 export const validateDeleteSalaryConfig = async (configId: string): Promise<ValidationResult> => {
-  // const configDoc = await getDoc(doc(db, 'salaryConfigs', configId));
   if (!configDoc.exists()) {
     return { canDelete: true };
   }
@@ -809,11 +681,7 @@ export const validateDeleteSalaryConfig = async (configId: string): Promise<Vali
   const config = configDoc.data();
   
   // Check if any staff uses this config
-  const staffQuery = query(
-      //     collection(db, 'staff'),
-      //     where('position', '==', config.position)
   );
-  // const staffSnap = await getDocs(staffQuery);
 
   if (staffSnap.size > 0) {
     return {
@@ -834,11 +702,7 @@ export const validateDeleteSalaryConfig = async (configId: string): Promise<Vali
  * Validate before deleting a campaign
  */
 export const validateDeleteCampaign = async (campaignId: string): Promise<ValidationResult> => {
-  const leadsQuery = query(
-      //     collection(db, 'leads'),
-      //     where('campaignId', '==', campaignId)
   );
-  // const leadsSnap = await getDocs(leadsQuery);
 
   if (leadsSnap.size > 0) {
     return {
@@ -855,14 +719,9 @@ export const validateDeleteCampaign = async (campaignId: string): Promise<Valida
  * Cascade when deleting a campaign
  */
 export const cascadeDeleteCampaign = async (campaignId: string): Promise<number> => {
-  // const batch = writeBatch(db);
   let leadsUpdated = 0;
 
-  const leadsQuery = query(
-      //     collection(db, 'leads'),
-      //     where('campaignId', '==', campaignId)
   );
-  // const leadsSnap = await getDocs(leadsQuery);
 
   leadsSnap.forEach((docSnap) => {
     batch.update(docSnap.ref, { 
@@ -883,7 +742,6 @@ export const cascadeDeleteCampaign = async (campaignId: string): Promise<number>
  * Validate before deleting a lead
  */
 export const validateDeleteLead = async (leadId: string): Promise<ValidationResult> => {
-  // const leadDoc = await getDoc(doc(db, 'leads', leadId));
   if (!leadDoc.exists()) {
     return { canDelete: true };
   }
@@ -924,16 +782,6 @@ export const checkFullDataConsistency = async (): Promise<ConsistencyReport> => 
     leadsSnap,
     campaignsSnap
   ] = await Promise.all([
-      //     getDocs(collection(db, 'students')),
-      //     getDocs(collection(db, 'classes')),
-      //     getDocs(collection(db, 'parents')),
-      //     getDocs(collection(db, 'staff')),
-      //     getDocs(collection(db, 'contracts')),
-      //     getDocs(collection(db, 'invoices')),
-      //     getDocs(collection(db, 'workSessions')),
-      //     getDocs(collection(db, 'leads')),
-      //     getDocs(collection(db, 'campaigns'))
-    // getDocs(collection(db, 'rooms')), // Đã xóa quản lý phòng học
   ]);
 
   // Create lookup maps

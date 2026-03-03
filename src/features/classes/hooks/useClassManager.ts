@@ -4,9 +4,8 @@
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-// Firebase imports removed - using Supabase
-// import { collection, onSnapshot } from 'firebase/firestore';
-// import { db } from '../../../config/firebase';
+// ;
+// ;
 import { useClasses } from '../../../hooks/useClasses';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { useAuth } from '../../../hooks/useAuth';
@@ -80,8 +79,6 @@ export function useClassManager(options?: { searchTerm?: string }) {
       return;
     }
 
-      //     const unsubscribe = onSnapshot(
-      //       collection(db, 'students'),
       //       (snapshot) => {
       //         const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const PRICE_PER_SESSION = 150000;
@@ -145,8 +142,6 @@ export function useClassManager(options?: { searchTerm?: string }) {
       return;
     }
 
-      //     const unsubscribe = onSnapshot(
-      //       collection(db, 'classSessions'),
       //       (snapshot) => {
       //         const stats: Record<string, ClassSessionStats> = {};
 

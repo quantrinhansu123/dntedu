@@ -16,7 +16,6 @@ import { usePermissions } from '../src/hooks/usePermissions';
 import { useSessions } from '../src/hooks/useSessions';
 import { ClassSession } from '../src/services/sessionService';
 import { formatSchedule } from '../src/utils/scheduleUtils';
-// Firebase imports removed - using Supabase
 import { useHolidays } from '../src/hooks/useHolidays';
 import { Holiday } from '../types';
 
@@ -490,8 +489,6 @@ export const Attendance: React.FC = () => {
       // Step 2: Get existing sessions for this date
       // TODO: Migrate to Supabase when classSessions table is migrated
       const existingSessions = new Map<string, any>();
-      // const sessionsSnap = await getDocs(
-      //   query(collection(db, 'classSessions'), where('date', '==', reviewDate))
       // );
       // sessionsSnap.docs.forEach(doc => {
       //   const data = doc.data();
@@ -639,7 +636,6 @@ export const Attendance: React.FC = () => {
       if (student.sessionId.startsWith('temp_')) {
         console.warn('[Review] Cannot create session - classSessions table chưa được migrate sang Supabase');
         // const classInfo = allClasses.find(c => c.id === student.classId);
-        // const sessionDoc = await addDoc(collection(db, 'classSessions'), {
         //   classId: student.classId,
         //   className: student.className,
         //   date: student.sessionDate,

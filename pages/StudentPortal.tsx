@@ -11,9 +11,7 @@ import {
     FolderOpen, Video, Link2, Image, Music, ExternalLink, Eye
 } from 'lucide-react';
 import { StudentAuthService, StudentSession } from '../src/services/studentAuthService';
-// Firebase imports removed - using Supabase
-// import { collection, query, where, getDocs } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 import { useStudentSurveys } from '../src/hooks/useSurvey';
 import { SurveyService } from '../src/services/surveyService';
 import { SurveyAssignment, SurveyTemplate, SurveyQuestion } from '../src/types/surveyTypes';
@@ -111,8 +109,6 @@ export const StudentPortal: React.FC = () => {
         try {
             // Load all folders and resources
             const [foldersSnap, resourcesSnap] = await Promise.all([
-      //                 getDocs(collection(db, 'resource_folders')),
-      //                 getDocs(collection(db, 'resources'))
             ]);
             
             const allFolders = foldersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as ResourceFolder[];
@@ -192,8 +188,6 @@ export const StudentPortal: React.FC = () => {
             // Load class info
             if (studentSession.classId) {
                 try {
-      //                     const classDoc = await getDocs(
-      //                         query(collection(db, 'classes'), where('__name__', '==', studentSession.classId))
                     );
                     if (!classDoc.empty) {
                         const classData = { id: classDoc.docs[0].id, ...classDoc.docs[0].data() } as any;
@@ -202,8 +196,6 @@ export const StudentPortal: React.FC = () => {
                         // Load course info based on courseId (direct link)
                         if (classData.courseId) {
                             try {
-                                // const coursesQuery = query(collection(db, 'courses'));
-                                // const coursesSnapshot = await getDocs(coursesQuery);
                                 const courses = coursesSnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as CourseInfo[];
                                 
                                 // Find course by courseId
@@ -228,11 +220,7 @@ export const StudentPortal: React.FC = () => {
 
                 // Load schedules for this class
                 try {
-                    const schedulesQuery = query(
-      //                         collection(db, 'schedules'),
-      //                         where('classId', '==', studentSession.classId)
                     );
-                    // const schedulesSnapshot = await getDocs(schedulesQuery);
                     setSchedules(schedulesSnapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data()
@@ -243,11 +231,7 @@ export const StudentPortal: React.FC = () => {
 
                 // Load homeworks - simple query without orderBy to avoid index requirement
                 try {
-                    const homeworksQuery = query(
-      //                         collection(db, 'homeworks'),
-      //                         where('classId', '==', studentSession.classId)
                     );
-                    // const homeworksSnapshot = await getDocs(homeworksQuery);
                     const hwList = homeworksSnapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data()

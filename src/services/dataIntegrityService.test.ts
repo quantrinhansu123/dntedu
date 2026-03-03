@@ -4,7 +4,6 @@ import {
   ConsistencyIssue,
 } from './dataIntegrityService';
 
-// Mock Firebase
 const mockBatch = {
   update: vi.fn(),
   delete: vi.fn(),
@@ -13,18 +12,11 @@ const mockBatch = {
 
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
-      //   doc: vi.fn((db, collection, id) => ({ id, collection })),
-      //   getDocs: vi.fn(),
-      //   getDoc: vi.fn(),
-      //   updateDoc: vi.fn(),
-      //   deleteDoc: vi.fn(),
       //   query: vi.fn(),
       //   where: vi.fn(),
-      //   writeBatch: vi.fn(() => mockBatch),
       // }));
 
 vi.mock('../config/firebase', () => ({
-      //   db: {},
       // }));
 
 describe('Data Integrity Service', () => {

@@ -6,16 +6,9 @@
 import {
   collection,
   doc,
-      //   getDocs,
-      //   addDoc,
-      //   updateDoc,
-      //   deleteDoc,
       //   query,
       //   where,
       //   orderBy,
-      //   writeBatch,
-      // } from 'firebase/firestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const LEADS_COLLECTION = 'leads';
 
@@ -54,7 +47,6 @@ export const createLead = async (data: Omit<Lead, 'id'>): Promise<string> => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    // const docRef = await addDoc(collection(db, LEADS_COLLECTION), leadData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating lead:', error);
@@ -68,13 +60,10 @@ export const getLeads = async (filters?: {
   assignedTo?: string;
 }): Promise<Lead[]> => {
   try {
-    // let q = query(collection(db, LEADS_COLLECTION), orderBy('createdAt', 'desc'));
     
     if (filters?.status) {
-      // q = query(collection(db, LEADS_COLLECTION), where('status', '==', filters.status), orderBy('createdAt', 'desc'));
     }
     
-    // const snapshot = await getDocs(q);
     let leads = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -97,8 +86,6 @@ export const getLeads = async (filters?: {
 
 export const updateLead = async (id: string, data: Partial<Lead>): Promise<void> => {
   try {
-    // const docRef = doc(db, LEADS_COLLECTION, id);
-      //     await updateDoc(docRef, {
       //       ...data,
       //       updatedAt: new Date().toISOString(),
       //     });
@@ -110,8 +97,6 @@ export const updateLead = async (id: string, data: Partial<Lead>): Promise<void>
 
 export const deleteLead = async (id: string): Promise<void> => {
   try {
-    // const docRef = doc(db, LEADS_COLLECTION, id);
-    // await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting lead:', error);
     throw new Error('Không thể xóa khách hàng');
@@ -120,11 +105,9 @@ export const deleteLead = async (id: string): Promise<void> => {
 
 export const assignLeads = async (leadIds: string[], assignedTo: string, assignedToName: string): Promise<void> => {
   try {
-    // const batch = writeBatch(db);
     const now = new Date().toISOString();
     
     leadIds.forEach(id => {
-      // const docRef = doc(db, LEADS_COLLECTION, id);
       batch.update(docRef, { assignedTo, assignedToName, updatedAt: now });
     });
     

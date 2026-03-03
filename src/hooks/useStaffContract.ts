@@ -5,8 +5,8 @@
  */
 
 import { useState, useEffect } from 'react';
-// import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where } from 'firebase/firestore';
-// import { db } from '../config/firebase';
+// ;
+// ;
 import { StaffContract } from '../../types';
 
 export const useStaffContract = () => {

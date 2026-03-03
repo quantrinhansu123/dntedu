@@ -1,6 +1,6 @@
 /**
  * Salary Report Teacher Page
- * Báo cáo lương GV/TG với Firebase integration
+ * Báo cáo lương GV/TG
  * Hỗ trợ điều chỉnh lương thực tế khi GV dạy thay tiết cho nhau
  */
 
@@ -8,9 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Info, DollarSign, Users, X, Edit2, Save, Check } from 'lucide-react';
 import { useSalaryReport } from '../src/hooks/useSalaryReport';
 import { formatCurrency } from '../src/utils/currencyUtils';
-// Firebase imports removed - using Supabase
-// import { doc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 
 interface ActualSalary {
   staffId: string;
@@ -36,16 +34,10 @@ export const SalaryReportTeacher: React.FC = () => {
 
   const { summaries, loading, error, totalSalary, refresh } = useSalaryReport(selectedMonth, selectedYear);
 
-  // Load actual salaries from Firebase
   useEffect(() => {
     const loadActualSalaries = async () => {
       try {
-        const q = query(
-      //           collection(db, 'actualSalaries'),
-      //           where('month', '==', selectedMonth),
-      //           where('year', '==', selectedYear)
         );
-        // const snapshot = await getDocs(q);
         const salaries: Record<string, number> = {};
         snapshot.forEach((doc) => {
           const data = doc.data() as ActualSalary;
@@ -65,12 +57,10 @@ export const SalaryReportTeacher: React.FC = () => {
     setTempActualSalary(currentValue);
   };
 
-  // Save actual salary to Firebase
   const saveActualSalary = async (staffId: string) => {
     setSavingActual(true);
     try {
       const docId = `${staffId}_${selectedMonth}_${selectedYear}`;
-      //       await setDoc(doc(db, 'actualSalaries', docId), {
       //         staffId,
       //         month: selectedMonth,
       //         year: selectedYear,
@@ -99,9 +89,6 @@ export const SalaryReportTeacher: React.FC = () => {
     if (!editingSession) return;
     
     try {
-      // Save to Firebase
-      // const docRef = doc(db, 'workDetails', editingSession.id);
-      //       await setDoc(docRef, {
       //         ...editingSession,
       //         updatedAt: new Date().toISOString(),
       //       }, { merge: true });

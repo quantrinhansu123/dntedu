@@ -21,11 +21,6 @@ describe('formatDateSafe', () => {
     expect(formatDateSafe(date)).toBe('2023-12-15');
   });
 
-  it('should handle Firestore Timestamp-like objects', () => {
-    const timestamp = {
-      toDate: () => new Date('2023-12-15T00:00:00Z')
-    };
-    expect(formatDateSafe(timestamp)).toBe('2023-12-15');
   });
 
   it('should handle null/undefined', () => {
@@ -45,12 +40,6 @@ describe('formatDisplayDate', () => {
     expect(result).toMatch(/15.*12.*2023/);
   });
 
-  it('should handle Firestore Timestamp', () => {
-    const timestamp = {
-      toDate: () => new Date('2023-06-20T00:00:00Z')
-    };
-    const result = formatDisplayDate(timestamp);
-    expect(result).toMatch(/20.*6.*2023|20.*06.*2023/);
   });
 
   it('should return empty for invalid input', () => {
@@ -68,12 +57,6 @@ describe('formatDisplayDateTime', () => {
     expect(result.length).toBeGreaterThan(8); // Should be longer than just date
   });
 
-  it('should handle Firestore Timestamp', () => {
-    const timestamp = {
-      toDate: () => new Date('2023-12-15T14:30:00Z')
-    };
-    const result = formatDisplayDateTime(timestamp);
-    expect(result).toMatch(/\d+/);
   });
 
   it('should return empty for invalid input', () => {

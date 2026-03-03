@@ -4,9 +4,9 @@
  */
 
 /**
- * Firebase error code to user-friendly Vietnamese message
+ * Error code to user-friendly Vietnamese message
  */
-const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
+const ERROR_MESSAGES: Record<string, string> = {
   // Auth errors - generic messages to prevent enumeration
   'auth/user-not-found': 'Email hoặc mật khẩu không chính xác',
   'auth/wrong-password': 'Email hoặc mật khẩu không chính xác',
@@ -16,7 +16,7 @@ const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
   'auth/too-many-requests': 'Quá nhiều yêu cầu. Vui lòng thử lại sau',
   'auth/invalid-credential': 'Email hoặc mật khẩu không chính xác',
 
-  // Firestore errors
+  // Database errors
   'permission-denied': 'Bạn không có quyền thực hiện thao tác này',
   'not-found': 'Dữ liệu không tồn tại',
   'already-exists': 'Dữ liệu đã tồn tại',
@@ -31,21 +31,20 @@ const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
 const DEFAULT_ERROR = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
 /**
- * Convert Firebase/Firestore error to user-friendly message
+ * Convert error to user-friendly message
  */
-export const sanitizeFirebaseError = (error: unknown): string => {
+export const sanitizeError = (error: unknown): string => {
   if (!error) return DEFAULT_ERROR;
 
-  // Firebase error with code
   if (typeof error === 'object' && 'code' in error) {
     const code = (error as { code: string }).code;
-    return FIREBASE_ERROR_MESSAGES[code] || DEFAULT_ERROR;
+    return ERROR_MESSAGES[code] || DEFAULT_ERROR;
   }
 
   // String error
   if (typeof error === 'string') {
     // Check if it contains a known code
-    for (const [code, message] of Object.entries(FIREBASE_ERROR_MESSAGES)) {
+    for (const [code, message] of Object.entries(ERROR_MESSAGES)) {
       if (error.includes(code)) return message;
     }
   }
@@ -58,5 +57,5 @@ export const sanitizeFirebaseError = (error: unknown): string => {
  */
 export const handleServiceError = (error: unknown, context: string): never => {
   console.error(`[${context}]`, error);
-  throw new Error(sanitizeFirebaseError(error));
+  throw new Error(sanitizeError(error));
 };

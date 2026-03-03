@@ -6,17 +6,10 @@
 // import {
 //   collection,
 //   doc,
-//   getDocs,
-//   addDoc,
-//   updateDoc,
-//   deleteDoc,
 //   query,
 //   where,
 //   orderBy,
-//   writeBatch,
-// } from 'firebase/firestore';
-// import { db } from '../config/firebase';
-// Firebase đã được xóa - sử dụng Supabase thay thế
+// ;
 
 const WORK_SESSIONS_COLLECTION = 'workSessions';
 
@@ -52,7 +45,6 @@ export interface WorkSession {
 export type SubstituteReason = 'Nghỉ phép' | 'Nghỉ ốm' | 'Bận việc đột xuất' | 'Nghỉ không lương' | 'Khác';
 
 export const createWorkSession = async (data: Omit<WorkSession, 'id'>): Promise<string> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase create
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo work session.');
 };
@@ -65,7 +57,6 @@ export const getWorkSessions = async (filters?: {
   endDate?: string;
 }): Promise<WorkSession[]> => {
   try {
-    // Firebase đã được xóa - sử dụng Supabase thay thế
     // TODO: Implement Supabase query for work sessions
     // const { data, error } = await supabase
     //   .from('work_sessions')
@@ -103,13 +94,11 @@ export const getWorkSessions = async (filters?: {
 };
 
 export const updateWorkSession = async (id: string, data: Partial<WorkSession>): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase update
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật work session.');
 };
 
 export const confirmWorkSession = async (id: string, confirmedBy?: string): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase confirm
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xác nhận work session.');
 };
@@ -119,13 +108,11 @@ export const confirmAllWorkSessions = async (ids: string[], confirmedBy?: string
     throw new Error('Không có công nào để xác nhận');
   }
   
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase batch update
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xác nhận hàng loạt.');
 };
 
 export const deleteWorkSession = async (id: string): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase delete
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa work session.');
 };
@@ -148,7 +135,6 @@ export interface WorkSessionAuditLog {
 const AUDIT_LOG_COLLECTION = 'workSessionAuditLogs';
 
 export const createAuditLog = async (log: Omit<WorkSessionAuditLog, 'id'>): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase audit log
   console.warn('createAuditLog: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
   // Không throw error để không block action chính
@@ -162,7 +148,6 @@ export const updateWorkSessionWithAudit = async (
   performer: { name: string; role: string },
   reason?: string
 ): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase update with audit
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật work session với audit.');
 };
@@ -174,14 +159,12 @@ export const deleteWorkSessionWithAudit = async (
   performer: { name: string; role: string },
   reason?: string
 ): Promise<void> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase delete with audit
   throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa work session với audit.');
 };
 
 // Get audit logs cho 1 work session
 export const getWorkSessionAuditLogs = async (workSessionId: string): Promise<WorkSessionAuditLog[]> => {
-  // Firebase đã được xóa - sử dụng Supabase thay thế
   // TODO: Implement Supabase query for audit logs
   console.warn('getWorkSessionAuditLogs: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
   return [];

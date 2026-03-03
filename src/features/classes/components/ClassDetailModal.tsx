@@ -25,7 +25,6 @@ interface ClassSession {
 const formatDateSafe = (dateValue: unknown): string => {
   if (!dateValue) return '?';
   try {
-    // Handle Firestore Timestamp
     if (typeof dateValue === 'object' && dateValue !== null && 'toDate' in dateValue) {
       return (dateValue as { toDate: () => Date }).toDate().toLocaleDateString('vi-VN');
     }
@@ -498,7 +497,6 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
                     <span className="text-xs text-gray-500">
                       {(() => {
                         if (!classData.createdAt) return 'Ban đầu';
-                        // Handle Firestore Timestamp
                         const date = (classData.createdAt as any)?.toDate ? (classData.createdAt as any).toDate() : new Date(classData.createdAt as string);
                         if (isNaN(date.getTime())) return 'Ban đầu';
                         return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });

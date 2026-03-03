@@ -4,7 +4,6 @@ import { ClassStatus, ClassModel, Student, StudentStatus, TrainingHistoryEntry, 
 import { useClasses } from '../src/hooks/useClasses';
 import { usePermissions } from '../src/hooks/usePermissions';
 import { useAuth } from '../src/hooks/useAuth';
-// Firebase đã được xóa - sử dụng Supabase thay thế
 import { getScheduleTime, getScheduleDays, formatSchedule } from '../src/utils/scheduleUtils';
 import { ImportExportButtons } from '../components/ImportExportButtons';
 import { CLASS_FIELDS, CLASS_MAPPING, prepareClassExport } from '../src/utils/excelUtils';
@@ -117,7 +116,6 @@ export const ClassManager: React.FC = () => {
       return;
     }
 
-    // Firebase đã được xóa - student counts sẽ được tính từ Supabase sau
     // TODO: Implement with Supabase students table and realtime subscription
     // For now, set empty counts
     const counts: Record<string, { total: number; trial: number; active: number; debt: number; reserved: number; dropped: number; remainingSessions: number; remainingValue: number }> = {};
@@ -135,7 +133,6 @@ export const ClassManager: React.FC = () => {
       return;
     }
 
-    // Firebase đã được xóa - session stats sẽ được tính từ Supabase sau
     // TODO: Implement with Supabase sessions table and realtime subscription
     // For now, set empty stats
     const stats: Record<string, { completed: number; total: number }> = {};

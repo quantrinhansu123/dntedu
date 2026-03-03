@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Save, Search, Calculator, DollarSign, TrendingUp, Filter } from 'lucide-react';
-// Firebase imports removed - using Supabase
-// import { doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 import { useStaff } from '../src/hooks/useStaff';
 import { Staff } from '../types';
 import { formatCurrency } from '../src/utils/currencyUtils';
@@ -21,8 +19,6 @@ export const SalaryManager: React.FC = () => {
     useEffect(() => {
         const fetchConfig = async () => {
             try {
-                // const docRef = doc(db, 'settings', 'salaryConfig');
-                // const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setGlobalBaseSalary(docSnap.data().baseSalary || 1800000);
                 }
@@ -58,7 +54,6 @@ Hành động này sẽ lưu mức lương hiện tại của tất cả nhân v
     // Save global configuration
     const saveGlobalConfig = async () => {
         try {
-      //             await setDoc(doc(db, 'settings', 'salaryConfig'), {
       //                 baseSalary: globalBaseSalary,
       //                 updatedAt: new Date().toISOString()
             });

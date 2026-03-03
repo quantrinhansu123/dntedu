@@ -6,18 +6,10 @@
 // import { 
 //   collection, 
 //   doc, 
-//   getDocs, 
-//   getDoc, 
-//   addDoc, 
-//   updateDoc, 
-//   deleteDoc,
 //   query, 
 //   where, 
 //   orderBy,
-//   Timestamp 
-// } from 'firebase/firestore';
-// import { db } from '../config/firebase';
-// Firebase đã được xóa - sử dụng Supabase thay thế
+// ;
 import * as financialTransactionSupabaseService from './financialTransactionSupabaseService';
 
 export type RevenueCategory = 'Học phí' | 'Sách vở' | 'Đồng phục' | 'Khác';
@@ -182,7 +174,6 @@ export const seedFinancialData = async (): Promise<void> => {
     { date: `${currentMonth}-12`, month: currentMonth, type: 'income', category: 'Khác', amount: 1800000, description: 'Phí hoạt động ngoại khóa', studentName: 'Lớp A1' },
   ];
   
-  // Firebase đã được xóa - không thể seed data
   console.warn('seedFinancialData: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
   // TODO: Implement Supabase seed
   // const existing = await getTransactions(currentMonth);

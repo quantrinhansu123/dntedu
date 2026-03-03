@@ -8,9 +8,7 @@ import {
   Users, BookOpen, Clock, TrendingUp, Award, FileText, Search, Filter,
   Download, RefreshCw, Edit, Save, X, ChevronDown, BarChart3
 } from 'lucide-react';
-// Firebase imports removed - using Supabase
-// import { collection, getDocs } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// ;
 import { Staff, ClassModel, Student, AttendanceRecord, StudentAttendance, TeacherDetailReport as TeacherReport } from '../types';
 import * as teacherReportService from '../src/services/teacherReportService';
 
@@ -62,11 +60,6 @@ export const TeacherDetailReport: React.FC = () => {
     try {
       setLoading(true);
       const [staffSnap, classesSnap, studentsSnap, attendanceSnap, reportsSnap] = await Promise.all([
-      //         getDocs(collection(db, 'staff')),
-      //         getDocs(collection(db, 'classes')),
-      //         getDocs(collection(db, 'students')),
-      //         getDocs(collection(db, 'student_attendance')),
-      //         getDocs(collection(db, 'teacher_reports')),
       //       ]);
       
       const allStaff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Staff[];

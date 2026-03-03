@@ -7,7 +7,6 @@ import { useAuth } from '../src/hooks/useAuth';
 import { useStudents } from '../src/hooks/useStudents';
 import { useStaff } from '../src/hooks/useStaff';
 import { AttendanceRecord, AttendanceStatus, StudentAttendance } from '../types';
-// Firebase imports removed - using Supabase
 import * as studentAttendanceSupabaseService from '../src/services/studentAttendanceSupabaseService';
 import * as attendanceRecordSupabaseService from '../src/services/attendanceRecordSupabaseService';
 import * as XLSX from 'xlsx';
@@ -478,7 +477,6 @@ export const AttendanceHistory: React.FC = () => {
         });
 
         // TODO: Create audit log when attendanceAuditLog table is migrated
-        // await addDoc(collection(db, 'attendanceAuditLog'), {
         //   attendanceId: selectedRecord.id,
         //   studentAttendanceId: docId,
         //   studentId: change.studentId,
@@ -580,7 +578,6 @@ export const AttendanceHistory: React.FC = () => {
     }
   };
 
-  // Calculate stats from Firebase data
   const totalPresent = attendanceRecords.reduce((sum, r) => sum + (r.present || 0), 0);
   const totalStudents = attendanceRecords.reduce((sum, r) => sum + (r.totalStudents || 0), 0);
   const totalAbsent = attendanceRecords.reduce((sum, r) => sum + (r.absent || 0), 0);
@@ -981,7 +978,6 @@ export const AttendanceHistory: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {paginatedRecords.length > 0 ? paginatedRecords.map((record) => {
-              // Handle various field name formats from Firebase
               // Lookup class name from classes collection if missing
               const classFromCollection = classes.find(c => c.id === record.classId);
               const className = record.className || (record as any).class || (record as any).classname || classFromCollection?.name || '-';

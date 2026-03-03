@@ -4,8 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-// import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/ // Firebase đã được xóafirestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
+// ;
 import { DepartmentBonusConfig, DepartmentCode, DEPARTMENT_LABELS, KpiBonusLevel } from '../../types';
 
 // Default bonus levels template
@@ -33,7 +32,6 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
             setError(null);
 
             // Fetch all configs and filter client-side to avoid composite index requirement
-            // const snapshot = await getDocs(collection(db, 'departmentBonusConfigs'));
             let data = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -63,14 +61,12 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
 
     const createConfig = async (data: Omit<DepartmentBonusConfig, 'id' | 'createdAt' | 'updatedAt'>) => {
         try {
-            // const newDoc = doc(collection(db, 'departmentBonusConfigs'));
             const configData = {
                 ...data,
                 departmentName: DEPARTMENT_LABELS[data.departmentCode],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            // await setDoc(newDoc, configData);
             await fetchConfigs();
             return newDoc.id;
         } catch (err: any) {
@@ -81,7 +77,6 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
 
     const updateConfig = async (id: string, data: Partial<DepartmentBonusConfig>) => {
         try {
-            // const docRef = doc(db, 'departmentBonusConfigs', id);
             const updateData: any = {
                 ...data,
                 updatedAt: new Date().toISOString()
@@ -92,7 +87,6 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
                 updateData.departmentName = DEPARTMENT_LABELS[data.departmentCode];
             }
 
-            // await setDoc(docRef, updateData, { merge: true });
             await fetchConfigs();
         } catch (err: any) {
             console.error('Error updating config:', err);
@@ -102,7 +96,6 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
 
     const deleteConfig = async (id: string) => {
         try {
-            // await deleteDoc(doc(db, 'departmentBonusConfigs', id));
             await fetchConfigs();
         } catch (err: any) {
             console.error('Error deleting config:', err);

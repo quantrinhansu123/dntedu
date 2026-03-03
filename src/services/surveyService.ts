@@ -6,19 +6,10 @@
 import {
   collection,
   doc,
-  // getDocs,
-  // getDoc,
-      //   addDoc,
-      //   updateDoc,
-      //   deleteDoc,
       //   query,
       //   where,
       //   orderBy,
-      //   onSnapshot,
       //   Unsubscribe,
-      //   writeBatch
-      // } from 'firebase/firestore';
-// import { db } from '../config/firebase' // Firebase đã được xóa;
 import {
   SurveyTemplate,
   SurveyAssignment,
@@ -42,11 +33,7 @@ export class SurveyService {
   // ========================================
 
   static async getTemplates(): Promise<SurveyTemplate[]> {
-    const q = query(
-      //       collection(db, TEMPLATES_COLLECTION),
-      //       orderBy('createdAt', 'desc')
     );
-    // const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -54,14 +41,11 @@ export class SurveyService {
   }
 
   static async getTemplate(id: string): Promise<SurveyTemplate | null> {
-    // const docRef = doc(db, TEMPLATES_COLLECTION, id);
-    // const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) return null;
     return { id: docSnap.id, ...docSnap.data() } as SurveyTemplate;
   }
 
   static async createTemplate(data: Omit<SurveyTemplate, 'id' | 'createdAt'>): Promise<string> {
-      //     const docRef = await addDoc(collection(db, TEMPLATES_COLLECTION), {
       //       ...data,
       //       createdAt: new Date().toISOString()
     });
@@ -69,23 +53,16 @@ export class SurveyService {
   }
 
   static async updateTemplate(id: string, data: Partial<SurveyTemplate>): Promise<void> {
-    // const docRef = doc(db, TEMPLATES_COLLECTION, id);
-      //     await updateDoc(docRef, {
       //       ...data,
       //       updatedAt: new Date().toISOString()
     });
   }
 
   static async deleteTemplate(id: string): Promise<void> {
-    // await deleteDoc(doc(db, TEMPLATES_COLLECTION, id));
   }
 
   static onTemplatesChange(callback: (templates: SurveyTemplate[]) => void): Unsubscribe {
-    const q = query(
-      //       collection(db, TEMPLATES_COLLECTION),
-      //       orderBy('createdAt', 'desc')
     );
-      //     return onSnapshot(q, (snapshot) => {
       //       const templates = snapshot.docs.map(doc => ({
       //         id: doc.id,
       //         ...doc.data()
@@ -122,17 +99,10 @@ export class SurveyService {
 
     for (const student of students) {
       // Check if already assigned and pending
-      const existingQuery = query(
-      //         collection(db, ASSIGNMENTS_COLLECTION),
-      //         where('templateId', '==', templateId),
-      //         where('studentId', '==', student.id),
-      //         where('status', '==', 'pending')
       );
-      // const existingSnapshot = await getDocs(existingQuery);
 
       if (existingSnapshot.empty) {
         const token = generateToken();
-        // const docRef = await addDoc(collection(db, ASSIGNMENTS_COLLECTION), {
           templateId,
           templateName: template.name,
           studentId: student.id,
@@ -173,9 +143,7 @@ export class SurveyService {
     studentId?: string;
     status?: 'pending' | 'submitted' | 'expired';
   }): Promise<SurveyAssignment[]> {
-    // let q = query(collection(db, ASSIGNMENTS_COLLECTION), orderBy('assignedAt', 'desc'));
 
-    // const snapshot = await getDocs(q);
     let assignments = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -196,11 +164,7 @@ export class SurveyService {
   }
 
   static async getAssignmentByToken(token: string): Promise<SurveyAssignment | null> {
-    const q = query(
-      //       collection(db, ASSIGNMENTS_COLLECTION),
-      //       where('token', '==', token)
     );
-    // const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
     const doc = snapshot.docs[0];
     return { id: doc.id, ...doc.data() } as SurveyAssignment;
@@ -208,8 +172,6 @@ export class SurveyService {
 
   static async getStudentPendingSurveys(studentId: string): Promise<SurveyAssignment[]> {
     // Query all assignments and filter in memory
-    // const q = query(collection(db, ASSIGNMENTS_COLLECTION));
-    // const snapshot = await getDocs(q);
     const allAssignments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as SurveyAssignment);
     
     // Debug: log all assignments to see what studentIds exist
@@ -225,7 +187,6 @@ export class SurveyService {
   }
 
   static async cancelAssignment(assignmentId: string): Promise<void> {
-    // await deleteDoc(doc(db, ASSIGNMENTS_COLLECTION, assignmentId));
   }
 
   static onAssignmentsChange(
@@ -234,18 +195,12 @@ export class SurveyService {
   ): Unsubscribe {
     let q;
     if (studentId) {
-      q = query(
-      //         collection(db, ASSIGNMENTS_COLLECTION),
-      //         where('studentId', '==', studentId),
       //         orderBy('assignedAt', 'desc')
       );
     } else {
-      q = query(
-      //         collection(db, ASSIGNMENTS_COLLECTION),
       //         orderBy('assignedAt', 'desc')
       );
     }
-      //     return onSnapshot(q, (snapshot) => {
       //       const assignments = snapshot.docs.map(doc => ({
       //         id: doc.id,
       //         ...doc.data()
@@ -297,12 +252,9 @@ export class SurveyService {
     if (data.submitterName) responseData.submitterName = data.submitterName;
     if (data.submitterPhone) responseData.submitterPhone = data.submitterPhone;
 
-    // const docRef = await addDoc(collection(db, RESPONSES_COLLECTION), responseData);
 
     // Update assignment status
     if (data.assignmentId) {
-      // const assignmentRef = doc(db, ASSIGNMENTS_COLLECTION, data.assignmentId);
-      //       await updateDoc(assignmentRef, {
       //         status: 'submitted',
       //         submittedAt: new Date().toISOString()
       });
@@ -318,11 +270,7 @@ export class SurveyService {
     fromDate?: string;
     toDate?: string;
   }): Promise<SurveyResponse[]> {
-    const q = query(
-      //       collection(db, RESPONSES_COLLECTION),
-      //       orderBy('submittedAt', 'desc')
     );
-    // const snapshot = await getDocs(q);
     let responses = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -349,11 +297,7 @@ export class SurveyService {
   }
 
   static onResponsesChange(callback: (responses: SurveyResponse[]) => void): Unsubscribe {
-    const q = query(
-      //       collection(db, RESPONSES_COLLECTION),
-      //       orderBy('submittedAt', 'desc')
     );
-      //     return onSnapshot(q, (snapshot) => {
       //       const responses = snapshot.docs.map(doc => ({
       //         id: doc.id,
       //         ...doc.data()
