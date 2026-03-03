@@ -5,6 +5,11 @@
 
 import { supabase } from '../config/supabase';
 
+export interface TaskStatusDetail {
+  status: string;
+  note: string;
+}
+
 export interface DailyWorkReport {
   id: string;
   staffId: string;
@@ -12,6 +17,7 @@ export interface DailyWorkReport {
   reportDate: string; // YYYY-MM-DD
   workDescription: string;
   completedTasks: string[]; // Danh sách công việc đã hoàn thành
+  taskStatuses?: Record<string, TaskStatusDetail>; // Trạng thái và ghi chú cho từng công việc: {taskId: {status, note}}
   status: 'Chờ xác nhận' | 'Đạt' | 'Chấp nhận' | 'Không đạt';
   approvalStatus?: 'Đạt' | 'Chấp nhận' | 'Không đạt' | null;
   approvalReason?: string | null;
@@ -78,6 +84,20 @@ const mapApprovalStatusToDB = (status: DailyWorkReport['approvalStatus']): strin
  * Chuyển đổi DailyWorkReport từ format Supabase
  */
 const transformFromSupabase = (data: any): DailyWorkReport => {
+  // Parse task_statuses JSONB
+  let taskStatuses: Record<string, TaskStatusDetail> | undefined;
+  if (data.task_statuses) {
+    if (typeof data.task_statuses === 'string') {
+      try {
+        taskStatuses = JSON.parse(data.task_statuses);
+      } catch {
+        taskStatuses = undefined;
+      }
+    } else if (typeof data.task_statuses === 'object') {
+      taskStatuses = data.task_statuses;
+    }
+  }
+  
   return {
     id: data.id,
     staffId: data.staff_id || '',
@@ -85,6 +105,7 @@ const transformFromSupabase = (data: any): DailyWorkReport => {
     reportDate: data.report_date || '',
     workDescription: data.work_description || '',
     completedTasks: data.completed_tasks || [],
+    taskStatuses: taskStatuses || undefined,
     status: mapStatusFromDB(data.status),
     approvalStatus: mapApprovalStatusFromDB(data.approval_status),
     approvalReason: data.approval_reason || null,
@@ -106,6 +127,7 @@ const transformToSupabase = (report: Partial<DailyWorkReport>) => {
   if (report.reportDate !== undefined) result.report_date = report.reportDate;
   if (report.workDescription !== undefined) result.work_description = report.workDescription;
   if (report.completedTasks !== undefined) result.completed_tasks = report.completedTasks;
+  if (report.taskStatuses !== undefined) result.task_statuses = report.taskStatuses || {};
   if (report.status !== undefined) result.status = mapStatusToDB(report.status);
   if (report.approvalStatus !== undefined) result.approval_status = mapApprovalStatusToDB(report.approvalStatus);
   if (report.approvalReason !== undefined) result.approval_reason = report.approvalReason || null;

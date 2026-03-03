@@ -125,6 +125,15 @@ export const WorkTaskSetup: React.FC = () => {
         return staff?.name || '';
       }).filter(Boolean);
 
+      // Debug: Log staff IDs being saved
+      console.log('=== Saving work task ===');
+      console.log('Selected staffIds:', formData.staffIds);
+      console.log('Staff list:', staffList.map(s => ({ id: s.id, name: s.name, code: s.code })));
+      formData.staffIds.forEach(staffId => {
+        const staff = staffList.find(s => s.id === staffId);
+        console.log(`  - Staff ID "${staffId}":`, staff ? `${staff.name} (${staff.code})` : 'NOT FOUND in staffList');
+      });
+      
       const taskData: Omit<WorkTask, 'id' | 'createdAt' | 'updatedAt'> = {
         category: formData.category.trim(),
         taskName: formData.taskName.trim(),
@@ -134,6 +143,8 @@ export const WorkTaskSetup: React.FC = () => {
         isActive: formData.isActive,
         createdBy: staffData?.name || user?.email || null,
       };
+      
+      console.log('Task data to save:', taskData);
 
       if (editingTask) {
         await workTaskService.updateWorkTask(editingTask.id, taskData);

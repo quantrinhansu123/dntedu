@@ -22,12 +22,42 @@ export interface WorkTask {
  * Chuyển đổi WorkTask từ format Supabase
  */
 const transformFromSupabase = (data: any): WorkTask => {
+  // Parse staff_ids from JSONB - handle both array and string formats
+  let staffIds: string[] = [];
+  if (data.staff_ids) {
+    if (Array.isArray(data.staff_ids)) {
+      staffIds = data.staff_ids.map((id: any) => String(id)); // Convert to string for consistency
+    } else if (typeof data.staff_ids === 'string') {
+      try {
+        const parsed = JSON.parse(data.staff_ids);
+        staffIds = Array.isArray(parsed) ? parsed.map((id: any) => String(id)) : [];
+      } catch {
+        staffIds = [];
+      }
+    }
+  }
+  
+  // Parse staff_names similarly
+  let staffNames: string[] = [];
+  if (data.staff_names) {
+    if (Array.isArray(data.staff_names)) {
+      staffNames = data.staff_names;
+    } else if (typeof data.staff_names === 'string') {
+      try {
+        const parsed = JSON.parse(data.staff_names);
+        staffNames = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        staffNames = [];
+      }
+    }
+  }
+  
   return {
     id: data.id,
     category: data.category || '',
     taskName: data.task_name || '',
-    staffIds: data.staff_ids || [],
-    staffNames: data.staff_names || [],
+    staffIds: staffIds,
+    staffNames: staffNames,
     description: data.description || null,
     isActive: data.is_active !== false,
     createdBy: data.created_by || null,
@@ -96,11 +126,39 @@ export const getWorkTaskById = async (id: string): Promise<WorkTask | null> => {
 
 /**
  * Lấy công việc theo staff ID
+ * Sử dụng Supabase JSONB query để filter trực tiếp trong database
  */
 export const getWorkTasksByStaffId = async (staffId: string): Promise<WorkTask[]> => {
   try {
-    // Query using JSONB contains operator
-    // staff_ids @> '["staffId"]'::jsonb
+    console.log('getWorkTasksByStaffId - Looking for staffId:', staffId);
+    console.log('getWorkTasksByStaffId - staffId type:', typeof staffId);
+    
+    // Method 1: Try using Supabase JSONB contains operator (more efficient)
+    // Query: staff_ids @> '["staffId"]'::jsonb
+    // This checks if the JSONB array contains the staffId
+    const { data: queryData, error: queryError } = await supabase
+      .from('work_tasks')
+      .select('*')
+      .eq('is_active', true)
+      .contains('staff_ids', [staffId])  // JSONB contains operator
+      .order('category', { ascending: true })
+      .order('task_name', { ascending: true });
+    
+    // If contains() works, use it
+    if (!queryError && queryData) {
+      console.log('getWorkTasksByStaffId - Using Supabase contains() query');
+      console.log('getWorkTasksByStaffId - Found', queryData.length, 'tasks');
+      const transformed = queryData.map(transformFromSupabase);
+      transformed.forEach(task => {
+        console.log(`✅ Task "${task.taskName}" (ID: ${task.id}) - staffIds:`, task.staffIds);
+      });
+      return transformed;
+    }
+    
+    // Method 2: Fallback to client-side filtering if contains() doesn't work
+    console.log('getWorkTasksByStaffId - Fallback to client-side filtering');
+    console.log('Query error (if any):', queryError);
+    
     const { data, error } = await supabase
       .from('work_tasks')
       .select('*')
@@ -110,13 +168,33 @@ export const getWorkTasksByStaffId = async (staffId: string): Promise<WorkTask[]
     
     if (error) throw error;
     
+    console.log('getWorkTasksByStaffId - All active tasks:', data.length);
+    
     // Filter client-side to check if staffId is in staff_ids array
-    const filtered = data.filter(task => {
-      const staffIds = task.staff_ids || [];
-      return Array.isArray(staffIds) && staffIds.includes(staffId);
+    const transformedTasks = data.map(transformFromSupabase);
+    
+    const filtered = transformedTasks.filter(task => {
+      const staffIdsArray = task.staffIds || [];
+      
+      // Convert both to string for comparison (handle type mismatches)
+      const searchId = String(staffId);
+      const isMatch = staffIdsArray.some(id => String(id) === searchId);
+      
+      if (!isMatch) {
+        console.log(`❌ Task "${task.taskName}" (ID: ${task.id}) - staffIds:`, staffIdsArray, 'does not include', searchId);
+        console.log('  - staffIds types:', staffIdsArray.map(id => typeof id));
+        console.log('  - staffIds values:', staffIdsArray);
+      } else {
+        console.log(`✅ Task "${task.taskName}" (ID: ${task.id}) - MATCHED for staffId:`, searchId);
+        console.log('  - Matching staffIds:', staffIdsArray);
+      }
+      
+      return isMatch;
     });
     
-    return filtered.map(transformFromSupabase);
+    console.log('getWorkTasksByStaffId - Filtered tasks:', filtered.length, 'out of', data.length);
+    
+    return filtered;
   } catch (error) {
     console.error('Error fetching work tasks by staff ID from Supabase:', error);
     throw error;
