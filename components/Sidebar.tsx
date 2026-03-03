@@ -9,7 +9,6 @@ import {
   UserCog,
   DollarSign,
   BarChart3,
-  Settings,
   ChevronDown,
   ChevronRight,
   Menu,
@@ -64,12 +63,6 @@ const subItemToModule: Record<string, ModuleKey> = {
   'report-training': 'reports_training',
   'report-finance': 'reports_finance',
   'report-monthly': 'reports_training',
-  'settings-center': 'settings',
-  'settings-staff': 'settings',
-  'settings-curriculum': 'settings',
-  'settings-products': 'settings',
-  'settings-inventory': 'settings',
-  'settings-rooms': 'settings',
   'academic-hub': 'schedule',
   'training-ops': 'schedule',
   'service-hub': 'service_dashboard',
@@ -84,7 +77,6 @@ const parentMenuModules: Record<string, ModuleKey[]> = {
   'hr': ['staff', 'salary_config', 'work_confirmation', 'salary_teacher', 'salary_staff'],
   'finance': ['contracts', 'invoices', 'debt', 'revenue'],
   'reports': ['reports_training', 'reports_finance'],
-  'settings': ['settings'],
 };
 
 const menuItems: MenuItem[] = [
@@ -112,7 +104,7 @@ const menuItems: MenuItem[] = [
     subItems: [
       { id: 'students', label: 'Học viên', path: '/admin/customers/students', icon: ChevronRight },
       { id: 'parents', label: 'Phụ huynh', path: '/admin/customers/parents', icon: ChevronRight },
-      { id: 'service-hub', label: 'Chăm sóc Khách hàng', path: '/admin/customers/hub', icon: ChevronRight },
+      // { id: 'service-hub', label: 'Chăm sóc Khách hàng', path: '/admin/customers/hub', icon: ChevronRight }, // Đã bỏ view này
     ]
   },
   {
@@ -159,22 +151,11 @@ const menuItems: MenuItem[] = [
       { id: 'report-monthly', label: 'Báo cáo học tập', path: '/admin/reports/monthly', icon: ChevronRight },
     ]
   },
-  {
-    id: 'settings',
-    label: 'Cấu hình',
-    icon: Settings,
-    subItems: [
-      { id: 'config-room', label: 'Quản lý phòng học', path: '/admin/config/rooms', icon: ChevronRight },
-      { id: 'config-curriculum', label: 'Quản lý chương trình', path: '/admin/config/curriculum', icon: ChevronRight },
-      { id: 'config-inventory', label: 'Quản lý kho', path: '/admin/config/inventory', icon: ChevronRight },
-      { id: 'config-products', label: 'Quản lý sản phẩm', path: '/admin/config/products', icon: ChevronRight },
-    ]
-  }
 ];
 
 export const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['training', 'customers', 'settings']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['training', 'customers']);
   const location = useLocation();
   const { canView, role, isAdmin } = usePermissions();
   const { user, staffData } = useAuth();

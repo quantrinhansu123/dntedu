@@ -27,8 +27,9 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// import { collection, getDocs, query, where } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
 import { formatCurrency } from '../src/utils/currencyUtils';
 
 const COLORS = ['#0D9488', '#FF6B5A', '#F59E0B', '#10B981', '#6366F1', '#EF4444'];
@@ -95,8 +96,11 @@ export const DashboardEnhancements: React.FC = () => {
       const lastDayOfMonth = new Date(thisYear, thisMonth + 1, 0);
 
       // 1. Fetch Classes
-      const classesSnap = await getDocs(collection(db, 'classes'));
-      const classes = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase query
+      // const { data: classesData } = await supabase.from('classes').select('*');
+      // const classes = classesData || [];
+      const classes: any[] = []; // Temporary empty array
       
       const classesActive = classes.filter((c: any) => c.status === 'Đang học' || c.status === 'STUDYING').length;
       const classesFinished = classes.filter((c: any) => c.status === 'Kết thúc' || c.status === 'FINISHED').length;
@@ -114,8 +118,9 @@ export const DashboardEnhancements: React.FC = () => {
       }).length;
 
       // 2. Fetch Students
-      const studentsSnap = await getDocs(collection(db, 'students'));
-      const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase query
+      const students: any[] = []; // Temporary empty array
       
       const studentsActive = students.filter((s: any) => s.status === 'Đang học').length;
       const studentsCompleted = students.filter((s: any) => s.status === 'Đã học hết phí').length;
@@ -148,8 +153,9 @@ export const DashboardEnhancements: React.FC = () => {
       }
 
       // 4. Revenue Trend (6 tháng gần nhất)
-      const contractsSnap = await getDocs(collection(db, 'contracts'));
-      const contracts = contractsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase query
+      const contracts: any[] = []; // Temporary empty array
       
       const revenueTrend: { month: string; amount: number }[] = [];
       for (let i = 5; i >= 0; i--) {
@@ -190,8 +196,9 @@ export const DashboardEnhancements: React.FC = () => {
         .slice(0, 5); // Top 5
 
       // 6. Lead Sources (Kênh tuyển sinh)
-      const leadsSnap = await getDocs(collection(db, 'leads'));
-      const leads = leadsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase query
+      const leads: any[] = []; // Temporary empty array
       
       const leadSourceMap = new Map<string, number>();
       leads.forEach((l: any) => {
@@ -226,24 +233,15 @@ export const DashboardEnhancements: React.FC = () => {
       }
 
       // 8. Monthly Goals (KPI từ departmentGoals)
-      const goalsSnap = await getDocs(
-        query(
-          collection(db, 'departmentGoals'),
-          where('month', '==', thisMonth + 1),
-          where('year', '==', thisYear)
-        )
-      );
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase query
+      // const { data: goalsData } = await supabase
+      //   .from('departmentGoals')
+      //   .select('*')
+      //   .eq('month', thisMonth + 1)
+      //   .eq('year', thisYear);
       
-      const monthlyGoals = goalsSnap.docs.map(d => {
-        const data = d.data();
-        const percent = data.kpiTarget > 0 ? Math.round((data.kpiActual / data.kpiTarget) * 100) : 0;
-        return {
-          name: data.title || data.departmentName,
-          target: data.kpiTarget || 0,
-          actual: data.kpiActual || 0,
-          percent
-        };
-      });
+      const monthlyGoals: any[] = []; // Temporary empty array
 
       setStats({
         classesActive,
@@ -386,8 +384,8 @@ export const DashboardEnhancements: React.FC = () => {
             </div>
             <h3 className="font-bold text-gray-800">Xu hướng học viên (6 tháng)</h3>
           </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minHeight={256}>
               <LineChart data={stats.studentTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
@@ -407,8 +405,8 @@ export const DashboardEnhancements: React.FC = () => {
             </div>
             <h3 className="font-bold text-gray-800">Xu hướng doanh thu (6 tháng)</h3>
           </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minHeight={256}>
               <LineChart data={stats.revenueTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
@@ -426,9 +424,9 @@ export const DashboardEnhancements: React.FC = () => {
         {/* Course Revenue Pie */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60">
           <h3 className="font-bold text-gray-800 mb-4">Doanh thu theo khóa học</h3>
-          <div className="h-64">
+          <div className="h-64 w-full min-w-0">
             {stats.courseRevenue.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={256}>
                 <PieChart>
                   <Pie data={stats.courseRevenue} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                     {stats.courseRevenue.map((entry, index) => (
@@ -448,9 +446,9 @@ export const DashboardEnhancements: React.FC = () => {
         {/* Lead Sources Pie */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60">
           <h3 className="font-bold text-gray-800 mb-4">Tỷ trọng kênh tuyển sinh</h3>
-          <div className="h-64">
+          <div className="h-64 w-full min-w-0">
             {stats.leadSources.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={256}>
                 <PieChart>
                   <Pie data={stats.leadSources} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                     {stats.leadSources.map((entry, index) => (
@@ -513,8 +511,8 @@ export const DashboardEnhancements: React.FC = () => {
             </div>
             <h3 className="font-bold text-gray-800">Xu hướng kênh tuyển sinh (6 tháng)</h3>
           </div>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minHeight={320}>
               <BarChart data={stats.leadSourceTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />

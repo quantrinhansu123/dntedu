@@ -3,8 +3,8 @@
  * Xác thực học viên bằng mã học viên + mật khẩu
  */
 
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 export interface StudentSession {
     studentId: string;

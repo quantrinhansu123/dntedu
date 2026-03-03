@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Mail, MapPin, Calendar, Building2, Briefcase, Shield, Save, CreditCard, GraduationCap, FileText, DollarSign, UserCheck } from 'lucide-react';
 import { Staff, StaffRole, Candidate, StaffContractType } from '../types';
 import { POSITION_TO_ROLE } from '../src/services/permissionService';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// import { doc, getDoc } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
 
 interface StaffFormModalEnhancedProps {
     isOpen: boolean;
@@ -56,13 +57,22 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
     useEffect(() => {
         const fetchConfig = async () => {
             try {
-                const docRef = doc(db, 'settings', 'salaryConfig');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setGlobalBaseSalary(docSnap.data().baseSalary || 1800000);
-                }
+                // Firebase đã được xóa - sử dụng Supabase thay thế
+                // TODO: Implement Supabase query for salary config
+                // const { data, error } = await supabase
+                //   .from('settings')
+                //   .select('*')
+                //   .eq('key', 'salaryConfig')
+                //   .single();
+                // if (data) {
+                //   setGlobalBaseSalary(data.baseSalary || 1800000);
+                // }
+                // Tạm thời sử dụng giá trị mặc định
+                setGlobalBaseSalary(1800000);
             } catch (err) {
                 console.error('Error fetching salary config:', err);
+                // Fallback to default value
+                setGlobalBaseSalary(1800000);
             }
         };
         fetchConfig();

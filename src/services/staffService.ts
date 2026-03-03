@@ -1,22 +1,10 @@
 /**
  * Staff Service
- * Firebase operations for staff management - Static class pattern
+ * Đã migrate sang Supabase
  */
 
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  Timestamp
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { Staff } from '../../types';
+import * as staffSupabaseService from './staffSupabaseService';
 
 export class StaffService {
   private static readonly COLLECTION = 'staff';
@@ -27,26 +15,14 @@ export class StaffService {
     status?: string;
   }): Promise<Staff[]> {
     try {
-      const q = query(collection(db, this.COLLECTION), orderBy('name', 'asc'));
-      const snapshot = await getDocs(q);
-
-      let staffList = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Staff[];
-
-      // Client-side filtering
-      if (filters?.department) {
-        staffList = staffList.filter(s => s.department === filters.department);
+      if (filters) {
+        return await staffSupabaseService.queryStaff({
+          department: filters.department,
+          role: filters.role,
+          status: filters.status,
+        });
       }
-      if (filters?.role) {
-        staffList = staffList.filter(s => s.role === filters.role);
-      }
-      if (filters?.status) {
-        staffList = staffList.filter(s => s.status === filters.status);
-      }
-
-      return staffList;
+      return await staffSupabaseService.getAllStaff();
     } catch (error) {
       console.error('Error fetching staff:', error);
       throw error;
@@ -55,13 +31,7 @@ export class StaffService {
 
   static async getStaffById(id: string): Promise<Staff | null> {
     try {
-      const docRef = doc(db, this.COLLECTION, id);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Staff;
-      }
-      return null;
+      return await staffSupabaseService.getStaffById(id);
     } catch (error) {
       console.error('Error fetching staff by id:', error);
       throw error;
@@ -70,53 +40,54 @@ export class StaffService {
 
   static async createStaff(data: Omit<Staff, 'id'>): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, this.COLLECTION), {
+      // Tạo staff object không có id (Supabase sẽ tự generate UUID)
+      const staffData: Staff = {
         ...data,
-        status: data.status || 'Active',
-        createdAt: Timestamp.now()
-      });
-      return docRef.id;
-    } catch (error) {
+        // Không thêm id - Supabase sẽ tự generate UUID
+      } as Staff;
+      
+      const created = await staffSupabaseService.createStaff(staffData);
+      return created.id;
+    } catch (error: any) {
       console.error('Error creating staff:', error);
-      throw error;
+      throw new Error(error.message || 'Không thể tạo nhân sự');
     }
   }
 
   static async updateStaff(id: string, data: Partial<Staff>): Promise<void> {
     try {
-      const docRef = doc(db, this.COLLECTION, id);
-      await updateDoc(docRef, {
-        ...data,
-        updatedAt: Timestamp.now()
-      });
-    } catch (error) {
+      await staffSupabaseService.updateStaff(id, data);
+    } catch (error: any) {
       console.error('Error updating staff:', error);
-      throw error;
+      throw new Error(error.message || 'Không thể cập nhật nhân sự');
     }
   }
 
   static async deleteStaff(id: string): Promise<void> {
     try {
-      await deleteDoc(doc(db, this.COLLECTION, id));
+      await staffSupabaseService.deleteStaff(id);
     } catch (error) {
       console.error('Error deleting staff:', error);
       throw error;
     }
   }
 
-  // Get staff by role (for dropdowns)
   static async getTeachers(): Promise<Staff[]> {
-    const allStaff = await this.getStaff();
-    return allStaff.filter(s =>
-      s.role === 'Giáo viên' ||
-      s.position === 'Giáo Viên Việt' ||
-      s.position === 'Giáo Viên Nước Ngoài'
-    );
+    try {
+      return await staffSupabaseService.queryStaff({ role: 'Giáo viên' });
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+      return [];
+    }
   }
 
   static async getAssistants(): Promise<Staff[]> {
-    const allStaff = await this.getStaff();
-    return allStaff.filter(s => s.role === 'Trợ giảng' || s.position === 'Trợ Giảng');
+    try {
+      return await staffSupabaseService.queryStaff({ role: 'Trợ giảng' });
+    } catch (error) {
+      console.error('Error fetching assistants:', error);
+      return [];
+    }
   }
 }
 

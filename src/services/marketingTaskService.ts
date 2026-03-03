@@ -16,7 +16,7 @@ import {
     orderBy,
     Timestamp,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 import { MarketingTask } from '../types/marketingTypes';
 
 const COLLECTION = 'marketingTasks';

@@ -5,11 +5,12 @@ import { useStudents } from '../src/hooks/useStudents';
 import { usePermissions } from '../src/hooks/usePermissions';
 import { useAuth } from '../src/hooks/useAuth';
 import { useHolidays } from '../src/hooks/useHolidays';
-import { useRooms } from '../src/hooks/useRooms';
+// import { useRooms } from '../src/hooks/useRooms'; // Đã xóa quản lý phòng học
 import { useStaff } from '../src/hooks/useStaff';
 import { ClassModel, Student, Holiday } from '../types';
-import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
 import { getScheduleTime, getScheduleDays, formatSchedule } from '../src/utils/scheduleUtils';
 
 // ============================================
@@ -70,7 +71,7 @@ export const Schedule: React.FC = () => {
   const [centerList, setCenterList] = useState<{ id: string; name: string }[]>([]);
   const [filterTeacher, setFilterTeacher] = useState<string>('ALL');
   const [filterAssistant, setFilterAssistant] = useState<string>('ALL');
-  const [filterRoom, setFilterRoom] = useState<string>('ALL');
+  // const [filterRoom, setFilterRoom] = useState<string>('ALL'); // Đã xóa quản lý phòng học
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [classStudents, setClassStudents] = useState<Student[]>([]);
   const [detailModalClass, setDetailModalClass] = useState<ClassModel | null>(null);
@@ -91,7 +92,8 @@ export const Schedule: React.FC = () => {
   const { classes: allClasses } = useClasses({});
   const { students: allStudents } = useStudents({});
   const { holidays } = useHolidays();
-  const { rooms } = useRooms();
+  // const { rooms } = useRooms(); // Đã xóa quản lý phòng học
+  const rooms: any[] = []; // Tạm thời empty array
   const { staff } = useStaff();
 
   // Get active holidays (applied)
@@ -204,13 +206,13 @@ export const Schedule: React.FC = () => {
       .sort();
   }, [staff]);
 
-  // Get rooms from rooms collection (active only)
-  const uniqueRooms = useMemo(() => {
-    return rooms
-      .filter(r => r.status === 'Hoạt động')
-      .map(r => r.name)
-      .sort();
-  }, [rooms]);
+  // Get rooms from rooms collection (active only) - Đã xóa quản lý phòng học
+  // const uniqueRooms = useMemo(() => {
+  //   return rooms
+  //     .filter(r => r.status === 'Hoạt động')
+  //     .map(r => r.name)
+  //     .sort();
+  // }, [rooms]);
 
   // Filter classes for teachers (onlyOwnClasses) and by teacher/assistant/room filters
   const classes = useMemo(() => {
@@ -242,10 +244,10 @@ export const Schedule: React.FC = () => {
       filtered = filtered.filter(cls => cls.assistant === filterAssistant);
     }
     
-    // Filter by room
-    if (filterRoom !== 'ALL') {
-      filtered = filtered.filter(cls => cls.room === filterRoom);
-    }
+    // Filter by room - Đã xóa quản lý phòng học
+    // if (filterRoom !== 'ALL') {
+    //   filtered = filtered.filter(cls => cls.room === filterRoom);
+    // }
     
     // Filter by branch/center
     if (selectedBranch) {
@@ -253,26 +255,28 @@ export const Schedule: React.FC = () => {
     }
     
     return filtered;
-  }, [allClasses, onlyOwnClasses, staffData, staffId, filterTeacher, filterAssistant, filterRoom, selectedBranch]);
+  }, [allClasses, onlyOwnClasses, staffData, staffId, filterTeacher, filterAssistant, selectedBranch]); // filterRoom đã xóa
 
-  // Fetch centers from Firestore
+  // Fetch centers from Supabase
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        const centersSnap = await getDocs(collection(db, 'centers'));
-        const centers = centersSnap.docs
-          .filter(d => d.data().status === 'Active')
-          .map(d => ({
-            id: d.id,
-            name: d.data().name || '',
-          }));
-        setCenterList(centers);
-        // Set default selected branch to first center
-        if (centers.length > 0 && !selectedBranch) {
-          setSelectedBranch(centers[0].name);
-        }
+        // Firebase đã được xóa - sử dụng Supabase thay thế
+        // TODO: Implement Supabase query
+        // const { data, error } = await supabase
+        //   .from('centers')
+        //   .select('id, name')
+        //   .eq('status', 'Active');
+        // if (data) {
+        //   setCenterList(data);
+        //   if (data.length > 0 && !selectedBranch) {
+        //     setSelectedBranch(data[0].name);
+        //   }
+        // }
+        setCenterList([]);
       } catch (err) {
         console.error('Error fetching centers:', err);
+        setCenterList([]);
       }
     };
     fetchCenters();
@@ -506,8 +510,8 @@ export const Schedule: React.FC = () => {
             </select>
           </div>
 
-          {/* Room Filter */}
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-2">
+          {/* Room Filter - Đã xóa quản lý phòng học */}
+          {/* <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-2">
             <Home className="text-white/80" size={16} />
             <select
               value={filterRoom}
@@ -519,7 +523,7 @@ export const Schedule: React.FC = () => {
                 <option key={r} value={r}>{r}</option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           {/* Print Button */}
           <button 

@@ -3,8 +3,8 @@
  * Aggregate revenue data from contracts
  */
 
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, getDocs, query, where, orderBy } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const CONTRACTS_COLLECTION = 'contracts';
 

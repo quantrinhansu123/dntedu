@@ -3,8 +3,8 @@
  * Handle student debt management
  */
 
-import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const CONTRACTS_COLLECTION = 'contracts';
 

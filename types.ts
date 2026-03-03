@@ -437,7 +437,7 @@ export interface InventoryTransfer {
 export interface Room {
   id: string;
   name: string;
-  type: 'Văn phòng' | 'Phòng học' | 'Phòng chức năng';
+  type: 'Đào tạo' | 'Văn phòng' | 'Hội trường';
   capacity?: number;
   status: 'Hoạt động' | 'Bảo trì';
   branch?: string;

@@ -1,91 +1,92 @@
 /**
- * useStudents Hook (Realtime)
- * - Sử dụng onSnapshot để tự động cập nhật khi data thay đổi
+ * useStudents Hook
+ * Fetch và quản lý students từ Supabase với realtime updates
  */
 
-import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, where, doc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { useState, useEffect, useMemo } from 'react';
 import { Student, StudentStatus } from '../../types';
 import { StudentService } from '../services/studentService';
+import { supabase } from '../config/supabase';
 
 export const useStudents = (filters?: {
   status?: StudentStatus;
   classId?: string;
   searchTerm?: string;
 }) => {
-  const [students, setStudents] = useState<Student[]>([]);
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Realtime listener
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
+  // Fetch initial data
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await StudentService.getStudents(filters);
+      setAllStudents(data);
+    } catch (err: any) {
+      console.error('Error fetching students:', err);
+      setError(err.message || 'Không thể tải danh sách học viên');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Build query with filters
-    let q = query(collection(db, 'students'), orderBy('createdAt', 'desc'));
+  // Initial fetch and realtime subscription
+  useEffect(() => {
+    fetchStudents();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('students-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'students',
+        },
+        (payload) => {
+          console.log('Student change detected:', payload);
+          // Refresh data when changes occur
+          fetchStudents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters?.status, filters?.classId]);
+
+  // Client-side filtering
+  const students = useMemo(() => {
+    let filtered = allStudents;
     
-    if (filters?.status) {
-      q = query(collection(db, 'students'), 
-        where('status', '==', filters.status),
-        orderBy('createdAt', 'desc')
+    if (filters?.searchTerm) {
+      const term = filters.searchTerm.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.fullName?.toLowerCase().includes(term) ||
+        s.code?.toLowerCase().includes(term) ||
+        s.phone?.includes(term) ||
+        s.parentName?.toLowerCase().includes(term) ||
+        s.parentPhone?.includes(term)
       );
     }
+    
+    if (filters?.classId) {
+      filtered = filtered.filter(s => 
+        s.classId === filters.classId || 
+        s.classIds?.includes(filters.classId)
+      );
+    }
+    
+    return filtered;
+  }, [allStudents, filters?.searchTerm, filters?.classId]);
 
-    const unsubscribe = onSnapshot(q,
-      (snapshot) => {
-        try {
-          let studentsList = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            dob: doc.data().dob?.toDate?.()?.toISOString() || doc.data().dob || '',
-            careHistory: doc.data().careHistory?.map((log: any) => ({
-              ...log,
-              date: log.date?.toDate?.()?.toISOString() || log.date
-            })) || []
-          })) as Student[];
-
-          // Client-side search filter
-          if (filters?.searchTerm) {
-            const term = filters.searchTerm.toLowerCase();
-            studentsList = studentsList.filter(s =>
-              s.fullName?.toLowerCase().includes(term) ||
-              s.code?.toLowerCase().includes(term) ||
-              s.phone?.includes(term) ||
-              s.parentName?.toLowerCase().includes(term) ||
-              s.parentPhone?.includes(term)
-            );
-          }
-
-          // Client-side class filter
-          if (filters?.classId) {
-            studentsList = studentsList.filter(s => 
-              s.classId === filters.classId || 
-              s.classIds?.includes(filters.classId)
-            );
-          }
-
-          setStudents(studentsList);
-          setLoading(false);
-        } catch (err) {
-          console.error('Error processing students:', err);
-          setError('Không thể tải danh sách học viên');
-          setLoading(false);
-        }
-      },
-      (err) => {
-        console.error('Snapshot error:', err);
-        setError('Lỗi kết nối realtime');
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [filters?.status, filters?.classId, filters?.searchTerm]);
-
-  const refreshStudents = () => {
-    // With realtime listener, manual refresh is not needed
+  const refreshStudents = async () => {
+    await fetchStudents();
   };
 
   const createStudent = async (studentData: Omit<Student, 'id'>) => {
@@ -132,43 +133,28 @@ export const useStudent = (id: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Realtime listener for single student
   useEffect(() => {
-    if (!id) {
-      setStudent(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const docRef = doc(db, 'students', id);
-    const unsubscribe = onSnapshot(docRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setStudent({
-            id: docSnap.id,
-            ...docSnap.data(),
-            dob: docSnap.data().dob?.toDate?.()?.toISOString() || docSnap.data().dob || '',
-            careHistory: docSnap.data().careHistory?.map((log: any) => ({
-              ...log,
-              date: log.date?.toDate?.()?.toISOString() || log.date
-            })) || []
-          } as Student);
-        } else {
-          setStudent(null);
-        }
+    const fetchStudent = async () => {
+      if (!id) {
+        setStudent(null);
         setLoading(false);
-      },
-      (err) => {
-        console.error('Snapshot error:', err);
-        setError('Lỗi kết nối realtime');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await StudentService.getStudentById(id);
+        setStudent(data);
+      } catch (err: any) {
+        console.error('Error fetching student:', err);
+        setError(err.message || 'Lỗi khi tải thông tin học viên');
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchStudent();
   }, [id]);
 
   return { student, loading, error };

@@ -269,7 +269,7 @@ describe('Data Integrity Service', () => {
     });
   });
 
-  describe('Settings Module Validation', () => {
+  describe('Room Module Validation', () => {
     describe('Room Deletion', () => {
       it('should prevent deletion when room is in use', () => {
         const validation: ValidationResult = {

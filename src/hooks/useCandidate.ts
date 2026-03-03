@@ -1,82 +1,50 @@
+/**
+ * useCandidate Hook
+ * Firebase đã được xóa - Hook này đã bị disable
+ * Sử dụng Supabase hooks thay thế
+ */
+
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+// import { db } from '../config/firebase';
 import { Candidate } from '../../types';
 
 export const useCandidate = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
 
   // Fetch all candidates
   const fetchCandidates = async () => {
-    try {
-      setLoading(true);
-      const q = query(collection(db, 'candidates'), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      const data: Candidate[] = [];
-      snapshot.forEach((docSnap) => {
-        data.push({ id: docSnap.id, ...docSnap.data() } as Candidate);
-      });
-      setCandidates(data);
-    } catch (error) {
-      console.error('Error fetching candidates:', error);
-    } finally {
-      setLoading(false);
-    }
+    console.warn('useCandidate.fetchCandidates: Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    setLoading(false);
+    setCandidates([]);
+    setError('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
   };
 
   useEffect(() => {
     fetchCandidates();
   }, []);
 
-  // Create candidate
-  const createCandidate = async (candidateData: Omit<Candidate, 'id'>) => {
-    try {
-      const docRef = await addDoc(collection(db, 'candidates'), {
-        ...candidateData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      await fetchCandidates();
-      return docRef.id;
-    } catch (error) {
-      console.error('Error creating candidate:', error);
-      throw error;
-    }
+  const addCandidate = async (candidate: Omit<Candidate, 'id'>) => {
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để thêm candidate.');
   };
 
-  // Update candidate
-  const updateCandidate = async (id: string, candidateData: Partial<Candidate>) => {
-    try {
-      const docRef = doc(db, 'candidates', id);
-      await updateDoc(docRef, {
-        ...candidateData,
-        updatedAt: new Date().toISOString(),
-      });
-      await fetchCandidates();
-    } catch (error) {
-      console.error('Error updating candidate:', error);
-      throw error;
-    }
+  const updateCandidate = async (id: string, candidate: Partial<Candidate>) => {
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật candidate.');
   };
 
-  // Delete candidate
   const deleteCandidate = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'candidates', id));
-      await fetchCandidates();
-    } catch (error) {
-      console.error('Error deleting candidate:', error);
-      throw error;
-    }
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa candidate.');
   };
 
   return {
     candidates,
     loading,
-    createCandidate,
+    error,
+    fetchCandidates,
+    addCandidate,
     updateCandidate,
     deleteCandidate,
-    refetch: fetchCandidates,
   };
 };

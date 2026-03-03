@@ -17,7 +17,7 @@ import {
   Timestamp,
   QueryConstraint,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 import { Contract, ContractStatus, ContractType, PaymentMethod, EnrollmentRecord } from '../../types';
 import * as enrollmentService from './enrollmentService';
 

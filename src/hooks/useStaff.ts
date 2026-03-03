@@ -1,11 +1,10 @@
 /**
- * useStaff Hook - Realtime listener
- * React hook for staff operations
+ * useStaff Hook
+ * Đã migrate sang Supabase với realtime subscription
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { supabase } from '../config/supabase';
 import { Staff } from '../../types';
 import * as staffService from '../services/staffService';
 
@@ -30,29 +29,47 @@ export const useStaff = (props?: UseStaffProps): UseStaffReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Realtime listener
+  // Fetch initial data
+  const fetchStaff = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await staffService.getStaff(props);
+      setAllStaff(data);
+    } catch (err: any) {
+      console.error('Error fetching staff:', err);
+      setError(err.message || 'Không thể tải danh sách nhân viên');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Realtime subscription
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    fetchStaff();
 
-    const unsubscribe = onSnapshot(
-      collection(db, 'staff'),
-      (snapshot) => {
-        const data = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Staff[];
-        setAllStaff(data);
-        setLoading(false);
-      },
-      (err) => {
-        setError(err.message || 'Không thể tải danh sách nhân viên');
-        setLoading(false);
-      }
-    );
+    // Subscribe to changes
+    const channel = supabase
+      .channel('staff-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'staff',
+        },
+        (payload) => {
+          console.log('Staff change detected:', payload);
+          // Refresh data when changes occur
+          fetchStaff();
+        }
+      )
+      .subscribe();
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [props?.department, props?.role, props?.status]);
 
   // Client-side filtering
   const staff = useMemo(() => {
@@ -72,19 +89,38 @@ export const useStaff = (props?: UseStaffProps): UseStaffReturn => {
   }, [allStaff, props?.department, props?.role, props?.status]);
 
   const createStaff = async (data: Omit<Staff, 'id'>): Promise<string> => {
-    return await staffService.createStaff(data);
+    try {
+      const id = await staffService.createStaff(data);
+      await fetchStaff(); // Refresh after create
+      return id;
+    } catch (err: any) {
+      setError(err.message || 'Không thể tạo nhân sự');
+      throw err;
+    }
   };
 
   const updateStaff = async (id: string, data: Partial<Staff>): Promise<void> => {
-    await staffService.updateStaff(id, data);
+    try {
+      await staffService.updateStaff(id, data);
+      await fetchStaff(); // Refresh after update
+    } catch (err: any) {
+      setError(err.message || 'Không thể cập nhật nhân sự');
+      throw err;
+    }
   };
 
   const deleteStaff = async (id: string): Promise<void> => {
-    await staffService.deleteStaff(id);
+    try {
+      await staffService.deleteStaff(id);
+      await fetchStaff(); // Refresh after delete
+    } catch (err: any) {
+      setError(err.message || 'Không thể xóa nhân sự');
+      throw err;
+    }
   };
 
   const refresh = async (): Promise<void> => {
-    // No-op for realtime - data auto-updates
+    await fetchStaff();
   };
 
   return {

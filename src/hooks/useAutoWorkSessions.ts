@@ -7,8 +7,8 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, getDocs, query, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 import { ClassModel } from '../../types';
 
 export type SubstituteReason = 'Nghỉ phép' | 'Nghỉ ốm' | 'Bận việc đột xuất' | 'Nghỉ không lương' | 'Khác';

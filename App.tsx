@@ -16,7 +16,8 @@ const ServiceHub = lazy(() => import('./pages/ServiceHub').then(m => ({ default:
 const MarketingHub = lazy(() => import('./pages/MarketingHub').then(m => ({ default: m.MarketingHub })));
 const FinanceHub = lazy(() => import('./pages/FinanceHub').then(m => ({ default: m.FinanceHub })));
 const ReportHub = lazy(() => import('./pages/ReportHub').then(m => ({ default: m.ReportHub })));
-const ConfigurationHub = lazy(() => import('./pages/ConfigurationHub').then(m => ({ default: m.ConfigurationHub })));
+// const ConfigurationHub = lazy(() => import('./pages/ConfigurationHub').then(m => ({ default: m.ConfigurationHub }))); // Đã xóa cấu hình
+const RoomManager = lazy(() => import('./pages/RoomManager').then(m => ({ default: m.RoomManager })));
 
 const StudentManager = lazy(() => import('./pages/StudentManager').then(m => ({ default: m.StudentManager })));
 const TrialStudents = lazy(() => import('./pages/TrialStudents').then(m => ({ default: m.TrialStudents })));
@@ -27,9 +28,8 @@ const AttendanceHistory = lazy(() => import('./pages/AttendanceHistory').then(m 
 const Attendance = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
 const StudentDetail = lazy(() => import('./pages/StudentDetail').then(m => ({ default: m.StudentDetail })));
 const StaffManager = lazy(() => import('./pages/StaffManager').then(m => ({ default: m.StaffManager })));
-const ProductManager = lazy(() => import('./pages/ProductManager').then(m => ({ default: m.ProductManager })));
-const InventoryManager = lazy(() => import('./pages/InventoryManager').then(m => ({ default: m.InventoryManager })));
-const RoomManager = lazy(() => import('./pages/RoomManager').then(m => ({ default: m.RoomManager })));
+// const ProductManager = lazy(() => import('./pages/ProductManager').then(m => ({ default: m.ProductManager }))); // Đã xóa cấu hình
+// const InventoryManager = lazy(() => import('./pages/InventoryManager').then(m => ({ default: m.InventoryManager }))); // Đã xóa cấu hình
 const EnrollmentHistory = lazy(() => import('./pages/EnrollmentHistory').then(m => ({ default: m.EnrollmentHistory })));
 const ParentManager = lazy(() => import('./pages/ParentManager').then(m => ({ default: m.ParentManager })));
 const SalaryManager = lazy(() => import('./pages/SalaryManager').then(m => ({ default: m.SalaryManager })));
@@ -51,8 +51,8 @@ const MarketingTaskManager = lazy(() => import('./pages/MarketingTaskManager').t
 const MarketingKpiManager = lazy(() => import('./pages/MarketingKpiManager').then(m => ({ default: m.MarketingKpiManager })));
 const MarketingPlatformStats = lazy(() => import('./pages/MarketingPlatformStats').then(m => ({ default: m.MarketingPlatformStats })));
 const TrainingReport = lazy(() => import('./pages/TrainingReport').then(m => ({ default: m.TrainingReport })));
-const CenterSettings = lazy(() => import('./pages/CenterSettings').then(m => ({ default: m.CenterSettings })));
-const CurriculumManager = lazy(() => import('./pages/CurriculumManager').then(m => ({ default: m.CurriculumManager })));
+// const CenterSettings = lazy(() => import('./pages/CenterSettings').then(m => ({ default: m.CenterSettings }))); // Đã xóa cấu hình
+// const CurriculumManager = lazy(() => import('./pages/CurriculumManager').then(m => ({ default: m.CurriculumManager }))); // Đã xóa cấu hình
 const HomeworkManager = lazy(() => import('./pages/HomeworkManager').then(m => ({ default: m.HomeworkManager })));
 const MonthlyReport = lazy(() => import('./pages/MonthlyReport').then(m => ({ default: m.MonthlyReport })));
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
@@ -173,7 +173,7 @@ const App: React.FC = () => {
                 <Route path="/training/enrollment" element={<EnrollmentHistory />} />
 
                 {/* Customer Routes */}
-                <Route path="/customers/hub" element={<ServiceHub />} />
+                {/* <Route path="/customers/hub" element={<ServiceHub />} /> - Đã bỏ view này */}
                 {/* Legacy Routes */}
                 <Route path="/customers/students" element={<StudentManager key="all-students" title="Danh sách học viên" />} />
                 <Route path="/customers/student-detail/:id" element={<StudentDetail />} />
@@ -224,14 +224,8 @@ const App: React.FC = () => {
                 <Route path="/reports/financial" element={<FinancialAnalyticsHub />} />
                 <Route path="/reports/monthly" element={<MonthlyReport />} />
 
-                {/* Settings Routes */}
-                <Route path="/settings/hub" element={<ConfigurationHub />} />
-                <Route path="/settings/staff" element={<StaffManager />} />
-                <Route path="/settings/products" element={<ProductManager />} />
-                <Route path="/settings/inventory" element={<InventoryManager />} />
-                <Route path="/settings/rooms" element={<RoomManager />} />
-                <Route path="/settings/center" element={<CenterSettings />} />
-                <Route path="/settings/curriculum" element={<CurriculumManager />} />
+                {/* Admin Routes */}
+                <Route path="/admin/config/rooms" element={<RoomManager />} />
 
                 {/* Teacher Management Routes */}
                 <Route path="/hr/teacher-report" element={<TeacherDetailReport />} />

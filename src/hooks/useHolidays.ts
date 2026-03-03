@@ -1,10 +1,12 @@
 /**
- * useHolidays Hook - Realtime listener
+ * useHolidays Hook
+ * Firebase đã được xóa - Hook này đã bị disable
+ * Sử dụng Supabase hooks thay thế
  */
 
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+// import { db } from '../config/firebase';
 import { Holiday } from '../../types';
 
 interface UseHolidaysReturn {
@@ -18,47 +20,26 @@ interface UseHolidaysReturn {
 
 export const useHolidays = (): UseHolidaysReturn => {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    // Query without orderBy to avoid index issues, sort client-side
-    const unsubscribe = onSnapshot(
-      collection(db, 'holidays'),
-      (snapshot) => {
-        const data = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Holiday[];
-        // Sort by startDate client-side
-        data.sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
-        setHolidays(data);
-        setLoading(false);
-      },
-      (err) => {
-        console.error('Error loading holidays:', err);
-        setError(err.message || 'Không thể tải danh sách ngày nghỉ');
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
+    console.warn('useHolidays: Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    setLoading(false);
+    setHolidays([]);
+    setError('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
   }, []);
 
   const createHoliday = async (data: Omit<Holiday, 'id'>): Promise<string> => {
-    const docRef = await addDoc(collection(db, 'holidays'), data);
-    return docRef.id;
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo holiday.');
   };
 
   const updateHoliday = async (id: string, data: Partial<Holiday>): Promise<void> => {
-    await updateDoc(doc(db, 'holidays', id), data);
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật holiday.');
   };
 
   const deleteHoliday = async (id: string): Promise<void> => {
-    await deleteDoc(doc(db, 'holidays', id));
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa holiday.');
   };
 
   return {

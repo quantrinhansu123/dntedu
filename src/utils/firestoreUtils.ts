@@ -1,37 +1,23 @@
 /**
  * Firestore Utilities
- * Common utilities for Firestore data conversion
+ * Firebase đã được xóa - Utilities này đã bị disable
+ * Sử dụng Supabase utilities thay thế
  */
 
-import { Timestamp } from 'firebase/firestore';
+// import { Timestamp } from 'firebase/firestore';
 
 /**
  * Convert Firestore Timestamp or Date to ISO string
  */
 export const convertTimestamp = (value: unknown): string => {
   if (!value) return '';
-
-  // Firestore Timestamp
-  if (value instanceof Timestamp) {
-    return value.toDate().toISOString();
-  }
-
-  // Has toDate method (Timestamp-like)
-  if (typeof value === 'object' && value !== null && 'toDate' in value) {
-    const dateValue = (value as { toDate: () => Date }).toDate();
-    return dateValue.toISOString();
-  }
-
-  // Already a string
+  // Firebase đã được xóa - chỉ xử lý string và Date
   if (typeof value === 'string') {
     return value;
   }
-
-  // Date object
   if (value instanceof Date) {
     return value.toISOString();
   }
-
   return '';
 };
 

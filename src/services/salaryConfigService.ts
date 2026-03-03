@@ -3,19 +3,20 @@
  * Handle salary configuration CRUD operations
  */
 
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import {
+//   collection,
+//   doc,
+//   getDoc,
+//   getDocs,
+//   addDoc,
+//   updateDoc,
+//   deleteDoc,
+//   query,
+//   where,
+//   orderBy,
+// } from 'firebase/firestore';
+// import { db } from '../config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
 
 const SALARY_RULES_COLLECTION = 'salaryRules';
 const SALARY_RANGES_COLLECTION = 'salaryRanges';
@@ -64,33 +65,28 @@ export interface SalaryRangeConfig {
 // ============================================
 
 export const createSalaryRule = async (data: Omit<SalaryRule, 'id'>): Promise<string> => {
-  try {
-    const ruleData = {
-      ...data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const docRef = await addDoc(collection(db, SALARY_RULES_COLLECTION), ruleData);
-    return docRef.id;
-  } catch (error) {
-    console.error('Error creating salary rule:', error);
-    throw new Error('Không thể tạo cấu hình lương');
-  }
+  // Firebase đã được xóa - sử dụng Supabase thay thế
+  // TODO: Implement Supabase create
+  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo salary rule.');
 };
 
 export const getSalaryRules = async (staffId?: string): Promise<SalaryRule[]> => {
   try {
-    let q = query(collection(db, SALARY_RULES_COLLECTION), orderBy('createdAt', 'desc'));
+    // Firebase đã được xóa - sử dụng Supabase thay thế
+    // TODO: Implement Supabase query for salary rules
+    // const { data, error } = await supabase
+    //   .from('salary_rules')
+    //   .select('*')
+    //   .order('created_at', { ascending: false });
+    // if (staffId) {
+    //   query = query.eq('staff_id', staffId);
+    // }
+    // if (error) throw error;
+    // return data.map(transformSalaryRuleFromSupabase);
     
-    if (staffId) {
-      q = query(collection(db, SALARY_RULES_COLLECTION), where('staffId', '==', staffId));
-    }
-    
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as SalaryRule));
+    // Tạm thời trả về empty array để không gây lỗi
+    console.warn('getSalaryRules: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
+    return [];
   } catch (error) {
     console.error('Error getting salary rules:', error);
     throw new Error('Không thể tải cấu hình lương');
@@ -98,26 +94,15 @@ export const getSalaryRules = async (staffId?: string): Promise<SalaryRule[]> =>
 };
 
 export const updateSalaryRule = async (id: string, data: Partial<SalaryRule>): Promise<void> => {
-  try {
-    const docRef = doc(db, SALARY_RULES_COLLECTION, id);
-    await updateDoc(docRef, {
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error updating salary rule:', error);
-    throw new Error('Không thể cập nhật cấu hình lương');
-  }
+  // Firebase đã được xóa - sử dụng Supabase thay thế
+  // TODO: Implement Supabase update
+  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật salary rule.');
 };
 
 export const deleteSalaryRule = async (id: string): Promise<void> => {
-  try {
-    const docRef = doc(db, SALARY_RULES_COLLECTION, id);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error('Error deleting salary rule:', error);
-    throw new Error('Không thể xóa cấu hình lương');
-  }
+  // Firebase đã được xóa - sử dụng Supabase thay thế
+  // TODO: Implement Supabase delete
+  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa salary rule.');
 };
 
 // ============================================
@@ -125,77 +110,44 @@ export const deleteSalaryRule = async (id: string): Promise<void> => {
 // ============================================
 
 export const createSalaryRange = async (data: Omit<SalaryRangeConfig, 'id'>): Promise<string> => {
-  try {
-    const rangeData = {
-      ...data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const docRef = await addDoc(collection(db, SALARY_RANGES_COLLECTION), rangeData);
-    return docRef.id;
-  } catch (error) {
-    console.error('Error creating salary range:', error);
-    throw new Error('Không thể tạo mức lương');
-  }
+  // Firebase đã được xóa - sử dụng Supabase thay thế
+  // TODO: Implement Supabase create
+  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo salary range.');
 };
 
 export const getSalaryRanges = async (type?: RangeType): Promise<SalaryRangeConfig[]> => {
   try {
-    let q;
+    // Firebase đã được xóa - sử dụng Supabase thay thế
+    // TODO: Implement Supabase query for salary ranges
+    // const { data, error } = await supabase
+    //   .from('salary_ranges')
+    //   .select('*')
+    //   .order('created_at', { ascending: false });
+    // if (type) {
+    //   query = query.eq('type', type);
+    // }
+    // if (error) throw error;
+    // return data.map(transformSalaryRangeFromSupabase);
     
-    if (type) {
-      q = query(collection(db, SALARY_RANGES_COLLECTION), where('type', '==', type), orderBy('createdAt', 'desc'));
-    } else {
-      q = query(collection(db, SALARY_RANGES_COLLECTION), orderBy('createdAt', 'desc'));
-    }
-    
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as SalaryRangeConfig));
+    // Tạm thời trả về empty array để không gây lỗi
+    console.warn('getSalaryRanges: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
+    return [];
   } catch (error) {
     console.error('Error getting salary ranges:', error);
-    // Fallback: get without ordering if index doesn't exist
-    try {
-      const fallbackSnapshot = await getDocs(collection(db, SALARY_RANGES_COLLECTION));
-      const results = fallbackSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      } as SalaryRangeConfig));
-      // Filter by type if specified
-      if (type) {
-        return results.filter(r => r.type === type);
-      }
-      return results;
-    } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
-      throw new Error('Không thể tải mức lương');
-    }
+    throw new Error('Không thể tải mức lương');
   }
 };
 
 export const updateSalaryRange = async (id: string, data: Partial<SalaryRangeConfig>): Promise<void> => {
-  try {
-    const docRef = doc(db, SALARY_RANGES_COLLECTION, id);
-    await updateDoc(docRef, {
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error updating salary range:', error);
-    throw new Error('Không thể cập nhật mức lương');
-  }
+  // Firebase đã được xóa - sử dụng Supabase thay thế
+  // TODO: Implement Supabase update
+  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật salary range.');
 };
 
 export const deleteSalaryRange = async (id: string): Promise<void> => {
-  try {
-    const docRef = doc(db, SALARY_RANGES_COLLECTION, id);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error('Error deleting salary range:', error);
-    throw new Error('Không thể xóa mức lương');
-  }
+  // Firebase đã được xóa - sử dụng Supabase thay thế
+  // TODO: Implement Supabase delete
+  throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa salary range.');
 };
 
 // ============================================

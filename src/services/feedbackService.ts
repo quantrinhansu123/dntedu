@@ -14,7 +14,7 @@ import {
   where,
   orderBy,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const FEEDBACKS_COLLECTION = 'feedbacks';
 

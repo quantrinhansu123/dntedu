@@ -4,8 +4,8 @@
  * KHÔNG phải là form nhập liệu - tự động trigger từ các action
  */
 
-import { collection, addDoc, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, addDoc, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 export type NotificationType = 
   | 'payment_due'      // Thông báo đóng học phí

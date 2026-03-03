@@ -6,8 +6,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+// import { doc, getDoc, setDoc } from 'firebase/ // Firebase đã được xóafirestore';
+// import { auth, db } from '../config/firebase' // Firebase đã được xóa;
 import { Staff } from '../../types';
 import { sanitizeFirebaseError } from '../utils/errorUtils';
 

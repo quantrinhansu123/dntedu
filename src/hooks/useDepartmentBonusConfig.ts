@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 import { DepartmentBonusConfig, DepartmentCode, DEPARTMENT_LABELS, KpiBonusLevel } from '../../types';
 
 // Default bonus levels template

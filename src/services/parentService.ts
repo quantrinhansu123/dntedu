@@ -4,21 +4,9 @@
  * - Children: query từ students collection by parentId
  */
 
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  QueryConstraint,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { Parent, Student } from '../../types';
+import * as parentSupabaseService from './parentSupabaseService';
+import { StudentService } from './studentService';
 
 const PARENTS_COLLECTION = 'parents';
 const STUDENTS_COLLECTION = 'students';
@@ -32,14 +20,18 @@ export interface ParentWithChildren extends Parent {
  */
 export const createParent = async (data: Omit<Parent, 'id'>): Promise<string> => {
   try {
-    const parentData = {
+    // Generate UUID for id
+    const id = crypto.randomUUID();
+    
+    const parentWithId: Parent = {
       ...data,
+      id,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     
-    const docRef = await addDoc(collection(db, PARENTS_COLLECTION), parentData);
-    return docRef.id;
+    const result = await parentSupabaseService.createParent(parentWithId);
+    return result.id;
   } catch (error) {
     console.error('Error creating parent:', error);
     throw new Error('Không thể tạo phụ huynh');
@@ -51,17 +43,7 @@ export const createParent = async (data: Omit<Parent, 'id'>): Promise<string> =>
  */
 export const getParent = async (id: string): Promise<Parent | null> => {
   try {
-    const docRef = doc(db, PARENTS_COLLECTION, id);
-    const docSnap = await getDoc(docRef);
-    
-    if (!docSnap.exists()) {
-      return null;
-    }
-    
-    return {
-      id: docSnap.id,
-      ...docSnap.data(),
-    } as Parent;
+    return await parentSupabaseService.getParentById(id);
   } catch (error) {
     console.error('Error getting parent:', error);
     throw new Error('Không thể tải thông tin phụ huynh');
@@ -73,26 +55,9 @@ export const getParent = async (id: string): Promise<Parent | null> => {
  */
 export const getParents = async (searchTerm?: string): Promise<Parent[]> => {
   try {
-    const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
-    
-    const q = query(collection(db, PARENTS_COLLECTION), ...constraints);
-    const snapshot = await getDocs(q);
-    
-    let parents = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as Parent));
-    
-    // Client-side search
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      parents = parents.filter(p => 
-        p.name.toLowerCase().includes(term) ||
-        p.phone.includes(term)
-      );
-    }
-    
-    return parents;
+    return await parentSupabaseService.queryParents({
+      search: searchTerm,
+    });
   } catch (error) {
     console.error('Error getting parents:', error);
     throw new Error('Không thể tải danh sách phụ huynh');
@@ -104,17 +69,7 @@ export const getParents = async (searchTerm?: string): Promise<Parent[]> => {
  */
 export const getChildrenByParentId = async (parentId: string): Promise<Student[]> => {
   try {
-    const q = query(
-      collection(db, STUDENTS_COLLECTION),
-      where('parentId', '==', parentId)
-    );
-    const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      dob: doc.data().dob?.toDate?.()?.toISOString() || doc.data().dob || '',
-    } as Student));
+    return await StudentService.getStudents({ parentId });
   } catch (error) {
     console.error('Error getting children:', error);
     return [];
@@ -148,16 +103,7 @@ export const getParentsWithChildren = async (searchTerm?: string): Promise<Paren
  */
 export const findParentByPhone = async (phone: string): Promise<Parent | null> => {
   try {
-    const q = query(
-      collection(db, PARENTS_COLLECTION),
-      where('phone', '==', phone)
-    );
-    const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) return null;
-    
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as Parent;
+    return await parentSupabaseService.findParentByPhone(phone);
   } catch (error) {
     console.error('Error finding parent by phone:', error);
     return null;
@@ -169,8 +115,7 @@ export const findParentByPhone = async (phone: string): Promise<Parent | null> =
  */
 export const updateParent = async (id: string, data: Partial<Parent>): Promise<void> => {
   try {
-    const docRef = doc(db, PARENTS_COLLECTION, id);
-    await updateDoc(docRef, {
+    await parentSupabaseService.updateParent(id, {
       ...data,
       updatedAt: new Date().toISOString(),
     });
@@ -184,8 +129,7 @@ export const updateParent = async (id: string, data: Partial<Parent>): Promise<v
       
       // Update each student's denormalized parent fields
       for (const child of children) {
-        const studentDocRef = doc(db, STUDENTS_COLLECTION, child.id);
-        await updateDoc(studentDocRef, {
+        await StudentService.updateStudent(child.id, {
           ...studentUpdates,
           updatedAt: new Date().toISOString(),
         });
@@ -208,8 +152,7 @@ export const deleteParent = async (id: string): Promise<void> => {
       throw new Error('Không thể xóa phụ huynh đang có học sinh');
     }
     
-    const docRef = doc(db, PARENTS_COLLECTION, id);
-    await deleteDoc(docRef);
+    await parentSupabaseService.deleteParent(id);
   } catch (error) {
     console.error('Error deleting parent:', error);
     throw error;

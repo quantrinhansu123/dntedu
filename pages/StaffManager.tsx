@@ -11,8 +11,10 @@ import { StaffFormModalEnhanced } from '../components/StaffFormModalEnhanced';
 import { CandidateTab } from '../components/CandidateTab';
 import { ContractTab } from '../components/ContractTab';
 import { STAFF_FIELDS, STAFF_MAPPING, prepareStaffExport } from '../src/utils/excelUtils';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// import { collection, getDocs } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
+import { supabase } from '../src/config/supabase';
 import { formatDate } from '../src/utils/dateUtils';
 import { formatCurrency } from '../src/utils/currencyUtils';
 
@@ -49,16 +51,20 @@ export const StaffManager: React.FC = () => {
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        const centersSnap = await getDocs(collection(db, 'centers'));
-        const centers = centersSnap.docs
-          .filter(d => d.data().status === 'Active')
-          .map(d => ({
-            id: d.id,
-            name: d.data().name || '',
-          }));
-        setCenterList(centers);
+        // Firebase đã được xóa - sử dụng Supabase thay thế
+        // TODO: Implement Supabase query for centers
+        // const { data, error } = await supabase
+        //   .from('centers')
+        //   .select('id, name')
+        //   .eq('status', 'Active');
+        // if (data) {
+        //   setCenterList(data);
+        // }
+        // Tạm thời sử dụng empty array
+        setCenterList([]);
       } catch (err) {
         console.error('Error fetching centers:', err);
+        setCenterList([]);
       }
     };
     fetchCenters();

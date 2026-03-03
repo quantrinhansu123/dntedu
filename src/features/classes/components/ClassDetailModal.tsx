@@ -7,9 +7,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Users, Clock, Calendar, MapPin, User, GraduationCap, BookOpen, CheckCircle, Edit } from 'lucide-react';
 import { ClassModel } from '@/types';
-import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
-import { db } from '@/src/config/firebase';
 import { formatSchedule } from '@/src/utils/scheduleUtils';
+import { StudentService } from '@/src/services/studentService';
 
 // Type for ClassSession used in detail modal
 interface ClassSession {
@@ -74,34 +73,29 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch students
-        const studentsSnap = await getDocs(collection(db, 'students'));
-        const students = studentsSnap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter((s: any) =>
-            s.classId === classData.id ||
-            s.currentClassId === classData.id ||
-            s.class === classData.name ||
-            s.className === classData.name
-          );
+        // Fetch students using Supabase
+        const allStudents = await StudentService.getStudents({ classId: classData.id });
+        
+        // Filter students that match this class
+        const students = allStudents.filter((s: any) =>
+          s.classId === classData.id ||
+          s.classIds?.includes(classData.id) ||
+          s.class === classData.name
+        );
         setStudentsInClass(students);
 
-        // Fetch sessions
-        const sessionsSnap = await getDocs(
-          query(
-            collection(db, 'classSessions'),
-            where('classId', '==', classData.id)
-          )
-        );
-        const sessions = sessionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ClassSession[];
-        const completed = sessions.filter(s => s.status === 'Đã học').length;
-        const today = new Date().toISOString().split('T')[0];
-        const upcoming = sessions
-          .filter(s => s.status === 'Chưa học' && s.date >= today)
-          .sort((a, b) => a.date.localeCompare(b.date))
-          .slice(0, 3);
-
-        setSessionStats({ completed, total: sessions.length, upcoming });
+        // TODO: Fetch sessions from Supabase when classSessions table is migrated
+        // For now, set empty stats
+        // const sessions = await getClassSessions(classData.id);
+        // const completed = sessions.filter(s => s.status === 'Đã học').length;
+        // const today = new Date().toISOString().split('T')[0];
+        // const upcoming = sessions
+        //   .filter(s => s.status === 'Chưa học' && s.date >= today)
+        //   .sort((a, b) => a.date.localeCompare(b.date))
+        //   .slice(0, 3);
+        // setSessionStats({ completed, total: sessions.length, upcoming });
+        
+        setSessionStats({ completed: 0, total: 0, upcoming: [] });
       } catch (err) {
         console.error('Error fetching class data:', err);
       } finally {
@@ -188,15 +182,14 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
         daysChecked++;
       }
 
-      // Save to Firestore
-      for (const session of sessions) {
-        await addDoc(collection(db, 'classSessions'), session);
-      }
-
-      alert(`Đã tạo ${sessions.length} buổi học!`);
-
+      // TODO: Save to Supabase when classSessions table is migrated
+      // For now, show warning
+      alert(`Chức năng tạo buổi học tạm thời chưa khả dụng. Cần migrate bảng classSessions sang Supabase trước.`);
+      
+      // await createClassSessions(sessions);
+      // alert(`Đã tạo ${sessions.length} buổi học!`);
       // Refresh session stats
-      setSessionStats({ completed: 0, total: sessions.length, upcoming: sessions.slice(0, 3) as ClassSession[] });
+      // setSessionStats({ completed: 0, total: sessions.length, upcoming: sessions.slice(0, 3) as ClassSession[] });
     } catch (err) {
       console.error('Error generating sessions:', err);
       alert('Lỗi khi tạo buổi học');

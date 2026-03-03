@@ -57,7 +57,7 @@ describe('Permission Service', () => {
     it('should have full access to all modules', () => {
       const modules: ModuleKey[] = [
         'dashboard', 'classes', 'schedule', 'students', 
-        'staff', 'salary_config', 'contracts', 'settings'
+        'staff', 'salary_config', 'contracts'
       ];
       
       modules.forEach(module => {
@@ -187,9 +187,6 @@ describe('Permission Service', () => {
       expect(canView(role, 'debt')).toBe(false);
     });
 
-    it('should not access settings', () => {
-      expect(canView(role, 'settings')).toBe(false);
-    });
 
     it('should view own salary only', () => {
       expect(canView(role, 'salary_teacher')).toBe(true);
@@ -220,7 +217,6 @@ describe('Permission Service', () => {
       const items = getVisibleMenuItems('admin');
       expect(items).toContain('dashboard');
       expect(items).toContain('classes');
-      expect(items).toContain('settings');
       expect(items).toContain('salary_config');
     });
 
@@ -230,7 +226,6 @@ describe('Permission Service', () => {
       expect(items).toContain('classes');
       expect(items).not.toContain('salary_config');
       expect(items).not.toContain('salary_teacher');
-      expect(items).not.toContain('settings');
     });
 
     it('should hide most modules for teachers', () => {
@@ -239,7 +234,6 @@ describe('Permission Service', () => {
       expect(items).toContain('classes');
       expect(items).not.toContain('leads');
       expect(items).not.toContain('contracts');
-      expect(items).not.toContain('settings');
       expect(items).not.toContain('holidays');
     });
   });

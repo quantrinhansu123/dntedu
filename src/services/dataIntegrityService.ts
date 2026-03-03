@@ -14,7 +14,7 @@ import {
   where,
   writeBatch,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 // ============================================
 // 1. CASCADING OPERATIONS
@@ -744,7 +744,7 @@ export const validateDeleteContract = async (contractId: string): Promise<Valida
 };
 
 // ============================================
-// SETTINGS MODULE - ROOM/CONFIG INTEGRITY
+// ROOM INTEGRITY
 // ============================================
 
 /**
@@ -921,8 +921,7 @@ export const checkFullDataConsistency = async (): Promise<ConsistencyReport> => 
     invoicesSnap,
     workSessionsSnap,
     leadsSnap,
-    campaignsSnap,
-    roomsSnap
+    campaignsSnap
   ] = await Promise.all([
     getDocs(collection(db, 'students')),
     getDocs(collection(db, 'classes')),
@@ -932,8 +931,8 @@ export const checkFullDataConsistency = async (): Promise<ConsistencyReport> => 
     getDocs(collection(db, 'invoices')),
     getDocs(collection(db, 'workSessions')),
     getDocs(collection(db, 'leads')),
-    getDocs(collection(db, 'campaigns')),
-    getDocs(collection(db, 'rooms')),
+    getDocs(collection(db, 'campaigns'))
+    // getDocs(collection(db, 'rooms')), // Đã xóa quản lý phòng học
   ]);
 
   // Create lookup maps
@@ -942,7 +941,8 @@ export const checkFullDataConsistency = async (): Promise<ConsistencyReport> => 
   const staffMap = new Map(staffSnap.docs.map(d => [d.id, d.data()]));
   const studentsMap = new Map(studentsSnap.docs.map(d => [d.id, d.data()]));
   const campaignsMap = new Map(campaignsSnap.docs.map(d => [d.id, d.data()]));
-  const roomNames = new Set(roomsSnap.docs.map(d => d.data().name || d.data().roomName));
+  // const roomNames = new Set(roomsSnap.docs.map(d => d.data().name || d.data().roomName)); // Đã xóa quản lý phòng học
+  const roomNames = new Set<string>(); // Tạm thời empty set
 
   // Check students (existing logic)
   for (const docSnap of studentsSnap.docs) {
@@ -999,17 +999,17 @@ export const checkFullDataConsistency = async (): Promise<ConsistencyReport> => 
       });
     }
 
-    // Check room exists
-    if (cls.room && !roomNames.has(cls.room)) {
-      issues.push({
-        type: 'orphaned_reference',
-        collection: 'classes',
-        documentId: classId,
-        field: 'room',
-        currentValue: cls.room,
-        description: `Class "${cls.name}" uses non-existent room "${cls.room}"`,
-      });
-    }
+    // Check room exists - Đã xóa quản lý phòng học
+    // if (cls.room && !roomNames.has(cls.room)) {
+    //   issues.push({
+    //     type: 'orphaned_reference',
+    //     collection: 'classes',
+    //     documentId: classId,
+    //     field: 'room',
+    //     currentValue: cls.room,
+    //     description: `Class "${cls.name}" uses non-existent room "${cls.room}"`,
+    //   });
+    // }
   }
 
   // Check contracts

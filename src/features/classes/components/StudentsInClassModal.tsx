@@ -7,8 +7,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Users, Search, UserPlus, UserMinus } from 'lucide-react';
 import { ClassModel } from '@/types';
-import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, addDoc } from 'firebase/firestore';
-import { db } from '@/src/config/firebase';
+import { StudentService } from '@/src/services/studentService';
+import { createEnrollment } from '@/src/services/enrollmentService';
 
 export interface StudentsInClassModalProps {
   classData: ClassModel;
@@ -61,22 +61,20 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        const studentsSnap = await getDocs(collection(db, 'students'));
-        const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Fetch all students using Supabase
+        const allStudentsData = await StudentService.getStudents();
 
-        // Students in this class (match by classId, classIds array, className, or class field)
-        const inClass = students.filter((s: any) =>
+        // Students in this class (match by classId, classIds array, or class field)
+        const inClass = allStudentsData.filter((s: any) =>
           s.classId === classData.id ||
           s.classIds?.includes(classData.id) ||
-          s.className === classData.name ||
           s.class === classData.name
         );
 
         // Students not in this class (available to add)
-        const notInClass = students.filter((s: any) =>
+        const notInClass = allStudentsData.filter((s: any) =>
           s.classId !== classData.id &&
           !s.classIds?.includes(classData.id) &&
-          s.className !== classData.name &&
           s.class !== classData.name
         );
 
@@ -107,39 +105,42 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
 
     setAdding(true);
     try {
-      const studentRef = doc(db, 'students', selectedStudentToAdd.id);
+      // Get current classIds array and add new classId if not already present
+      const currentClassIds = selectedStudentToAdd.classIds || [];
+      const updatedClassIds = currentClassIds.includes(classData.id) 
+        ? currentClassIds 
+        : [...currentClassIds, classData.id];
 
       // Update student with classId, sessions, and add to classIds array
-      await updateDoc(studentRef, {
+      await StudentService.updateStudent(selectedStudentToAdd.id, {
         classId: classData.id,
-        className: classData.name,
         class: classData.name,
-        classIds: arrayUnion(classData.id),
+        classIds: updatedClassIds,
         registeredSessions: (selectedStudentToAdd.registeredSessions || 0) + enrollForm.sessions,
         enrollmentDate: enrollForm.startDate,
         status: 'Đang học',
       });
 
       // Create enrollment record
-      await addDoc(collection(db, 'enrollments'), {
+      await createEnrollment({
         studentId: selectedStudentToAdd.id,
         studentName: selectedStudentToAdd.fullName || selectedStudentToAdd.name,
-        studentCode: selectedStudentToAdd.code || '',
         classId: classData.id,
         className: classData.name,
         sessions: enrollForm.sessions,
-        startDate: enrollForm.startDate,
         type: 'Ghi danh thủ công',
-        status: 'Đã xác nhận',
-        createdAt: new Date().toISOString(),
+        createdDate: new Date().toLocaleDateString('vi-VN'),
+        createdBy: 'Admin', // TODO: Get from auth context
         note: `Thêm vào lớp ${classData.name} từ Quản lý học viên`,
+        createdAt: new Date().toISOString(),
       });
 
       // Update local state
       const updatedStudent = {
         ...selectedStudentToAdd,
         classId: classData.id,
-        className: classData.name,
+        class: classData.name,
+        classIds: updatedClassIds,
         registeredSessions: (selectedStudentToAdd.registeredSessions || 0) + enrollForm.sessions,
         status: 'Đang học',
       };
@@ -163,19 +164,23 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
     if (!confirm(`Bạn có chắc muốn xóa ${student.fullName || student.name} khỏi lớp ${classData.name}?`)) return;
 
     try {
-      const studentRef = doc(db, 'students', student.id);
+      // Get current classIds array and remove this classId
+      const currentClassIds = student.classIds || [];
+      const updatedClassIds = currentClassIds.filter((id: string) => id !== classData.id);
+
+      // If this was the primary class, set classId to null
+      const newClassId = student.classId === classData.id ? null : student.classId;
 
       // Remove class reference
-      await updateDoc(studentRef, {
-        classId: null,
-        className: null,
-        class: null,
-        classIds: arrayRemove(classData.id),
+      await StudentService.updateStudent(student.id, {
+        classId: newClassId || undefined,
+        class: newClassId ? student.class : null,
+        classIds: updatedClassIds,
       });
 
       // Update local state
       setStudentsInClass(prev => prev.filter(s => s.id !== student.id));
-      setAllStudents(prev => [...prev, { ...student, classId: null, className: null }]);
+      setAllStudents(prev => [...prev, { ...student, classId: newClassId, class: newClassId ? student.class : null }]);
       onUpdate();
     } catch (err) {
       console.error('Error removing student from class:', err);

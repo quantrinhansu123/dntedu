@@ -15,7 +15,7 @@ import {
     where,
     orderBy,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 import { MarketingPlatform, PlatformMonthlyStats } from '../types/marketingTypes';
 
 const PLATFORMS_COLLECTION = 'marketingPlatforms';

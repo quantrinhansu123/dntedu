@@ -1,24 +1,10 @@
 /**
  * Enrollment Service
- * Firebase operations for enrollment records
+ * Supabase operations for enrollment records
  */
 
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy,
-  Timestamp 
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { EnrollmentRecord } from '../../types';
-
-const COLLECTION_NAME = 'enrollments';
+import * as enrollmentSupabaseService from './enrollmentSupabaseService';
 
 export const getEnrollments = async (filters?: {
   type?: string;
@@ -26,21 +12,18 @@ export const getEnrollments = async (filters?: {
   year?: number;
 }): Promise<EnrollmentRecord[]> => {
   try {
-    let q = query(collection(db, COLLECTION_NAME), orderBy('createdDate', 'desc'));
+    let records: EnrollmentRecord[] = [];
     
-    const snapshot = await getDocs(q);
-    let records = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as EnrollmentRecord[];
-
-    // Client-side filtering for type, month, year
-    if (filters?.type && filters.type !== 'ALL') {
-      records = records.filter(r => r.type === filters.type);
+    if (filters && filters.type && filters.type !== 'ALL') {
+      records = await enrollmentSupabaseService.queryEnrollments({ type: filters.type });
+    } else {
+      records = await enrollmentSupabaseService.getAllEnrollments();
     }
-    
+
+    // Client-side filtering for month, year
     if (filters?.month && filters?.year) {
       records = records.filter(r => {
+        if (!r.createdDate) return false;
         const date = new Date(r.createdDate.split('/').reverse().join('-'));
         return date.getMonth() + 1 === filters.month && date.getFullYear() === filters.year;
       });
@@ -55,11 +38,17 @@ export const getEnrollments = async (filters?: {
 
 export const createEnrollment = async (data: Omit<EnrollmentRecord, 'id'>): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    // Generate UUID for id
+    const id = crypto.randomUUID();
+    
+    const enrollmentWithId: EnrollmentRecord = {
       ...data,
-      createdAt: Timestamp.now()
-    });
-    return docRef.id;
+      id,
+      createdAt: data.createdAt || new Date().toISOString(),
+    };
+    
+    const result = await enrollmentSupabaseService.createEnrollment(enrollmentWithId);
+    return result.id;
   } catch (error) {
     console.error('Error creating enrollment:', error);
     throw error;
@@ -68,10 +57,9 @@ export const createEnrollment = async (data: Omit<EnrollmentRecord, 'id'>): Prom
 
 export const updateEnrollment = async (id: string, data: Partial<EnrollmentRecord>): Promise<void> => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, {
+    await enrollmentSupabaseService.updateEnrollment(id, {
       ...data,
-      updatedAt: Timestamp.now()
+      updatedAt: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error updating enrollment:', error);
@@ -81,7 +69,7 @@ export const updateEnrollment = async (id: string, data: Partial<EnrollmentRecor
 
 export const deleteEnrollment = async (id: string): Promise<void> => {
   try {
-    await deleteDoc(doc(db, COLLECTION_NAME, id));
+    await enrollmentSupabaseService.deleteEnrollment(id);
   } catch (error) {
     console.error('Error deleting enrollment:', error);
     throw error;
@@ -93,18 +81,8 @@ export const deleteEnrollment = async (id: string): Promise<void> => {
  */
 export const getEnrollmentByContractCode = async (contractCode: string): Promise<EnrollmentRecord | null> => {
   try {
-    const q = query(
-      collection(db, COLLECTION_NAME),
-      where('contractCode', '==', contractCode)
-    );
-    const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) return null;
-    
-    return {
-      id: snapshot.docs[0].id,
-      ...snapshot.docs[0].data()
-    } as EnrollmentRecord;
+    const records = await enrollmentSupabaseService.queryEnrollments({ contractCode });
+    return records.length > 0 ? records[0] : null;
   } catch (error) {
     console.error('Error finding enrollment by contract:', error);
     return null;

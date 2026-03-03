@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { CalendarCheck, Settings, Award, FileText, User } from 'lucide-react';
+import { CalendarCheck, Settings, Award, FileText, User, Briefcase, Wrench } from 'lucide-react';
 import { WorkConfirmation } from './WorkConfirmation';
 import { SalaryManager } from './SalaryManager';
 import { StaffRewardPenalty } from './StaffRewardPenalty';
 import { SalaryReportTeacher } from './SalaryReportTeacher';
 import { SalaryReportStaff } from './SalaryReportStaff';
+import { DailyWorkReportPage } from './DailyWorkReport';
+import { WorkTaskSetup } from './WorkTaskSetup';
 
 export const PayrollHub: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'work' | 'config' | 'rewards' | 'report-teacher' | 'report-staff'>('work');
+    const [activeTab, setActiveTab] = useState<'work' | 'daily-work' | 'work-setup' | 'config' | 'rewards' | 'report-teacher' | 'report-staff'>('work');
 
     const tabs = [
         { id: 'work', label: 'Chấm công GV/TG', icon: CalendarCheck },
+        { id: 'daily-work', label: 'Công việc', icon: Briefcase },
+        { id: 'work-setup', label: 'Setup công việc', icon: Wrench },
         { id: 'config', label: 'Cấu hình Lương', icon: Settings },
         { id: 'rewards', label: 'Thưởng / Phạt', icon: Award },
         { id: 'report-teacher', label: 'Báo cáo Lương GV', icon: User },
@@ -41,6 +45,8 @@ export const PayrollHub: React.FC = () => {
 
             <div className="min-h-[500px]">
                 {activeTab === 'work' && <WorkConfirmation />}
+                {activeTab === 'daily-work' && <DailyWorkReportPage />}
+                {activeTab === 'work-setup' && <WorkTaskSetup />}
                 {activeTab === 'config' && <SalaryManager />}
                 {activeTab === 'rewards' && <StaffRewardPenalty />}
                 {activeTab === 'report-teacher' && <SalaryReportTeacher />}

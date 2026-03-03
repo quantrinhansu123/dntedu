@@ -4,8 +4,7 @@ import { ClassStatus, ClassModel, Student, StudentStatus, TrainingHistoryEntry, 
 import { useClasses } from '../src/hooks/useClasses';
 import { usePermissions } from '../src/hooks/usePermissions';
 import { useAuth } from '../src/hooks/useAuth';
-import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, query, where, addDoc, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
 import { getScheduleTime, getScheduleDays, formatSchedule } from '../src/utils/scheduleUtils';
 import { ImportExportButtons } from '../components/ImportExportButtons';
 import { CLASS_FIELDS, CLASS_MAPPING, prepareClassExport } from '../src/utils/excelUtils';
@@ -92,141 +91,58 @@ export const ClassManager: React.FC = () => {
   // State for curriculum autocomplete (used in parent, also duplicated in ClassFormModal)
   const [curriculumList, setCurriculumList] = useState<string[]>([]);
 
-  // Fetch curriculums from Firestore
+  // Fetch curriculums from Supabase - Get from existing classes
   useEffect(() => {
     const fetchCurriculums = async () => {
       try {
-        const curriculumsSnap = await getDocs(collection(db, 'curriculums'));
-        const list = curriculumsSnap.docs.map(doc => doc.data().name as string).filter(Boolean);
-        // Also extract unique curriculums from existing classes
-        const classesSnap = await getDocs(collection(db, 'classes'));
-        const classCurriculums = classesSnap.docs
-          .map(doc => doc.data().curriculum as string)
-          .filter(Boolean);
-        // Combine and deduplicate
-        const allCurriculums = [...new Set([...list, ...classCurriculums])].sort();
-        setCurriculumList(allCurriculums);
+        // Get curriculums from existing classes in Supabase
+        const classCurriculums = allClasses
+          .map(c => c.curriculum)
+          .filter(Boolean)
+          .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+        setCurriculumList(classCurriculums.sort());
       } catch (err) {
         console.error('Error fetching curriculums:', err);
+        setCurriculumList([]);
       }
     };
     fetchCurriculums();
-  }, []);
+  }, [allClasses]);
 
   // REALTIME: Listen to students collection and calculate counts for each class
+  // TODO: Migrate to Supabase when students table is migrated
   useEffect(() => {
     if (classes.length === 0) {
       setClassStudentCounts({});
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      collection(db, 'students'),
-      (snapshot) => {
-        const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        const PRICE_PER_SESSION = 150000;
-        const counts: Record<string, { total: number; trial: number; active: number; debt: number; reserved: number; dropped: number; remainingSessions: number; remainingValue: number }> = {};
-
-        // Initialize counts for all classes
-        classes.forEach(cls => {
-          counts[cls.id] = { total: 0, trial: 0, active: 0, debt: 0, reserved: 0, dropped: 0, remainingSessions: 0, remainingValue: 0 };
-        });
-
-        // Count students per class
-        students.forEach((student: any) => {
-          const classId = student.classId;
-          const className = student.class || student.className;
-          const status = normalizeStatus(student.status || '');
-
-          // Find matching class by ID or name
-          let matchedClassId = classId;
-          if (!matchedClassId && className) {
-            const matchedClass = classes.find(c =>
-              c.name === className ||
-              c.id === className ||
-              c.name?.toLowerCase() === className?.toLowerCase()
-            );
-            if (matchedClass) matchedClassId = matchedClass.id;
-          }
-
-          if (matchedClassId && counts[matchedClassId]) {
-            counts[matchedClassId].total++;
-
-            // Count by status - "Nợ phí" takes priority if hasDebt is true
-            if (status === StudentStatus.DEBT || student.hasDebt === true) {
-              counts[matchedClassId].debt++;
-            } else if (status === StudentStatus.TRIAL) {
-              counts[matchedClassId].trial++;
-            } else if (status === StudentStatus.ACTIVE) {
-              counts[matchedClassId].active++;
-            } else if (status === StudentStatus.RESERVED) {
-              counts[matchedClassId].reserved++;
-            } else if (status === StudentStatus.DROPPED) {
-              counts[matchedClassId].dropped++;
-            }
-
-            // Calculate remaining sessions (công nợ buổi học còn lại)
-            // Chỉ tính cho học viên đang học, học thử (không tính nghỉ học, bảo lưu)
-            if (status !== StudentStatus.DROPPED && status !== StudentStatus.RESERVED) {
-              const registered = student.registeredSessions || 0;
-              const attended = student.attendedSessions || 0;
-              const remaining = registered - attended;
-              if (remaining > 0) {
-                counts[matchedClassId].remainingSessions += remaining;
-                counts[matchedClassId].remainingValue += remaining * PRICE_PER_SESSION;
-              }
-            }
-          }
-        });
-
-        setClassStudentCounts(counts);
-      },
-      (err) => {
-        console.error('Error listening to students:', err);
-      }
-    );
-
-    return () => unsubscribe();
+    // Firebase đã được xóa - student counts sẽ được tính từ Supabase sau
+    // TODO: Implement with Supabase students table and realtime subscription
+    // For now, set empty counts
+    const counts: Record<string, { total: number; trial: number; active: number; debt: number; reserved: number; dropped: number; remainingSessions: number; remainingValue: number }> = {};
+    classes.forEach(cls => {
+      counts[cls.id] = { total: 0, trial: 0, active: 0, debt: 0, reserved: 0, dropped: 0, remainingSessions: 0, remainingValue: 0 };
+    });
+    setClassStudentCounts(counts);
   }, [classes]);
 
   // REALTIME: Listen to classSessions collection for session stats
+  // TODO: Migrate to Supabase when sessions table is migrated
   useEffect(() => {
     if (classes.length === 0) {
       setClassSessionStats({});
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      collection(db, 'classSessions'),
-      (snapshot) => {
-        const stats: Record<string, { completed: number; total: number }> = {};
-
-        // Initialize stats for all classes
-        classes.forEach(cls => {
-          stats[cls.id] = { completed: 0, total: 0 };
-        });
-
-        // Count sessions per class
-        snapshot.docs.forEach(doc => {
-          const data = doc.data();
-          const classId = data.classId;
-          if (classId && stats[classId]) {
-            stats[classId].total++;
-            if (data.status === 'Đã học') {
-              stats[classId].completed++;
-            }
-          }
-        });
-
-        setClassSessionStats(stats);
-      },
-      (err) => {
-        console.error('Error listening to sessions:', err);
-      }
-    );
-
-    return () => unsubscribe();
+    // Firebase đã được xóa - session stats sẽ được tính từ Supabase sau
+    // TODO: Implement with Supabase sessions table and realtime subscription
+    // For now, set empty stats
+    const stats: Record<string, { completed: number; total: number }> = {};
+    classes.forEach(cls => {
+      stats[cls.id] = { completed: 0, total: 0 };
+    });
+    setClassSessionStats(stats);
   }, [classes]);
 
   // Get counts for a specific class

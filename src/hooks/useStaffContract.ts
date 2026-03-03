@@ -1,28 +1,25 @@
+/**
+ * useStaffContract Hook
+ * Firebase đã được xóa - Hook này đã bị disable
+ * Sử dụng Supabase hooks thay thế
+ */
+
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where } from 'firebase/firestore';
+// import { db } from '../config/firebase';
 import { StaffContract } from '../../types';
 
 export const useStaffContract = () => {
   const [contracts, setContracts] = useState<StaffContract[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
 
   // Fetch all contracts
   const fetchContracts = async () => {
-    try {
-      setLoading(true);
-      const q = query(collection(db, 'staffContracts'), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      const data: StaffContract[] = [];
-      snapshot.forEach((docSnap) => {
-        data.push({ id: docSnap.id, ...docSnap.data() } as StaffContract);
-      });
-      setContracts(data);
-    } catch (error) {
-      console.error('Error fetching staff contracts:', error);
-    } finally {
-      setLoading(false);
-    }
+    console.warn('useStaffContract.fetchContracts: Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    setLoading(false);
+    setContracts([]);
+    setError('Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
   };
 
   useEffect(() => {
@@ -31,69 +28,29 @@ export const useStaffContract = () => {
 
   // Create contract
   const createContract = async (contractData: Omit<StaffContract, 'id'>) => {
-    try {
-      const docRef = await addDoc(collection(db, 'staffContracts'), {
-        ...contractData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      await fetchContracts();
-      return docRef.id;
-    } catch (error) {
-      console.error('Error creating contract:', error);
-      throw error;
-    }
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để tạo contract.');
   };
 
   // Update contract
   const updateContract = async (id: string, contractData: Partial<StaffContract>) => {
-    try {
-      const docRef = doc(db, 'staffContracts', id);
-      await updateDoc(docRef, {
-        ...contractData,
-        updatedAt: new Date().toISOString(),
-      });
-      await fetchContracts();
-    } catch (error) {
-      console.error('Error updating contract:', error);
-      throw error;
-    }
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật contract.');
   };
 
   // Delete contract
   const deleteContract = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'staffContracts', id));
-      await fetchContracts();
-    } catch (error) {
-      console.error('Error deleting contract:', error);
-      throw error;
-    }
+    throw new Error('Firebase đã được xóa. Vui lòng sử dụng Supabase service để xóa contract.');
   };
 
   // Get contracts by staff ID
   const getContractsByStaff = async (staffId: string) => {
-    try {
-      const q = query(
-        collection(db, 'staffContracts'),
-        where('staffId', '==', staffId),
-        orderBy('startDate', 'desc')
-      );
-      const snapshot = await getDocs(q);
-      const data: StaffContract[] = [];
-      snapshot.forEach((docSnap) => {
-        data.push({ id: docSnap.id, ...docSnap.data() } as StaffContract);
-      });
-      return data;
-    } catch (error) {
-      console.error('Error fetching contracts by staff:', error);
-      return [];
-    }
+    console.warn('useStaffContract.getContractsByStaff: Firebase đã được xóa. Sử dụng Supabase hooks thay thế.');
+    return [];
   };
 
   return {
     contracts,
     loading,
+    error,
     createContract,
     updateContract,
     deleteContract,

@@ -7,9 +7,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { X, Plus, AlertTriangle } from 'lucide-react';
 import { ClassStatus, ClassModel, DayScheduleConfig } from '@/types';
-import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
-import { db } from '@/src/config/firebase';
 import { CLASS_COLOR_PALETTE, hashClassName } from '@/pages/Schedule';
+import { useStaff } from '@/src/hooks/useStaff';
+import { useCourses } from '@/src/hooks/useCourses';
+import { useClasses } from '@/src/hooks/useClasses';
+import * as classSupabaseService from '@/src/services/classSupabaseService';
 
 export interface ClassFormModalProps {
   classData?: ClassModel;
@@ -68,32 +70,27 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
   const [useDetailedSchedule, setUseDetailedSchedule] = useState(!!classData?.scheduleDetails?.length);
 
   // Fetch actual session count for existing classes without totalSessions
+  // TODO: Implement with Supabase when sessions table is migrated
   useEffect(() => {
-    const fetchActualSessionCount = async () => {
-      if (classData && !classData.totalSessions) {
-        try {
-          const sessionsSnap = await getDocs(
-            query(collection(db, 'classSessions'), where('classId', '==', classData.id))
-          );
-          const actualCount = sessionsSnap.size;
-          if (actualCount > 0) {
-            setFormData(prev => ({
-              ...prev,
-              totalSessions: actualCount,
-              progress: `0/${actualCount}`
-            }));
-          }
-        } catch (err) {
-          console.error('Error fetching session count:', err);
-        }
-      }
-    };
-    fetchActualSessionCount();
+    // Firebase đã được xóa - session count sẽ được tính từ Supabase sau
+    // if (classData && !classData.totalSessions) {
+    //   // TODO: Fetch from Supabase sessions table
+    // }
   }, [classData]);
 
-  // Dropdown options
-  const [staffList, setStaffList] = useState<{ id: string; name: string; position: string }[]>([]);
-  const [roomList, setRoomList] = useState<{ id: string; name: string }[]>([]);
+  // Dropdown options - Use Supabase hook for staff
+  const { staff: allStaff, loading: staffLoading, error: staffError } = useStaff();
+  const staffList = useMemo(() => {
+    if (!allStaff || allStaff.length === 0) return [];
+    return allStaff.map(s => ({
+      id: s.id,
+      name: s.name || '',
+      role: s.role || '',
+      position: s.role || '', // Keep position for backward compatibility
+    }));
+  }, [allStaff]);
+  
+  // const [roomList, setRoomList] = useState<{ id: string; name: string }[]>([]); // Đã xóa quản lý phòng học
   const [centerList, setCenterList] = useState<{ id: string; name: string }[]>([]);
 
   // Curriculum autocomplete state
@@ -114,61 +111,41 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
   // Course list state
   const [courseList, setCourseList] = useState<{ id: string; name: string; code: string }[]>([]);
 
-  // Fetch curriculums
+  // Fetch curriculums - Get from existing classes
   useEffect(() => {
     const fetchCurriculums = async () => {
       try {
-        const curriculumsSnap = await getDocs(collection(db, 'curriculums'));
-        const list = curriculumsSnap.docs.map(doc => doc.data().name as string).filter(Boolean);
-        const classesSnap = await getDocs(collection(db, 'classes'));
-        const classCurriculums = classesSnap.docs
-          .map(doc => doc.data().curriculum as string)
-          .filter(Boolean);
-        const allCurriculums = [...new Set([...list, ...classCurriculums])].sort();
-        setCurriculumList(allCurriculums);
+        // Get curriculums from existing classes in Supabase
+        const allClasses = await classSupabaseService.getAllClasses();
+        const classCurriculums = allClasses
+          .map(c => c.curriculum)
+          .filter(Boolean)
+          .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+        setCurriculumList(classCurriculums.sort());
       } catch (err) {
         console.error('Error fetching curriculums:', err);
+        setCurriculumList([]);
       }
     };
     fetchCurriculums();
   }, []);
 
-  // Fetch courses
+  // Fetch courses - Use Supabase hook
+  const { courses } = useCourses();
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const coursesSnap = await getDocs(collection(db, 'courses'));
-        const courses = coursesSnap.docs
-          .map(doc => ({
-            id: doc.id,
-            name: doc.data().name || '',
-            code: doc.data().code || '',
-          }))
-          .filter(c => c.name);
-        setCourseList(courses);
-      } catch (err) {
-        console.error('Error fetching courses:', err);
-      }
-    };
-    fetchCourses();
-  }, []);
+    const courseListData = courses.map(c => ({
+      id: c.id,
+      name: c.name || '',
+      code: c.code || '',
+    }));
+    setCourseList(courseListData);
+  }, [courses]);
 
-  // Fetch all classes for conflict checking
+  // Fetch all classes for conflict checking - Use Supabase
+  const { classes: allClassesFromHook } = useClasses();
   useEffect(() => {
-    const fetchAllClasses = async () => {
-      try {
-        const classesSnap = await getDocs(collection(db, 'classes'));
-        const classes = classesSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as ClassModel[];
-        setAllClasses(classes);
-      } catch (err) {
-        console.error('Error fetching classes:', err);
-      }
-    };
-    fetchAllClasses();
-  }, []);
+    setAllClasses(allClassesFromHook);
+  }, [allClassesFromHook]);
 
   // Check schedule conflicts
   const checkScheduleConflicts = useMemo(() => {
@@ -274,10 +251,8 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
   const saveCurriculum = async (name: string) => {
     if (!name.trim() || curriculumList.includes(name.trim())) return;
     try {
-      await addDoc(collection(db, 'curriculums'), {
-        name: name.trim(),
-        createdAt: new Date().toISOString()
-      });
+      // TODO: Create curriculums table in Supabase if needed
+      // For now, just add to local list
       setCurriculumList(prev => [...prev, name.trim()].sort());
     } catch (err) {
       console.error('Error saving curriculum:', err);
@@ -293,36 +268,22 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
 
   useEffect(() => {
     const fetchDropdownData = async () => {
-      const staffSnap = await getDocs(collection(db, 'staff'));
-      const staff = staffSnap.docs.map(d => ({
-        id: d.id,
-        name: d.data().name || '',
-        position: d.data().position || '',
-      }));
-      setStaffList(staff);
-
-      const roomsSnap = await getDocs(collection(db, 'rooms'));
-      const rooms = roomsSnap.docs.map(d => ({
-        id: d.id,
-        name: d.data().name || d.data().roomName || d.id,
-      }));
-      setRoomList(rooms);
-
-      const centersSnap = await getDocs(collection(db, 'centers'));
-      const centers = centersSnap.docs
-        .filter(d => d.data().status === 'Active')
-        .map(d => ({
-          id: d.id,
-          name: d.data().name || '',
-        }));
-      setCenterList(centers);
+      // Staff is now fetched from Supabase via useStaff hook above
+      // Courses are now fetched from Supabase via useCourses hook above
+      // Classes are now fetched from Supabase via useClasses hook above
+      
+      // TODO: Migrate centers to Supabase
+      // For now, set empty list
+      setCenterList([]);
     };
     fetchDropdownData();
   }, []);
 
-  // Filter staff by position
+  // Filter staff by role - Get teachers from Supabase staff table
   const vietnameseTeachers = useMemo(() => {
     const filtered = staffList.filter(s =>
+      s.role === 'Giáo viên' ||
+      s.role?.toLowerCase().includes('giáo viên') ||
       s.position?.toLowerCase().includes('giáo viên việt') ||
       s.position?.toLowerCase().includes('gv việt') ||
       s.position?.toLowerCase().includes('giáo viên') ||
@@ -387,56 +348,12 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
     }
   }, [classData]);
 
-  // Auto-calculate student counts from Firebase
+  // Auto-calculate student counts - TODO: Implement with Supabase when students table is migrated
   useEffect(() => {
-    const fetchStudentCounts = async () => {
-      if (!classData?.id && !classData?.name) return;
-
-      try {
-        const studentsSnap = await getDocs(collection(db, 'students'));
-        const allStudents = studentsSnap.docs.map(d => d.data());
-
-        const classStudents = allStudents.filter((s: any) =>
-          s.classId === classData?.id ||
-          s.className === classData?.name ||
-          s.class === classData?.name
-        );
-
-        const normalizeStatus = (status: string): string => {
-          const map: { [key: string]: string } = {
-            'Active': 'Đang học', 'active': 'Đang học',
-            'Trial': 'Học thử', 'trial': 'Học thử',
-            'Reserved': 'Bảo lưu', 'reserved': 'Bảo lưu',
-            'Debt': 'Nợ phí', 'debt': 'Nợ phí',
-            'Dropped': 'Nghỉ học', 'dropped': 'Nghỉ học',
-          };
-          return map[status] || status;
-        };
-
-        const counts = {
-          total: classStudents.length,
-          trial: classStudents.filter((s: any) => normalizeStatus(s.status) === 'Học thử').length,
-          active: classStudents.filter((s: any) => normalizeStatus(s.status) === 'Đang học').length,
-          debt: classStudents.filter((s: any) => normalizeStatus(s.status) === 'Nợ phí' || s.hasDebt).length,
-          reserved: classStudents.filter((s: any) => normalizeStatus(s.status) === 'Bảo lưu').length,
-        };
-
-        setFormData(prev => ({
-          ...prev,
-          studentsCount: counts.total,
-          trialStudents: counts.trial,
-          activeStudents: counts.active,
-          debtStudents: counts.debt,
-          reservedStudents: counts.reserved,
-        }));
-      } catch (err) {
-        console.error('Error fetching student counts:', err);
-      }
-    };
-
-    if (classData) {
-      fetchStudentCounts();
-    }
+    // Firebase đã được xóa - student counts sẽ được tính từ Supabase sau
+    // if (!classData?.id && !classData?.name) return;
+    // TODO: Fetch from Supabase students table and calculate counts
+    // For now, keep existing counts from classData if available
   }, [classData]);
 
   // Day label helper
@@ -665,10 +582,14 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${scheduleConflicts.teacher.length > 0 ? 'border-orange-400 bg-orange-50' : 'border-gray-300'}`}
               >
                 <option value="">-- Chọn giáo viên --</option>
-                {vietnameseTeachers.length > 0 ? vietnameseTeachers.map(t => (
-                  <option key={t.id} value={t.name}>{t.name}</option>
+                {staffLoading ? (
+                  <option disabled>Đang tải...</option>
+                ) : staffError ? (
+                  <option disabled>Lỗi tải danh sách giáo viên</option>
+                ) : vietnameseTeachers.length > 0 ? vietnameseTeachers.map(t => (
+                  <option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : ''}</option>
                 )) : staffList.map(t => (
-                  <option key={t.id} value={t.name}>{t.name} ({t.position})</option>
+                  <option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : t.position ? `(${t.position})` : ''}</option>
                 ))}
               </select>
               {scheduleConflicts.teacher.length > 0 && (
@@ -689,9 +610,9 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
               >
                 <option value="">-- Chọn trợ giảng --</option>
                 {assistants.length > 0 ? assistants.map(t => (
-                  <option key={t.id} value={t.name}>{t.name}</option>
+                  <option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : ''}</option>
                 )) : staffList.map(t => (
-                  <option key={t.id} value={t.name}>{t.name} ({t.position})</option>
+                  <option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : t.position ? `(${t.position})` : ''}</option>
                 ))}
               </select>
               {scheduleConflicts.assistant.length > 0 && (
@@ -712,9 +633,9 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
               >
                 <option value="">-- Chọn GV nước ngoài --</option>
                 {foreignTeachers.length > 0 ? foreignTeachers.map(t => (
-                  <option key={t.id} value={t.name}>{t.name}</option>
+                  <option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : ''}</option>
                 )) : staffList.map(t => (
-                  <option key={t.id} value={t.name}>{t.name} ({t.position})</option>
+                  <option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : t.position ? `(${t.position})` : ''}</option>
                 ))}
               </select>
               {scheduleConflicts.foreignTeacher.length > 0 && (
@@ -790,9 +711,23 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                   ))}
                 </div>
               </div>
-              {formData.scheduleStartTime && formData.scheduleEndTime && formData.scheduleDays.length > 0 && (
+              {formData.scheduleDays.length > 0 && (
                 <p className="mt-2 text-xs text-green-600 font-medium">
-                  Lịch: {formData.scheduleStartTime}-{formData.scheduleEndTime} {formData.scheduleDays.map(d => d === 'CN' ? 'Chủ nhật' : `Thứ ${d}`).join(', ')}
+                  {useDetailedSchedule ? (
+                    <span>
+                      Lịch: {formData.scheduleDays.map(d => {
+                        const dayConfig = scheduleDetailsByDay[d];
+                        const startTime = dayConfig?.startTime || formData.scheduleStartTime || '';
+                        const endTime = dayConfig?.endTime || formData.scheduleEndTime || '';
+                        const dayLabel = d === 'CN' ? 'Chủ nhật' : `Thứ ${d}`;
+                        return startTime && endTime ? `${dayLabel} (${startTime}-${endTime})` : dayLabel;
+                      }).join(', ')}
+                    </span>
+                  ) : (
+                    formData.scheduleStartTime && formData.scheduleEndTime ? (
+                      <span>Lịch: {formData.scheduleStartTime}-{formData.scheduleEndTime} {formData.scheduleDays.map(d => d === 'CN' ? 'Chủ nhật' : `Thứ ${d}`).join(', ')}</span>
+                    ) : null
+                  )}
                 </p>
               )}
             </div>
@@ -842,7 +777,7 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                     <span className="text-sm text-gray-600 w-32">Giáo viên VN</span>
                     <select value={formData.teacher} onChange={(e) => setFormData({ ...formData, teacher: e.target.value, teacherEnabled: !!e.target.value })} disabled={!formData.teacherEnabled} className="flex-1 px-2 py-1.5 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100">
                       <option value="">-- Chọn --</option>
-                      {vietnameseTeachers.map(t => (<option key={t.id} value={t.name}>{t.name}</option>))}
+                      {vietnameseTeachers.map(t => (<option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : ''}</option>))}
                     </select>
                     <input type="number" value={formData.teacherDuration} onChange={(e) => setFormData({ ...formData, teacherDuration: parseInt(e.target.value) || 0 })} disabled={!formData.teacherEnabled} min={0} max={180} className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center disabled:bg-gray-100" />
                     <span className="text-xs text-gray-500">phút</span>
@@ -884,21 +819,51 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                         };
                         return (
                           <div key={day} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between mb-3">
                               <span className="text-sm font-semibold text-gray-800">
                                 {getDayLabel(day)}
-                                <span className="ml-2 text-xs font-normal text-gray-500">({dayConfig.startTime || formData.scheduleStartTime}-{dayConfig.endTime || formData.scheduleEndTime})</span>
                               </span>
                               {idx === 0 && formData.scheduleDays.length > 1 && (
                                 <button type="button" onClick={() => copyToAllDays(day)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Áp dụng cho tất cả</button>
                               )}
                             </div>
+                            
+                            {/* Giờ học cho từng ngày */}
+                            <div className="grid grid-cols-2 gap-2 mb-3 pb-3 border-b border-gray-200">
+                              <div>
+                                <label className="block text-xs text-gray-600 mb-1">Giờ bắt đầu</label>
+                                <select
+                                  value={dayConfig.startTime || formData.scheduleStartTime || ''}
+                                  onChange={(e) => updateDaySchedule(day, 'startTime', e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-green-500"
+                                >
+                                  <option value="">-- Chọn --</option>
+                                  {timeOptions.map(t => (
+                                    <option key={t} value={t}>{t}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-600 mb-1">Giờ kết thúc</label>
+                                <select
+                                  value={dayConfig.endTime || formData.scheduleEndTime || ''}
+                                  onChange={(e) => updateDaySchedule(day, 'endTime', e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-green-500"
+                                >
+                                  <option value="">-- Chọn --</option>
+                                  {timeOptions.map(t => (
+                                    <option key={t} value={t}>{t}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+
                             <div className="grid grid-cols-3 gap-2">
                               <div>
                                 <label className="block text-xs text-green-600 mb-1">GV Việt Nam</label>
                                 <select value={dayConfig.teacher || ''} onChange={(e) => updateDaySchedule(day, 'teacher', e.target.value)} className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs">
                                   <option value="">-- Không --</option>
-                                  {vietnameseTeachers.map(t => (<option key={t.id} value={t.name}>{t.name}</option>))}
+                                  {vietnameseTeachers.map(t => (<option key={t.id} value={t.name}>{t.name} {t.role ? `(${t.role})` : ''}</option>))}
                                 </select>
                                 {dayConfig.teacher && (<input type="number" value={dayConfig.teacherDuration || 0} onChange={(e) => updateDaySchedule(day, 'teacherDuration', parseInt(e.target.value) || 0)} placeholder="Phút" min={0} max={180} className="w-full mt-1 px-2 py-1 border border-gray-300 rounded text-xs text-center" />)}
                               </div>
@@ -919,12 +884,23 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                                 {dayConfig.assistant && (<input type="number" value={dayConfig.assistantDuration || 0} onChange={(e) => updateDaySchedule(day, 'assistantDuration', parseInt(e.target.value) || 0)} placeholder="Phút" min={0} max={180} className="w-full mt-1 px-2 py-1 border border-gray-300 rounded text-xs text-center" />)}
                               </div>
                             </div>
-                            <div className="mt-2">
+                            {/* Phòng học - Đã xóa quản lý phòng học */}
+                            {/* <div className="mt-2">
                               <label className="block text-xs text-gray-500 mb-1">Phòng học</label>
                               <select value={dayConfig.room || ''} onChange={(e) => updateDaySchedule(day, 'room', e.target.value)} className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs">
                                 <option value="">-- Mặc định --</option>
                                 {roomList.map(r => (<option key={r.id} value={r.name}>{r.name}</option>))}
                               </select>
+                            </div> */}
+                            <div className="mt-2">
+                              <label className="block text-xs text-gray-500 mb-1">Phòng học</label>
+                              <input 
+                                type="text" 
+                                value={dayConfig.room || ''} 
+                                onChange={(e) => updateDaySchedule(day, 'room', e.target.value)} 
+                                placeholder="Nhập tên phòng"
+                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs"
+                              />
                             </div>
                           </div>
                         );
@@ -935,13 +911,16 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
               )}
             </div>
 
-            {/* Phòng học */}
+            {/* Phòng học - Đã xóa quản lý phòng học, chuyển sang input text */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phòng học</label>
-              <select value={formData.room} onChange={(e) => setFormData({ ...formData, room: e.target.value })} className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${scheduleConflicts.room.length > 0 ? 'border-orange-400 bg-orange-50' : 'border-gray-300'}`}>
-                <option value="">-- Chọn phòng --</option>
-                {roomList.length > 0 ? roomList.map(r => (<option key={r.id} value={r.name}>{r.name}</option>)) : (<option value="" disabled>Chưa có phòng</option>)}
-              </select>
+              <input 
+                type="text" 
+                value={formData.room} 
+                onChange={(e) => setFormData({ ...formData, room: e.target.value })} 
+                placeholder="Nhập tên phòng"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${scheduleConflicts.room.length > 0 ? 'border-orange-400 bg-orange-50' : 'border-gray-300'}`}
+              />
               {scheduleConflicts.room.length > 0 && (
                 <div className="mt-1 flex items-start gap-1 text-xs text-orange-600">
                   <AlertTriangle size={12} className="mt-0.5 flex-shrink-0" />

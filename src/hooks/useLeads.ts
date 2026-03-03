@@ -3,8 +3,8 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, query, orderBy, onSnapshot } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 import * as leadService from '../services/leadService';
 import { Lead, LeadStatus, LeadSource } from '../services/leadService';
 

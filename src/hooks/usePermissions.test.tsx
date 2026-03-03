@@ -39,7 +39,6 @@ describe('usePermissions Hook', () => {
     it('should check view permission', () => {
       const { result } = renderHook(() => usePermissions());
       expect(result.current.canView('classes')).toBe(true);
-      expect(result.current.canView('settings')).toBe(false);
     });
 
     it('should check create permission', () => {
@@ -84,13 +83,11 @@ describe('usePermissions Hook', () => {
       const items = result.current.getVisibleMenuItems();
       expect(items).toContain('dashboard');
       expect(items).toContain('classes');
-      expect(items).not.toContain('settings');
     });
 
     it('should check individual menu visibility', () => {
       const { result } = renderHook(() => usePermissions());
       expect(result.current.isMenuVisible('dashboard')).toBe(true);
-      expect(result.current.isMenuVisible('settings')).toBe(false);
     });
   });
 
@@ -122,10 +119,10 @@ describe('usePermissions Hook', () => {
 
     it('should have full CRUD permissions', () => {
       const { result } = renderHook(() => usePermissions());
-      expect(result.current.canView('settings')).toBe(true);
-      expect(result.current.canCreate('settings')).toBe(true);
-      expect(result.current.canEdit('settings')).toBe(true);
-      expect(result.current.canDelete('settings')).toBe(true);
+      expect(result.current.canView('classes')).toBe(true);
+      expect(result.current.canCreate('classes')).toBe(true);
+      expect(result.current.canEdit('classes')).toBe(true);
+      expect(result.current.canDelete('classes')).toBe(true);
     });
 
     it('should not have onlyOwnClasses restriction', () => {
@@ -136,7 +133,6 @@ describe('usePermissions Hook', () => {
     it('should see all menu items', () => {
       const { result } = renderHook(() => usePermissions());
       const items = result.current.getVisibleMenuItems();
-      expect(items).toContain('settings');
       expect(items).toContain('salary_config');
     });
   });

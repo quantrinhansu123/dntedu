@@ -4,9 +4,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { DepartmentGoal, DepartmentCode, DEPARTMENT_LABELS } from '../../types';
+import * as departmentGoalSupabaseService from '../services/departmentGoalSupabaseService';
 
 interface UseDepartmentGoalsOptions {
     departmentCode?: DepartmentCode;
@@ -24,22 +23,16 @@ export const useDepartmentGoals = (options?: UseDepartmentGoalsOptions) => {
             setLoading(true);
             setError(null);
 
-            // Fetch all goals and filter client-side to avoid composite index requirement
-            const snapshot = await getDocs(collection(db, 'departmentGoals'));
-            let data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as DepartmentGoal[];
-
-            // Apply filters client-side
-            if (options?.departmentCode) {
-                data = data.filter(g => g.departmentCode === options.departmentCode);
-            }
-            if (options?.month) {
-                data = data.filter(g => g.month === options.month);
-            }
-            if (options?.year) {
-                data = data.filter(g => g.year === options.year);
+            // Fetch goals with filters from Supabase
+            let data: DepartmentGoal[];
+            if (options?.departmentCode || options?.month || options?.year) {
+                data = await departmentGoalSupabaseService.queryDepartmentGoals({
+                    departmentCode: options?.departmentCode,
+                    month: options?.month,
+                    year: options?.year,
+                });
+            } else {
+                data = await departmentGoalSupabaseService.getAllDepartmentGoals();
             }
 
             // Sort by createdAt descending
@@ -61,17 +54,21 @@ export const useDepartmentGoals = (options?: UseDepartmentGoalsOptions) => {
 
     const createGoal = async (data: Omit<DepartmentGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
         try {
-            const newDoc = doc(collection(db, 'departmentGoals'));
-            const goalData = {
+            // Generate UUID for id
+            const id = crypto.randomUUID();
+            
+            const goalData: DepartmentGoal = {
                 ...data,
+                id,
                 departmentName: DEPARTMENT_LABELS[data.departmentCode],
                 kpiResult: data.kpiTarget > 0 ? Math.round((data.kpiActual / data.kpiTarget) * 100) : 0,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            await setDoc(newDoc, goalData);
+            
+            await departmentGoalSupabaseService.createDepartmentGoal(goalData);
             await fetchGoals();
-            return newDoc.id;
+            return id;
         } catch (err: any) {
             console.error('Error creating goal:', err);
             throw new Error(err.message || 'Không thể tạo mục tiêu');
@@ -80,7 +77,6 @@ export const useDepartmentGoals = (options?: UseDepartmentGoalsOptions) => {
 
     const updateGoal = async (id: string, data: Partial<DepartmentGoal>) => {
         try {
-            const docRef = doc(db, 'departmentGoals', id);
             const updateData: any = {
                 ...data,
                 updatedAt: new Date().toISOString()
@@ -101,7 +97,7 @@ export const useDepartmentGoals = (options?: UseDepartmentGoalsOptions) => {
                 updateData.departmentName = DEPARTMENT_LABELS[data.departmentCode];
             }
 
-            await setDoc(docRef, updateData, { merge: true });
+            await departmentGoalSupabaseService.updateDepartmentGoal(id, updateData);
             await fetchGoals();
         } catch (err: any) {
             console.error('Error updating goal:', err);
@@ -111,7 +107,7 @@ export const useDepartmentGoals = (options?: UseDepartmentGoalsOptions) => {
 
     const deleteGoal = async (id: string) => {
         try {
-            await deleteDoc(doc(db, 'departmentGoals', id));
+            await departmentGoalSupabaseService.deleteDepartmentGoal(id);
             await fetchGoals();
         } catch (err: any) {
             console.error('Error deleting goal:', err);

@@ -47,7 +47,6 @@ export type ModuleKey =
   | 'debt'
   | 'reports_training'
   | 'reports_finance'
-  | 'settings'
   | 'resources'          // Resource Library (Thư viện)
   | 'department_goals'   // Department KPI/Goals
   | 'teacher_goals';     // Teacher Goals & Performance
@@ -106,7 +105,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
     debt: { view: true, create: true, edit: true, delete: true },
     reports_training: { view: true, create: true, edit: true, delete: true },
     reports_finance: { view: true, create: true, edit: true, delete: true },
-    settings: { view: true, create: true, edit: true, delete: true },
     resources: { view: true, create: true, edit: true, delete: true },
     department_goals: { view: true, create: true, edit: true, delete: true },
     teacher_goals: { view: true, create: true, edit: true, delete: true },
@@ -145,7 +143,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
     debt: { view: true, create: true, edit: true, delete: false },
     reports_training: { view: true, create: false, edit: false, delete: false },
     reports_finance: { view: true, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false }, // Ẩn
     resources: { view: true, create: true, edit: true, delete: false }, // Thư viện
     department_goals: { view: false, create: false, edit: false, delete: false }, // Ẩn
     teacher_goals: { view: false, create: false, edit: false, delete: false }, // Ẩn
@@ -187,7 +184,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
     debt: { view: false, create: false, edit: false, delete: false }, // Ẩn
     reports_training: { view: false, create: false, edit: false, delete: false }, // Ẩn
     reports_finance: { view: false, create: false, edit: false, delete: false }, // Ẩn
-    settings: { view: false, create: false, edit: false, delete: false }, // Ẩn
     resources: { view: true, create: true, edit: false, delete: false }, // Thư viện marketing materials
     department_goals: { view: true, create: false, edit: false, delete: false }, // Xem KPI phòng Marketing
     teacher_goals: { view: false, create: false, edit: false, delete: false }, // Ẩn
@@ -225,7 +221,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
     debt: { view: true, create: true, edit: true, delete: false },
     reports_training: { view: false, create: false, edit: false, delete: false },
     reports_finance: { view: true, create: true, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
     resources: { view: true, create: false, edit: false, delete: false }, // Chỉ xem
     department_goals: { view: false, create: false, edit: false, delete: false }, // Ẩn
     teacher_goals: { view: false, create: false, edit: false, delete: false }, // Ẩn
@@ -263,7 +258,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
     debt: { view: false, create: false, edit: false, delete: false }, // Ẩn
     reports_training: { view: true, create: false, edit: false, delete: false, onlyOwnClasses: true },
     reports_finance: { view: false, create: false, edit: false, delete: false }, // Ẩn
-    settings: { view: false, create: false, edit: false, delete: false }, // Ẩn
     resources: { view: true, create: true, edit: false, delete: false }, // Thư viện tài nguyên
     department_goals: { view: true, create: false, edit: false, delete: false }, // Xem KPI phòng Chuyên môn
     teacher_goals: { view: true, create: false, edit: false, delete: false }, // Xem mục tiêu cá nhân

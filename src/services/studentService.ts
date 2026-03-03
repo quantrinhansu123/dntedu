@@ -4,27 +4,9 @@
  * - parentName/parentPhone được denormalize để hiển thị nhanh
  */
 
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  Timestamp,
-  QueryConstraint,
-  writeBatch
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { Student, StudentStatus, CareLog } from '../../types';
 import { getParent, createParent, findParentByPhone } from './parentService';
-import { convertTimestamp } from '../utils/firestoreUtils';
-
-const COLLECTION_NAME = 'students';
+import * as studentSupabaseService from './studentSupabaseService';
 
 export class StudentService {
   
@@ -36,39 +18,33 @@ export class StudentService {
     parentId?: string;
   }): Promise<Student[]> {
     try {
-      const constraints: QueryConstraint[] = [];
-      
-      if (filters?.status) {
-        constraints.push(where('status', '==', filters.status));
+      if (filters && (filters.status || filters.classId || filters.parentId)) {
+        const result = await studentSupabaseService.queryStudents({
+          status: filters.status,
+          classId: filters.classId,
+          parentId: filters.parentId,
+        });
+        
+        // Client-side search if searchTerm provided
+        if (filters.searchTerm) {
+          const term = filters.searchTerm.toLowerCase();
+          return result.filter(s => 
+            s.fullName.toLowerCase().includes(term) ||
+            s.code.toLowerCase().includes(term) ||
+            s.phone?.includes(term) ||
+            s.parentName?.toLowerCase().includes(term)
+          );
+        }
+        
+        return result;
       }
       
-      if (filters?.classId) {
-        constraints.push(where('currentClassId', '==', filters.classId));
-      }
-      
-      if (filters?.parentId) {
-        constraints.push(where('parentId', '==', filters.parentId));
-      }
-      
-      constraints.push(orderBy('createdAt', 'desc'));
-      
-      const q = query(collection(db, COLLECTION_NAME), ...constraints);
-      const snapshot = await getDocs(q);
-      
-      let students = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        dob: convertTimestamp(doc.data().dob),
-        careHistory: (doc.data().careHistory as CareLog[] || []).map((log) => ({
-          ...log,
-          date: convertTimestamp(log.date)
-        }))
-      })) as Student[];
+      const allStudents = await studentSupabaseService.getAllStudents();
       
       // Client-side search if searchTerm provided
       if (filters?.searchTerm) {
         const term = filters.searchTerm.toLowerCase();
-        students = students.filter(s => 
+        return allStudents.filter(s => 
           s.fullName.toLowerCase().includes(term) ||
           s.code.toLowerCase().includes(term) ||
           s.phone?.includes(term) ||
@@ -76,7 +52,7 @@ export class StudentService {
         );
       }
       
-      return students;
+      return allStudents;
     } catch (error) {
       console.error('Error getting students:', error);
       throw error;
@@ -86,22 +62,7 @@ export class StudentService {
   // Get single student by ID
   static async getStudentById(id: string): Promise<Student | null> {
     try {
-      const docRef = doc(db, COLLECTION_NAME, id);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        return {
-          id: docSnap.id,
-          ...docSnap.data(),
-          dob: convertTimestamp(docSnap.data().dob),
-          careHistory: (docSnap.data().careHistory as CareLog[] || []).map((log) => ({
-            ...log,
-            date: convertTimestamp(log.date)
-          }))
-        } as Student;
-      }
-      
-      return null;
+      return await studentSupabaseService.getStudentById(id);
     } catch (error) {
       console.error('Error getting student:', error);
       throw error;
@@ -148,21 +109,42 @@ export class StudentService {
       
       const { newParentName, newParentPhone, ...restData } = studentData;
       
-      const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-        ...restData,
-        parentId: parentId || null,
-        parentName: parentName || null,
-        parentPhone: parentPhone || null,
-        dob: Timestamp.fromDate(new Date(studentData.dob)),
-        careHistory: studentData.careHistory?.map(log => ({
-          ...log,
-          date: Timestamp.fromDate(new Date(log.date))
-        })) || [],
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
-      });
+      // Generate UUID for id
+      const id = crypto.randomUUID();
       
-      return docRef.id;
+      // Generate code if not provided
+      let code = restData.code;
+      if (!code || code.trim() === '') {
+        // Generate code: HV + year + 6 digits from timestamp
+        const year = new Date().getFullYear().toString().slice(-2);
+        const timestamp = Date.now().toString().slice(-6);
+        code = `HV${year}${timestamp}`;
+        
+        // Ensure uniqueness by checking existing codes
+        const existingStudents = await this.getStudents();
+        const existingCodes = new Set(existingStudents.map(s => s.code));
+        let uniqueCode = code;
+        let counter = 1;
+        while (existingCodes.has(uniqueCode)) {
+          uniqueCode = `HV${year}${timestamp}${counter.toString().padStart(2, '0')}`;
+          counter++;
+        }
+        code = uniqueCode;
+      }
+      
+      const studentWithId: Student = {
+        ...restData,
+        id,
+        code,
+        parentId: parentId || undefined,
+        parentName: parentName || undefined,
+        parentPhone: parentPhone || undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const result = await studentSupabaseService.createStudent(studentWithId);
+      return result.id;
     } catch (error) {
       console.error('Error creating student:', error);
       throw error;
@@ -174,26 +156,18 @@ export class StudentService {
     newParentId?: string;
   }): Promise<void> {
     try {
-      const docRef = doc(db, COLLECTION_NAME, id);
-      
-      // Get current student to check parentId
-      const currentStudent = await this.getStudentById(id);
-      
-      const updateData: Record<string, unknown> = {
-        ...updates,
-        updatedAt: Timestamp.now()
-      };
-      
-      // If parentId changed, update denormalized fields
+      // Handle parent updates
       if (updates.newParentId) {
         const parent = await getParent(updates.newParentId);
         if (parent) {
-          updateData.parentId = parent.id;
-          updateData.parentName = parent.name;
-          updateData.parentPhone = parent.phone;
+          updates.parentId = parent.id;
+          updates.parentName = parent.name;
+          updates.parentPhone = parent.phone;
         }
-        delete updateData.newParentId;
       }
+      
+      // Get current student to check parentId
+      const currentStudent = await this.getStudentById(id);
       
       // Sync parent info to parents collection if parentName/parentPhone changed
       if (currentStudent?.parentId && (updates.parentName || updates.parentPhone)) {
@@ -205,19 +179,12 @@ export class StudentService {
         await updateParent(currentStudent.parentId, parentUpdates);
       }
       
-      // Convert date strings to Timestamps
-      if (updates.dob) {
-        updateData.dob = Timestamp.fromDate(new Date(updates.dob));
-      }
+      const { newParentId, ...restUpdates } = updates;
       
-      if (updates.careHistory) {
-        updateData.careHistory = updates.careHistory.map(log => ({
-          ...log,
-          date: Timestamp.fromDate(new Date(log.date))
-        }));
-      }
-      
-      await updateDoc(docRef, updateData);
+      await studentSupabaseService.updateStudent(id, {
+        ...restUpdates,
+        updatedAt: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error updating student:', error);
       throw error;
@@ -227,8 +194,7 @@ export class StudentService {
   // Delete student
   static async deleteStudent(id: string): Promise<void> {
     try {
-      const docRef = doc(db, COLLECTION_NAME, id);
-      await deleteDoc(docRef);
+      await studentSupabaseService.deleteStudent(id);
     } catch (error) {
       console.error('Error deleting student:', error);
       throw error;
@@ -276,19 +242,15 @@ export class StudentService {
     className?: string
   ): Promise<void> {
     try {
-      const batch = writeBatch(db);
-      
+      // Update each student individually in Supabase
       for (const studentId of studentIds) {
-        const docRef = doc(db, COLLECTION_NAME, studentId);
-        batch.update(docRef, {
+        await studentSupabaseService.updateStudent(studentId, {
           status,
-          currentClassId: classId || null,
-          currentClassName: className || null,
-          updatedAt: Timestamp.now()
+          classId: classId || undefined,
+          class: className || undefined,
+          updatedAt: new Date().toISOString()
         });
       }
-      
-      await batch.commit();
     } catch (error) {
       console.error('Error bulk updating students:', error);
       throw error;

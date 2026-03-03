@@ -1,299 +1,367 @@
-
-import React, { useState, useMemo, useEffect } from 'react';
-import { Home, Plus, Edit, Trash2, X } from 'lucide-react';
-import { useRooms } from '../src/hooks/useRooms';
+import React, { useState, useMemo } from 'react';
+import { Plus, Search, Edit, Trash2, Home, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { Room } from '../types';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+import { useRooms } from '../src/hooks/useRooms';
+
+interface RoomFormData {
+  name: string;
+  type: 'Đào tạo' | 'Văn phòng' | 'Hội trường';
+  capacity: number | '';
+  status: 'Hoạt động' | 'Bảo trì';
+  branch: string;
+  notes: string;
+}
 
 export const RoomManager: React.FC = () => {
-  const { rooms: rawRooms, loading, createRoom, updateRoom, deleteRoom } = useRooms();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [centerList, setCenterList] = useState<{ id: string; name: string }[]>([]);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RoomFormData>({
     name: '',
     type: 'Đào tạo',
-    branch: '',
+    capacity: '',
     status: 'Hoạt động',
+    branch: '',
     notes: '',
   });
+  const [branchList, setBranchList] = useState<string[]>([]);
 
-  // Fetch centers from Firestore
-  useEffect(() => {
-    const fetchCenters = async () => {
-      try {
-        const centersSnap = await getDocs(collection(db, 'centers'));
-        const centers = centersSnap.docs
-          .filter(d => d.data().status === 'Active')
-          .map(d => ({
-            id: d.id,
-            name: d.data().name || '',
-          }));
-        setCenterList(centers);
-        // Set default branch to first center if exists
-        if (centers.length > 0 && !formData.branch) {
-          setFormData(prev => ({ ...prev, branch: centers[0].name }));
-        }
-      } catch (err) {
-        console.error('Error fetching centers:', err);
-      }
-    };
-    fetchCenters();
-  }, []);
+  const { rooms, loading, createRoom, updateRoom, deleteRoom } = useRooms();
 
-  // Sort rooms by name
-  const rooms = useMemo(() => {
-    return [...rawRooms].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  }, [rawRooms]);
+  // Extract unique branches from rooms
+  React.useEffect(() => {
+    const branches = Array.from(new Set(rooms.map(r => r.branch).filter(Boolean) as string[]));
+    setBranchList(branches);
+  }, [rooms]);
 
-  // Open create modal
-  const handleOpenCreate = () => {
+  // Filter rooms based on search
+  const filteredRooms = useMemo(() => {
+    if (!searchTerm) return rooms;
+    const searchLower = searchTerm.toLowerCase();
+    return rooms.filter(room =>
+      room.name.toLowerCase().includes(searchLower) ||
+      (room.branch && room.branch.toLowerCase().includes(searchLower)) ||
+      (room.notes && room.notes.toLowerCase().includes(searchLower))
+    );
+  }, [rooms, searchTerm]);
+
+  const handleOpenModal = (room?: Room) => {
+    if (room) {
+      setEditingRoom(room);
+      setFormData({
+        name: room.name,
+        type: room.type,
+        capacity: room.capacity || '',
+        status: room.status,
+        branch: room.branch || '',
+        notes: room.notes || '',
+      });
+    } else {
+      setEditingRoom(null);
+      setFormData({
+        name: '',
+        type: 'Đào tạo',
+        capacity: '',
+        status: 'Hoạt động',
+        branch: '',
+        notes: '',
+      });
+    }
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
     setEditingRoom(null);
     setFormData({
       name: '',
       type: 'Đào tạo',
-      branch: centerList.length > 0 ? centerList[0].name : '',
+      capacity: '',
       status: 'Hoạt động',
+      branch: '',
       notes: '',
     });
-    setIsModalOpen(true);
   };
 
-  // Open edit modal
-  const handleOpenEdit = (room: Room) => {
-    setEditingRoom(room);
-    setFormData({
-      name: room.name || '',
-      type: room.type || 'Đào tạo',
-      branch: room.branch || (centerList.length > 0 ? centerList[0].name : ''),
-      status: room.status || 'Hoạt động',
-      notes: room.notes || '',
-    });
-    setIsModalOpen(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const roomData: Partial<Room> = {
+        name: formData.name.trim(),
+        type: formData.type,
+        status: formData.status,
+        branch: formData.branch.trim() || undefined,
+        notes: formData.notes.trim() || undefined,
+        capacity: formData.capacity !== '' ? Number(formData.capacity) : undefined,
+      };
+
+      if (editingRoom) {
+        await updateRoom(editingRoom.id, roomData);
+      } else {
+        await createRoom(roomData);
+      }
+
+      handleCloseModal();
+    } catch (error: any) {
+      console.error('Error saving room:', error);
+      alert(error.message || 'Không thể lưu phòng học');
+    }
   };
 
-  // Create or Update room
-  const handleSubmit = async () => {
-    if (!formData.name) {
-      alert('Vui lòng nhập tên phòng học!');
+  const handleDelete = async (id: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa phòng học này?')) {
       return;
     }
 
     try {
-      if (editingRoom?.id) {
-        await updateRoom(editingRoom.id, {
-          name: formData.name,
-          type: formData.type,
-          branch: formData.branch,
-          status: formData.status,
-          notes: formData.notes,
-          updatedAt: new Date().toISOString(),
-        });
-        alert('Đã cập nhật phòng học!');
-      } else {
-        await createRoom({
-          name: formData.name,
-          type: formData.type,
-          branch: formData.branch,
-          status: formData.status,
-          notes: formData.notes,
-          createdAt: new Date().toISOString(),
-        });
-        alert('Đã thêm phòng học mới!');
-      }
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error('Error saving room:', err);
-      alert('Có lỗi xảy ra!');
-    }
-  };
-
-  // Delete room
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Bạn có chắc muốn xóa phòng "${name}"?`)) return;
-    
-    try {
       await deleteRoom(id);
-    } catch (err) {
-      console.error('Error deleting room:', err);
+    } catch (error: any) {
+      console.error('Error deleting room:', error);
+      alert(error.message || 'Không thể xóa phòng học');
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-800">Phòng học</h2>
-        <button 
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-        >
-          <Plus size={18} />
-          Thêm phòng học
-        </button>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Hệ thống quản lý trung tâm</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Tìm kiếm nhanh..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left text-sm text-gray-600">
-          <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500">
-            <tr>
-              <th className="px-6 py-4 w-16">STT</th>
-              <th className="px-6 py-4">Tên phòng học</th>
-              <th className="px-6 py-4">Loại phòng học</th>
-              <th className="px-6 py-4">Cơ sở</th>
-              <th className="px-6 py-4">Ghi chú</th>
-              <th className="px-6 py-4 text-center">Trạng thái</th>
-              <th className="px-6 py-4 text-right">Hành động</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {rooms.length > 0 ? (
-              rooms.map((room, index) => (
-                <tr key={room.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">{index + 1}</td>
-                  <td className="px-6 py-4 font-medium text-gray-900">{room.name}</td>
-                  <td className="px-6 py-4">{room.type}</td>
-                  <td className="px-6 py-4">{room.branch}</td>
-                  <td className="px-6 py-4 text-gray-400 italic">{room.notes || '-'}</td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      room.status === 'Hoạt động' ? 'bg-green-700 text-white' : 'bg-orange-500 text-white'
-                    }`}>
-                      {room.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button 
-                        onClick={() => handleOpenEdit(room)}
-                        className="text-gray-400 hover:text-indigo-600"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(room.id, room.name)}
-                        className="text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+      {/* Room Management Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <Home size={24} className="text-indigo-600" />
+            Phòng học
+          </h2>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Plus size={20} />
+            Thêm phòng học
+          </button>
+        </div>
+
+        {/* Table */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <p className="mt-2 text-gray-500">Đang tải...</p>
+          </div>
+        ) : filteredRooms.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            {searchTerm ? 'Không tìm thấy phòng học nào' : 'Chưa có phòng học nào'}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">STT</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">TÊN PHÒNG HỌC</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">LOẠI PHÒNG HỌC</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">CƠ SỞ</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">GHI CHÚ</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">TRẠNG THÁI</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">HÀNH ĐỘNG</th>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
-                  Chưa có phòng học nào. Nhấn "Thêm phòng học" để tạo mới.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        {rooms.length > 0 && (
-          <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-            <div className="text-xs text-gray-500">Hiển thị 1 đến {rooms.length} của {rooms.length} bản ghi</div>
+              </thead>
+              <tbody>
+                {filteredRooms.map((room, index) => (
+                  <tr key={room.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm text-gray-700">{index + 1}</td>
+                    <td className="py-3 px-4 text-sm font-medium text-gray-900">{room.name}</td>
+                    <td className="py-3 px-4 text-sm text-gray-700">{room.type}</td>
+                    <td className="py-3 px-4 text-sm text-gray-700">{room.branch || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-700">{room.notes || '-'}</td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                          room.status === 'Hoạt động'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-orange-100 text-orange-700'
+                        }`}
+                      >
+                        {room.status === 'Hoạt động' ? (
+                          <CheckCircle size={12} />
+                        ) : (
+                          <AlertCircle size={12} />
+                        )}
+                        {room.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleOpenModal(room)}
+                          className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                          title="Sửa"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(room.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Xóa"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
-      {/* Modal Thêm/Sửa phòng học */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-            <div className="p-5 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">
-                {editingRoom ? 'Sửa phòng học' : 'Thêm phòng học'}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={22} />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cơ sở</label>
-                  <select 
-                    value={formData.branch}
-                    onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    {centerList.length === 0 && <option value="">-- Chưa có cơ sở --</option>}
-                    {centerList.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-                  <select 
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="Hoạt động">Hoạt động</option>
-                    <option value="Bảo trì">Bảo trì</option>
-                  </select>
-                </div>
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {editingRoom ? 'Sửa phòng học' : 'Thêm phòng học'}
+                </h3>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tên phòng học *</label>
-                  <input 
-                    type="text" 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tên phòng học <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="VD: P.101, Phòng anh Công..."
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Nhập tên phòng học"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Loại phòng học</label>
-                  <select 
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="Đào tạo">Đào tạo</option>
-                    <option value="Văn phòng">Văn phòng</option>
-                    <option value="Hội trường">Hội trường</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Loại phòng học <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={formData.type}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="Đào tạo">Đào tạo</option>
+                      <option value="Văn phòng">Văn phòng</option>
+                      <option value="Hội trường">Hội trường</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Sức chứa
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.capacity}
+                      onChange={(e) => setFormData({ ...formData, capacity: e.target.value === '' ? '' : Number(e.target.value) })}
+                      min="0"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Số người"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                <textarea 
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm h-20 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="Ghi chú thêm..."
-                />
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Trạng thái <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="Hoạt động">Hoạt động</option>
+                      <option value="Bảo trì">Bảo trì</option>
+                    </select>
+                  </div>
 
-            <div className="p-5 border-t border-gray-200 flex justify-end gap-3">
-              <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="px-4 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50"
-              >
-                HUỶ BỎ
-              </button>
-              <button 
-                onClick={handleSubmit}
-                className="px-4 py-2 bg-green-700 text-white rounded text-sm hover:bg-green-800"
-              >
-                XÁC NHẬN
-              </button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Cơ sở
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.branch}
+                      onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                      list="branch-list"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Nhập tên cơ sở"
+                    />
+                    <datalist id="branch-list">
+                      {branchList.map((branch) => (
+                        <option key={branch} value={branch} />
+                      ))}
+                    </datalist>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ghi chú
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Nhập ghi chú (nếu có)"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    {editingRoom ? 'Cập nhật' : 'Thêm mới'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

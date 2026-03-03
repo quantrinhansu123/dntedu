@@ -11,11 +11,10 @@ import { useAuth } from '../src/hooks/useAuth';
 import { getFeedbacks, FeedbackRecord } from '../src/services/feedbackService';
 import { ClassModel } from '../types';
 import { createEnrollment } from '../src/services/enrollmentService';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
 import { ImportExportButtons } from '../components/ImportExportButtons';
 import { STUDENT_FIELDS, STUDENT_MAPPING, prepareStudentExport } from '../src/utils/excelUtils';
-import { getCenters, Center } from '../src/services/centerService';
+// import { getCenters, Center } from '../src/services/centerService'; // Đã xóa cấu hình
 import { normalizeStudentStatus } from '../src/utils/statusUtils';
 import { formatDisplayDate } from '../src/utils/dateUtils';
 import {
@@ -44,7 +43,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const [filterStatus, setFilterStatus] = useState<StudentStatus | 'ALL'>(initialStatusFilter || 'ALL');
   const [filterClass, setFilterClass] = useState<string>('ALL');
   const [filterBranch, setFilterBranch] = useState<string>('ALL');
-  const [centers, setCenters] = useState<Center[]>([]);
+  const [centers, setCenters] = useState<{ id: string; name: string }[]>([]);
   const [birthdayMonth, setBirthdayMonth] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -133,8 +132,8 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        const data = await getCenters();
-        setCenters(data);
+        // const data = await getCenters(); // Đã xóa cấu hình
+        setCenters([]); // Đã xóa cấu hình
       } catch (err) {
         console.error('Error fetching centers:', err);
       }
@@ -174,14 +173,15 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   }, [allStudents, onlyOwnClasses, staffData]);
 
   // Fetch student attendance data for performance calculation
+  // TODO: Migrate to Supabase when attendance table is migrated
   useEffect(() => {
     const fetchStudentPerformance = async () => {
       if (students.length === 0) return;
 
       try {
-        // Fetch all student attendance records
-        const attendanceSnap = await getDocs(collection(db, 'studentAttendance'));
-        const attendanceRecords = attendanceSnap.docs.map(d => d.data());
+        // Firebase đã được xóa - attendance data sẽ được tính từ Supabase sau
+        // TODO: Fetch from Supabase attendance table
+        const attendanceRecords: any[] = [];
 
         const performanceMap: Record<string, {
           attendanceRate: number;
@@ -366,10 +366,13 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     try {
       const newStudent = await createStudent(data as Omit<Student, 'id'>);
       setShowCreateModal(false);
-      // Show post-creation modal with options
+      // Tạm bỏ qua bước ghi danh - không hiển thị post-creation modal
+      // if (newStudent) {
+      //   setNewlyCreatedStudent({ ...data, id: newStudent } as Student);
+      //   setShowPostCreateModal(true);
+      // }
       if (newStudent) {
-        setNewlyCreatedStudent({ ...data, id: newStudent } as Student);
-        setShowPostCreateModal(true);
+        alert('Đã tạo học viên thành công!');
       }
     } catch (err) {
       console.error('Error creating student:', err);
@@ -1028,8 +1031,8 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
         />
       )}
 
-      {/* Post-Creation Options Modal */}
-      {showPostCreateModal && newlyCreatedStudent && (
+      {/* Post-Creation Options Modal - Tạm bỏ qua bước ghi danh */}
+      {false && showPostCreateModal && newlyCreatedStudent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">

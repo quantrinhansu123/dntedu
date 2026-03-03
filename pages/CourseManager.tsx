@@ -8,34 +8,12 @@ import {
   BookOpen, Plus, Edit, Trash2, X, Search, Users, DollarSign, Clock, 
   TrendingUp, Calendar, Layers, ChevronDown, ChevronRight, Folder, FolderOpen
 } from 'lucide-react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
 import { formatCurrency } from '../src/utils/currencyUtils';
-import { ClassModel, Student, ClassStatus, ResourceFolder } from '../types';
+import { ClassModel, Student, ClassStatus } from '../types';
+import { useCourses, Course } from '../src/hooks/useCourses';
+import { useResourceFolders, ResourceFolder } from '../src/hooks/useResourceFolders';
 
-interface Course {
-  id: string;
-  name: string;
-  code: string;
-  level: string;
-  totalSessions: number;
-  teacherRatio: number;
-  assistantRatio: number;
-  curriculum: string;
-  resourceFolderId?: string;
-  resourceFolderName?: string;
-  pricePerSession: number;
-  originalPrice: number;
-  discount: number;
-  tuitionFee: number;
-  tuitionPerSession: number;
-  startDate: string;
-  endDate: string;
-  description?: string;
-  status: 'active' | 'inactive' | 'draft';
-  createdAt: string;
-  updatedAt?: string;
-}
+// Course interface is now imported from useCourses hook
 
 interface CourseFormData {
   name: string;
@@ -65,11 +43,6 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 export const CourseManager: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [classes, setClasses] = useState<ClassModel[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [resourceFolders, setResourceFolders] = useState<ResourceFolder[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -77,6 +50,30 @@ export const CourseManager: React.FC = () => {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
+  
+  // Use Supabase hooks
+  const { 
+    courses, 
+    loading, 
+    error: coursesError,
+    createCourse,
+    updateCourse,
+    deleteCourse: deleteCourseHook,
+    refresh: refreshCourses
+  } = useCourses({
+    level: filterLevel || undefined,
+    status: filterStatus || undefined,
+    search: searchTerm || undefined,
+  });
+  
+  const { 
+    folders: resourceFolders, 
+    loading: foldersLoading 
+  } = useResourceFolders();
+  
+  // TODO: Migrate classes and students to Supabase
+  const [classes, setClasses] = useState<ClassModel[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   
   const initialFormData: CourseFormData = {
     name: '', code: '', level: 'Beginner', totalSessions: 24,
@@ -86,36 +83,6 @@ export const CourseManager: React.FC = () => {
   };
   
   const [formData, setFormData] = useState<CourseFormData>(initialFormData);
-
-  useEffect(() => {
-    fetchData();
-    
-    const unsubClasses = onSnapshot(collection(db, 'classes'), (snapshot) => {
-      setClasses(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ClassModel[]);
-    });
-    
-    const unsubStudents = onSnapshot(collection(db, 'students'), (snapshot) => {
-      setStudents(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Student[]);
-    });
-    
-    const unsubFolders = onSnapshot(collection(db, 'resource_folders'), (snapshot) => {
-      setResourceFolders(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ResourceFolder[]);
-    });
-    
-    return () => { unsubClasses(); unsubStudents(); unsubFolders(); };
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const coursesSnap = await getDocs(collection(db, 'courses'));
-      setCourses(coursesSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Course[]);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Build folder tree for picker
   const buildFolderTree = (parentId?: string): ResourceFolder[] => {
@@ -194,7 +161,7 @@ export const CourseManager: React.FC = () => {
       const selectedFolder = resourceFolders.find(f => f.id === formData.resourceFolderId);
       const tuitionFee = calculateTuition(formData.totalSessions, formData.pricePerSession, formData.discount);
       
-      const courseData = {
+      const courseData: Partial<Course> = {
         name: formData.name,
         code: editingCourse ? formData.code : generateCourseCode(), // Auto generate for new
         level: formData.level,
@@ -202,8 +169,8 @@ export const CourseManager: React.FC = () => {
         teacherRatio: formData.teacherRatio,
         assistantRatio: formData.assistantRatio,
         curriculum: formData.curriculum,
-        resourceFolderId: formData.resourceFolderId || null,
-        resourceFolderName: selectedFolder?.name || null,
+        resourceFolderId: formData.resourceFolderId || undefined,
+        resourceFolderName: selectedFolder?.name || undefined,
         pricePerSession: formData.pricePerSession,
         originalPrice: formData.totalSessions * formData.pricePerSession,
         discount: formData.discount,
@@ -211,24 +178,23 @@ export const CourseManager: React.FC = () => {
         tuitionPerSession: Math.round(tuitionFee / formData.totalSessions),
         startDate: formData.startDate,
         endDate: formData.endDate,
-        description: formData.description,
+        description: formData.description || undefined,
         status: formData.status,
         updatedAt: new Date().toISOString(),
       };
 
       if (editingCourse) {
-        await updateDoc(doc(db, 'courses', editingCourse.id), courseData);
+        await updateCourse(editingCourse.id, courseData);
       } else {
-        await addDoc(collection(db, 'courses'), { ...courseData, createdAt: new Date().toISOString() });
+        await createCourse({ ...courseData, createdAt: new Date().toISOString() });
       }
       
       setShowModal(false);
       setEditingCourse(null);
       setFormData(initialFormData);
-      fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving course:', error);
-      alert('Lỗi lưu khóa học');
+      alert(error.message || 'Lỗi lưu khóa học');
     }
   };
 
@@ -240,11 +206,10 @@ export const CourseManager: React.FC = () => {
     }
     if (!confirm(`Xóa khóa học "${course.name}"?`)) return;
     try {
-      await deleteDoc(doc(db, 'courses', course.id));
-      fetchData();
-    } catch (error) {
+      await deleteCourseHook(course.id);
+    } catch (error: any) {
       console.error('Error deleting course:', error);
-      alert('Lỗi xóa khóa học');
+      alert(error.message || 'Lỗi xóa khóa học');
     }
   };
 

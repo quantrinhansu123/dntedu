@@ -42,13 +42,14 @@ import {
   Cell,
   Legend
 } from 'recharts';
-import { collection, getDocs, query, where, orderBy, limit, doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// import { collection, getDocs, query, where, orderBy, limit, doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
 import { formatCurrency } from '../src/utils/currencyUtils';
 import { getRevenueSummary, RevenueByCategory } from '../src/services/financialReportService';
 import { seedAllData, clearAllData } from '../scripts/seedAllData';
 import { useSalaryReport } from '../src/hooks/useSalaryReport';
-import { useProducts } from '../src/hooks/useProducts';
+// import { useProducts } from '../src/hooks/useProducts'; // Đã xóa cấu hình
 import { DashboardEnhancements } from '../components/DashboardEnhancements';
 
 // Warm Education Color Palette - Teal & Coral Theme
@@ -138,8 +139,9 @@ export const Dashboard: React.FC = () => {
   // Fetch salary report data
   const { summaries: salaryReportData } = useSalaryReport(statsMonth, statsYear);
 
-  // Fetch products data (realtime)
-  const { products: allProducts } = useProducts();
+  // Fetch products data (realtime) - Đã xóa cấu hình
+  // const { products: allProducts } = useProducts();
+  const allProducts: any[] = []; // Đã xóa cấu hình
 
   // State cho bảng sinh nhật
   const [birthdayFilter, setBirthdayFilter] = useState<'month' | 'week' | 'today'>('month');
@@ -154,20 +156,16 @@ export const Dashboard: React.FC = () => {
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [centerList, setCenterList] = useState<{ id: string; name: string }[]>([]);
 
-  // Fetch centers from Firestore
+  // Fetch centers from Supabase
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        const centersSnap = await getDocs(collection(db, 'centers'));
-        const centers = centersSnap.docs
-          .filter(d => d.data().status === 'Active')
-          .map(d => ({
-            id: d.id,
-            name: d.data().name || '',
-          }));
-        setCenterList(centers);
+        // Firebase đã được xóa - sử dụng Supabase thay thế
+        // TODO: Implement Supabase query
+        setCenterList([]);
       } catch (err) {
         console.error('Error fetching centers:', err);
+        setCenterList([]);
       }
     };
     fetchCenters();
@@ -239,62 +237,67 @@ export const Dashboard: React.FC = () => {
 
   // Load birthday gifts for current month/year
   useEffect(() => {
-    const thisYear = new Date().getFullYear();
-    const thisMonth = new Date().getMonth() + 1;
-
-    const unsubscribe = onSnapshot(
-      query(collection(db, 'birthdayGifts'), where('year', '==', thisYear), where('month', '==', thisMonth)),
-      (snapshot) => {
-        const gifts: Record<string, { giftPrepared: boolean; giftGiven: boolean }> = {};
-        snapshot.docs.forEach(doc => {
-          const data = doc.data();
-          gifts[data.studentId] = {
-            giftPrepared: data.giftPrepared || false,
-            giftGiven: data.giftGiven || false,
-          };
-        });
-        setBirthdayGifts(gifts);
-      }
-    );
-    return () => unsubscribe();
+    // Firebase đã được xóa - sử dụng Supabase thay thế
+    // TODO: Implement Supabase query for birthday gifts
+    // const thisYear = new Date().getFullYear();
+    // const thisMonth = new Date().getMonth() + 1;
+    // const { data, error } = await supabase
+    //   .from('birthday_gifts')
+    //   .select('*')
+    //   .eq('year', thisYear)
+    //   .eq('month', thisMonth);
+    // if (error) throw error;
+    // const gifts: Record<string, { giftPrepared: boolean; giftGiven: boolean }> = {};
+    // data.forEach(item => {
+    //   gifts[item.student_id] = {
+    //     giftPrepared: item.gift_prepared || false,
+    //     giftGiven: item.gift_given || false,
+    //   };
+    // });
+    // setBirthdayGifts(gifts);
+    
+    // Tạm thời set empty
+    setBirthdayGifts({});
   }, []);
 
   // Toggle gift status
   const toggleGiftStatus = async (studentId: string, studentName: string, field: 'giftPrepared' | 'giftGiven') => {
-    const thisYear = new Date().getFullYear();
-    const thisMonth = new Date().getMonth() + 1;
-    const docId = `${studentId}_${thisYear}_${thisMonth}`;
-    const docRef = doc(db, 'birthdayGifts', docId);
-
-    const currentStatus = birthdayGifts[studentId]?.[field] || false;
-    const newStatus = !currentStatus;
-
-    await setDoc(docRef, {
-      studentId,
-      studentName,
-      year: thisYear,
-      month: thisMonth,
-      [field]: newStatus,
-      [`${field === 'giftPrepared' ? 'preparedAt' : 'givenAt'}`]: newStatus ? new Date().toISOString() : null,
-    }, { merge: true });
+    // Firebase đã được xóa - sử dụng Supabase thay thế
+    // TODO: Implement Supabase update for birthday gifts
+    // const thisYear = new Date().getFullYear();
+    // const thisMonth = new Date().getMonth() + 1;
+    // const docId = `${studentId}_${thisYear}_${thisMonth}`;
+    // const { error } = await supabase
+    //   .from('birthday_gifts')
+    //   .upsert({
+    //     id: docId,
+    //     student_id: studentId,
+    //     year: thisYear,
+    //     month: thisMonth,
+    //     [field === 'giftPrepared' ? 'gift_prepared' : 'gift_given']: !currentStatus,
+    //   });
+    // if (error) throw error;
+    
+    // Firebase đã được xóa - không thể cập nhật
+    alert('Firebase đã được xóa. Vui lòng sử dụng Supabase service để cập nhật trạng thái quà sinh nhật.');
   };
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
 
-      // Fetch students
-      const studentsSnap = await getDocs(collection(db, 'students'));
-      const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as StudentData[];
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase queries
+      // const { data: studentsData } = await supabase.from('students').select('*');
+      // const { data: classesData } = await supabase.from('classes').select('*');
+      // const { data: contractsData } = await supabase.from('contracts').select('*');
+      
+      // Tạm thời sử dụng empty arrays
+      const students: StudentData[] = [];
+      const classes: any[] = [];
+      const contracts: any[] = [];
+      
       setAllStudents(students);
-
-      // Fetch classes
-      const classesSnap = await getDocs(collection(db, 'classes'));
-      const classes = classesSnap.docs.map(d => d.data());
-
-      // Fetch contracts for revenue
-      const contractsSnap = await getDocs(collection(db, 'contracts'));
-      const contracts = contractsSnap.docs.map(d => d.data());
 
       // Calculate stats
       const totalStudents = students.length;
@@ -365,28 +368,13 @@ export const Dashboard: React.FC = () => {
       // Products are now loaded via useProducts() hook with realtime updates
       // No need to fetch here - see allProducts from useProducts()
 
-      // Fetch staff for birthday and salary - real data from Firebase
-      const staffSnap = await getDocs(collection(db, 'staff'));
-      const staffList = staffSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      // Also get staff from staffSalaries if staff collection is empty
-      let allStaff = staffList;
-      if (staffList.length === 0) {
-        const staffSalariesSnap = await getDocs(collection(db, 'staffSalaries'));
-        const uniqueStaff = new Map();
-        staffSalariesSnap.docs.forEach(d => {
-          const data = d.data();
-          if (!uniqueStaff.has(data.staffId)) {
-            uniqueStaff.set(data.staffId, {
-              id: data.staffId,
-              name: data.staffName,
-              position: data.position,
-              birthDate: data.birthDate || data.dob,
-            });
-          }
-        });
-        allStaff = Array.from(uniqueStaff.values());
-      }
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase query for staff
+      // const { data: staffData } = await supabase.from('staff').select('*');
+      // const staffList = staffData || [];
+      
+      // Tạm thời sử dụng empty array
+      const allStaff: any[] = [];
 
       const now = new Date();
       const thisMonth = now.getMonth();
@@ -449,10 +437,14 @@ export const Dashboard: React.FC = () => {
         count: c.currentStudents || 0,
       }));
 
-      // Fetch work sessions for real salary calculation
-      const workSessionsSnap = await getDocs(collection(db, 'workSessions'));
-      const workSessions = workSessionsSnap.docs.map(d => d.data());
-      const confirmedSessions = workSessions.filter((ws: any) => ws.status === 'Đã xác nhận');
+      // Firebase đã được xóa - sử dụng Supabase thay thế
+      // TODO: Implement Supabase query for work sessions
+      // const { data: workSessionsData } = await supabase.from('work_sessions').select('*');
+      // const workSessions = workSessionsData || [];
+      
+      // Tạm thời sử dụng empty array
+      const workSessions: any[] = [];
+      const confirmedSessions: any[] = [];
 
       // Calculate salary by position from confirmed work sessions
       const salaryByPosition: { [key: string]: number } = {
@@ -517,11 +509,14 @@ export const Dashboard: React.FC = () => {
       // Tính điểm hài lòng từ feedback
       let diemHaiLong = 0;
       try {
-        const feedbackSnap = await getDocs(collection(db, 'feedbacks'));
-        if (feedbackSnap.size > 0) {
-          const totalRating = feedbackSnap.docs.reduce((sum, doc) => sum + (doc.data().rating || 0), 0);
-          diemHaiLong = Math.round((totalRating / feedbackSnap.size) * 20); // rating 1-5 -> 20-100%
-        }
+        // Firebase đã được xóa - sử dụng Supabase thay thế
+        // TODO: Implement Supabase query for feedbacks
+        // const { data: feedbacksData } = await supabase.from('feedbacks').select('*');
+        // if (feedbacksData && feedbacksData.length > 0) {
+        //   const totalRating = feedbacksData.reduce((sum, f) => sum + (f.rating || 0), 0);
+        //   diemHaiLong = Math.round((totalRating / feedbacksData.length) * 20);
+        // }
+        console.log('No feedback data - Firebase đã được xóa');
       } catch (err) {
         console.log('No feedback data');
       }

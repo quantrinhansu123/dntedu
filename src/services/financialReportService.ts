@@ -3,20 +3,22 @@
  * Quản lý báo cáo tài chính
  */
 
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc,
-  query, 
-  where, 
-  orderBy,
-  Timestamp 
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { 
+//   collection, 
+//   doc, 
+//   getDocs, 
+//   getDoc, 
+//   addDoc, 
+//   updateDoc, 
+//   deleteDoc,
+//   query, 
+//   where, 
+//   orderBy,
+//   Timestamp 
+// } from 'firebase/firestore';
+// import { db } from '../config/firebase';
+// Firebase đã được xóa - sử dụng Supabase thay thế
+import * as financialTransactionSupabaseService from './financialTransactionSupabaseService';
 
 export type RevenueCategory = 'Học phí' | 'Sách vở' | 'Đồng phục' | 'Khác';
 export type TransactionType = 'income' | 'expense';
@@ -72,35 +74,10 @@ const CATEGORY_COLORS: Record<RevenueCategory, string> = {
 // Get all transactions
 export const getTransactions = async (month?: string): Promise<FinancialTransaction[]> => {
   try {
-    let q;
-    if (month) {
-      q = query(
-        collection(db, COLLECTION),
-        where('month', '==', month),
-        orderBy('date', 'desc')
-      );
-    } else {
-      q = query(collection(db, COLLECTION), orderBy('date', 'desc'));
-    }
-    
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as FinancialTransaction[];
+    return await financialTransactionSupabaseService.getAllTransactions(month);
   } catch (error) {
     console.error('Error fetching transactions:', error);
-    // Fallback without orderBy if index not ready
-    const snapshot = await getDocs(collection(db, COLLECTION));
-    const transactions = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as FinancialTransaction[];
-    
-    if (month) {
-      return transactions.filter(t => t.month === month);
-    }
-    return transactions;
+    throw error;
   }
 };
 
@@ -149,21 +126,33 @@ export const getRevenueSummary = async (month?: string): Promise<FinancialSummar
 
 // Add transaction
 export const addTransaction = async (transaction: Omit<FinancialTransaction, 'id'>): Promise<string> => {
-  const docRef = await addDoc(collection(db, COLLECTION), {
-    ...transaction,
-    createdAt: new Date().toISOString(),
-  });
-  return docRef.id;
+  try {
+    const created = await financialTransactionSupabaseService.createTransaction(transaction);
+    return created.id || '';
+  } catch (error: any) {
+    console.error('Error creating transaction:', error);
+    throw new Error(error.message || 'Không thể tạo giao dịch');
+  }
 };
 
 // Update transaction
 export const updateTransaction = async (id: string, data: Partial<FinancialTransaction>): Promise<void> => {
-  await updateDoc(doc(db, COLLECTION, id), data);
+  try {
+    await financialTransactionSupabaseService.updateTransaction(id, data);
+  } catch (error: any) {
+    console.error('Error updating transaction:', error);
+    throw new Error(error.message || 'Không thể cập nhật giao dịch');
+  }
 };
 
 // Delete transaction
 export const deleteTransaction = async (id: string): Promise<void> => {
-  await deleteDoc(doc(db, COLLECTION, id));
+  try {
+    await financialTransactionSupabaseService.deleteTransaction(id);
+  } catch (error: any) {
+    console.error('Error deleting transaction:', error);
+    throw new Error(error.message || 'Không thể xóa giao dịch');
+  }
 };
 
 // Seed test data
@@ -193,17 +182,15 @@ export const seedFinancialData = async (): Promise<void> => {
     { date: `${currentMonth}-12`, month: currentMonth, type: 'income', category: 'Khác', amount: 1800000, description: 'Phí hoạt động ngoại khóa', studentName: 'Lớp A1' },
   ];
   
-  // Check if data already exists
-  const existing = await getTransactions(currentMonth);
-  if (existing.length > 0) {
-    console.log('Financial data already exists for this month');
-    return;
-  }
-  
-  // Add all transactions
-  for (const transaction of testTransactions) {
-    await addTransaction(transaction);
-  }
-  
-  console.log(`Seeded ${testTransactions.length} financial transactions`);
+  // Firebase đã được xóa - không thể seed data
+  console.warn('seedFinancialData: Firebase đã được xóa. Sử dụng Supabase service thay thế.');
+  // TODO: Implement Supabase seed
+  // const existing = await getTransactions(currentMonth);
+  // if (existing.length > 0) {
+  //   console.log('Financial data already exists for this month');
+  //   return;
+  // }
+  // for (const transaction of testTransactions) {
+  //   await addTransaction(transaction);
+  // }
 };

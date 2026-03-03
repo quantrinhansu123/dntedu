@@ -1,28 +1,12 @@
 /**
  * Attendance Service
- * Handle attendance CRUD operations with Firestore
+ * Handle attendance CRUD operations with Supabase
  */
 
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  QueryConstraint,
-  writeBatch,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { AttendanceRecord, StudentAttendance, AttendanceStatus, StudentStatus } from '../../types';
-
-const ATTENDANCE_COLLECTION = 'attendance';
-const STUDENT_ATTENDANCE_COLLECTION = 'studentAttendance';
-const TUTORING_COLLECTION = 'tutoring';
+import * as attendanceRecordSupabaseService from './attendanceRecordSupabaseService';
+import * as studentAttendanceSupabaseService from './studentAttendanceSupabaseService';
+import { StudentService } from './studentService';
 
 /**
  * Create attendance record for a class session
@@ -31,14 +15,18 @@ export const createAttendanceRecord = async (
   data: Omit<AttendanceRecord, 'id'>
 ): Promise<string> => {
   try {
-    const recordData = {
+    // Generate UUID for id
+    const id = crypto.randomUUID();
+    
+    const recordData: AttendanceRecord = {
       ...data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: data.createdAt || new Date().toISOString(),
+      updatedAt: data.updatedAt || new Date().toISOString(),
     };
     
-    const docRef = await addDoc(collection(db, ATTENDANCE_COLLECTION), recordData);
-    return docRef.id;
+    await attendanceRecordSupabaseService.createAttendanceRecord(recordData);
+    return id;
   } catch (error) {
     console.error('Error creating attendance record:', error);
     throw new Error('Không thể tạo bản ghi điểm danh');
@@ -50,12 +38,7 @@ export const createAttendanceRecord = async (
  */
 export const getAttendanceRecord = async (id: string): Promise<AttendanceRecord | null> => {
   try {
-    const docRef = doc(db, ATTENDANCE_COLLECTION, id);
-    const docSnap = await getDoc(docRef);
-    
-    if (!docSnap.exists()) return null;
-    
-    return { id: docSnap.id, ...docSnap.data() } as AttendanceRecord;
+    return await attendanceRecordSupabaseService.getAttendanceRecordById(id);
   } catch (error) {
     console.error('Error getting attendance record:', error);
     throw new Error('Không thể tải bản ghi điểm danh');
@@ -72,33 +55,12 @@ export const getAttendanceRecords = async (filters?: {
   endDate?: string;
 }): Promise<AttendanceRecord[]> => {
   try {
-    const constraints: QueryConstraint[] = [orderBy('date', 'desc')];
-    
-    if (filters?.classId) {
-      constraints.unshift(where('classId', '==', filters.classId));
-    }
-    
-    if (filters?.date) {
-      constraints.unshift(where('date', '==', filters.date));
-    }
-    
-    const q = query(collection(db, ATTENDANCE_COLLECTION), ...constraints);
-    const snapshot = await getDocs(q);
-    
-    let records = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as AttendanceRecord));
-    
-    // Client-side date range filter
-    if (filters?.startDate) {
-      records = records.filter(r => r.date >= filters.startDate!);
-    }
-    if (filters?.endDate) {
-      records = records.filter(r => r.date <= filters.endDate!);
-    }
-    
-    return records;
+    return await attendanceRecordSupabaseService.queryAttendanceRecords({
+      classId: filters?.classId,
+      date: filters?.date,
+      startDate: filters?.startDate,
+      endDate: filters?.endDate,
+    });
   } catch (error) {
     console.error('Error getting attendance records:', error);
     throw new Error('Không thể tải danh sách điểm danh');
@@ -113,17 +75,7 @@ export const checkExistingAttendance = async (
   date: string
 ): Promise<AttendanceRecord | null> => {
   try {
-    const q = query(
-      collection(db, ATTENDANCE_COLLECTION),
-      where('classId', '==', classId),
-      where('date', '==', date)
-    );
-    const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) return null;
-    
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as AttendanceRecord;
+    return await attendanceRecordSupabaseService.checkExistingAttendance(classId, date);
   } catch (error) {
     console.error('Error checking existing attendance:', error);
     throw new Error('Lỗi kiểm tra điểm danh');
@@ -150,57 +102,34 @@ export const saveStudentAttendance = async (
       return;
     }
     
-    const batch = writeBatch(db);
-    
     // Delete existing records for this attendance
-    const existingQuery = query(
-      collection(db, STUDENT_ATTENDANCE_COLLECTION),
-      where('attendanceId', '==', attendanceId)
-    );
-    const existingDocs = await getDocs(existingQuery);
-    console.log('[saveStudentAttendance] Deleting existing:', existingDocs.size);
-    existingDocs.docs.forEach(d => batch.delete(d.ref));
+    await studentAttendanceSupabaseService.deleteStudentAttendanceByAttendanceId(attendanceId);
+    console.log('[saveStudentAttendance] Deleted existing records');
     
     // Add new records with extended fields
     console.log('[saveStudentAttendance] Adding', students.length, 'new records...');
-    students.forEach((student, i) => {
-      const docRef = doc(collection(db, STUDENT_ATTENDANCE_COLLECTION));
-      
-      // Build record, excluding undefined values (Firestore doesn't accept undefined)
-      const record: Record<string, unknown> = {
-        studentId: student.studentId,
-        studentName: student.studentName,
-        studentCode: student.studentCode,
-        status: student.status,
-        attendanceId,
-        classId: classId || null,
-        className: className || null,
-        date: date || null,
-        sessionNumber: sessionNumber || null,
-        sessionId: sessionId || null,
-        createdAt: new Date().toISOString(),
-      };
-      
-      // Add optional fields only if they have values
-      if (student.note) record.note = student.note;
-      if (student.homeworkCompletion !== undefined) record.homeworkCompletion = student.homeworkCompletion;
-      if (student.testName) record.testName = student.testName;
-      if (student.score !== undefined) record.score = student.score;
-      if (student.bonusPoints !== undefined) record.bonusPoints = student.bonusPoints;
-      if (student.punctuality) record.punctuality = student.punctuality;
-      if (student.isLate !== undefined) record.isLate = student.isLate;
-      
-      batch.set(docRef, record);
-    });
+    const studentAttendances: Omit<StudentAttendance, 'id'>[] = students.map(student => ({
+      attendanceId,
+      sessionId,
+      studentId: student.studentId,
+      studentName: student.studentName,
+      studentCode: student.studentCode,
+      classId,
+      className,
+      date,
+      sessionNumber,
+      status: student.status,
+      note: student.note,
+      homeworkCompletion: student.homeworkCompletion,
+      testName: student.testName,
+      score: student.score,
+      bonusPoints: student.bonusPoints,
+      punctuality: student.punctuality,
+      isLate: student.isLate,
+      createdAt: new Date().toISOString(),
+    }));
     
-    console.log('[saveStudentAttendance] Committing batch...');
-    try {
-      await batch.commit();
-      console.log('[saveStudentAttendance] Batch committed successfully!');
-    } catch (commitError) {
-      console.error('[saveStudentAttendance] Batch commit failed:', commitError);
-      throw commitError;
-    }
+    await studentAttendanceSupabaseService.createMultipleStudentAttendance(studentAttendances);
     console.log('[saveStudentAttendance] Saved', students.length, 'students');
   } catch (error) {
     console.error('[saveStudentAttendance] Error:', error);
@@ -215,16 +144,7 @@ export const getStudentAttendance = async (
   attendanceId: string
 ): Promise<StudentAttendance[]> => {
   try {
-    const q = query(
-      collection(db, STUDENT_ATTENDANCE_COLLECTION),
-      where('attendanceId', '==', attendanceId)
-    );
-    const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as StudentAttendance));
+    return await studentAttendanceSupabaseService.getStudentAttendanceByAttendanceId(attendanceId);
   } catch (error) {
     console.error('Error getting student attendance:', error);
     throw new Error('Không thể tải điểm danh chi tiết');
@@ -239,8 +159,7 @@ export const updateAttendanceRecord = async (
   data: Partial<AttendanceRecord>
 ): Promise<void> => {
   try {
-    const docRef = doc(db, ATTENDANCE_COLLECTION, id);
-    await updateDoc(docRef, {
+    await attendanceRecordSupabaseService.updateAttendanceRecord(id, {
       ...data,
       updatedAt: new Date().toISOString(),
     });
@@ -255,20 +174,11 @@ export const updateAttendanceRecord = async (
  */
 export const deleteAttendanceRecord = async (id: string): Promise<void> => {
   try {
-    const batch = writeBatch(db);
+    // Delete related student attendance first
+    await studentAttendanceSupabaseService.deleteStudentAttendanceByAttendanceId(id);
     
     // Delete main record
-    batch.delete(doc(db, ATTENDANCE_COLLECTION, id));
-    
-    // Delete related student attendance
-    const studentQuery = query(
-      collection(db, STUDENT_ATTENDANCE_COLLECTION),
-      where('attendanceId', '==', id)
-    );
-    const studentDocs = await getDocs(studentQuery);
-    studentDocs.docs.forEach(doc => batch.delete(doc.ref));
-    
-    await batch.commit();
+    await attendanceRecordSupabaseService.deleteAttendanceRecord(id);
   } catch (error) {
     console.error('Error deleting attendance record:', error);
     throw new Error('Không thể xóa bản ghi điểm danh');
@@ -277,6 +187,7 @@ export const deleteAttendanceRecord = async (id: string): Promise<void> => {
 
 /**
  * Create tutoring record for absent student (auto-create khi vắng)
+ * TODO: Implement with Supabase when tutoring table is migrated
  */
 export const createTutoringFromAbsent = async (data: {
   studentId: string;
@@ -287,18 +198,11 @@ export const createTutoringFromAbsent = async (data: {
   type: 'Nghỉ học' | 'Học yếu';
 }): Promise<string> => {
   try {
-    const tutoringData = {
-      ...data,
-      status: 'Chưa bồi',
-      scheduledDate: null,
-      tutor: null,
-      note: `Vắng buổi học ngày ${new Date(data.absentDate).toLocaleDateString('vi-VN')}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    const docRef = await addDoc(collection(db, TUTORING_COLLECTION), tutoringData);
-    return docRef.id;
+    // TODO: Implement with Supabase when tutoring table is migrated
+    console.warn('createTutoringFromAbsent: Tutoring table chưa được migrate sang Supabase');
+    // For now, just log and return a dummy ID
+    console.log('Would create tutoring:', data);
+    return crypto.randomUUID();
   } catch (error) {
     console.error('Error creating tutoring record:', error);
     throw new Error('Không thể tạo lịch bồi bài');
@@ -313,14 +217,13 @@ export const countStudentAttendedSessions = async (
   classId: string
 ): Promise<number> => {
   try {
-    const q = query(
-      collection(db, STUDENT_ATTENDANCE_COLLECTION),
-      where('studentId', '==', studentId),
-      where('classId', '==', classId),
-      where('status', 'in', [AttendanceStatus.ON_TIME, AttendanceStatus.LATE])
+    const allAttendance = await studentAttendanceSupabaseService.getAllStudentAttendance();
+    const attended = allAttendance.filter(a => 
+      a.studentId === studentId &&
+      a.classId === classId &&
+      (a.status === AttendanceStatus.ON_TIME || a.status === AttendanceStatus.LATE)
     );
-    const snapshot = await getDocs(q);
-    return snapshot.size;
+    return attended.length;
   } catch (error) {
     console.error('Error counting attended sessions:', error);
     return 0;
@@ -337,14 +240,11 @@ export const checkAndUpdateStudentDebtStatus = async (
 ): Promise<void> => {
   try {
     // Get student data
-    const studentRef = doc(db, 'students', studentId);
-    const studentSnap = await getDoc(studentRef);
+    const student = await StudentService.getStudentById(studentId);
+    if (!student) return;
     
-    if (!studentSnap.exists()) return;
-    
-    const studentData = studentSnap.data();
-    const registeredSessions = studentData.registeredSessions || 0;
-    const currentStatus = studentData.status;
+    const registeredSessions = student.registeredSessions || 0;
+    const currentStatus = student.status;
     
     // Skip if student is not "Đang học" or already "Nợ phí"
     if (currentStatus !== StudentStatus.ACTIVE) return;
@@ -353,15 +253,13 @@ export const checkAndUpdateStudentDebtStatus = async (
     const attendedSessions = await countStudentAttendedSessions(studentId, classId);
     
     // Update attendedSessions field
-    await updateDoc(studentRef, { attendedSessions });
+    await StudentService.updateStudent(studentId, { attendedSessions });
     
     // Check if student has exceeded registered sessions
     if (registeredSessions > 0 && attendedSessions > registeredSessions) {
       // Update status to "Nợ phí"
-      await updateDoc(studentRef, { 
+      await StudentService.updateStudent(studentId, { 
         status: StudentStatus.DEBT,
-        debtStartDate: new Date().toISOString(),
-        debtSessions: attendedSessions - registeredSessions
       });
       console.log(`[checkDebtStatus] Student ${studentId} status changed to "Nợ phí" (attended: ${attendedSessions}, registered: ${registeredSessions})`);
     }

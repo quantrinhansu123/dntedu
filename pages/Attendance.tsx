@@ -16,8 +16,7 @@ import { usePermissions } from '../src/hooks/usePermissions';
 import { useSessions } from '../src/hooks/useSessions';
 import { ClassSession } from '../src/services/sessionService';
 import { formatSchedule } from '../src/utils/scheduleUtils';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
 import { useHolidays } from '../src/hooks/useHolidays';
 import { Holiday } from '../types';
 
@@ -489,14 +488,15 @@ export const Attendance: React.FC = () => {
       console.log('[Review] Classes with schedule on', reviewDate, ':', activeClasses.map(c => c.name));
       
       // Step 2: Get existing sessions for this date
-      const sessionsSnap = await getDocs(
-        query(collection(db, 'classSessions'), where('date', '==', reviewDate))
-      );
+      // TODO: Migrate to Supabase when classSessions table is migrated
       const existingSessions = new Map<string, any>();
-      sessionsSnap.docs.forEach(doc => {
-        const data = doc.data();
-        existingSessions.set(data.classId, { id: doc.id, ...data });
-      });
+      // const sessionsSnap = await getDocs(
+      //   query(collection(db, 'classSessions'), where('date', '==', reviewDate))
+      // );
+      // sessionsSnap.docs.forEach(doc => {
+      //   const data = doc.data();
+      //   existingSessions.set(data.classId, { id: doc.id, ...data });
+      // });
       
       console.log('[Review] Existing sessions in DB:', existingSessions.size);
       
@@ -535,24 +535,35 @@ export const Attendance: React.FC = () => {
         }
         
         // Get attendance records - check by sessionId OR by classId+date
+        // TODO: Migrate to Supabase when classSessions table is migrated
         let markedStudentIds = new Set<string>();
         
-        if (existingSession) {
-          const attendanceSnap = await getDocs(
-            query(collection(db, 'studentAttendance'), where('sessionId', '==', existingSession.id))
-          );
-          attendanceSnap.docs.forEach(doc => markedStudentIds.add(doc.data().studentId));
+        // Use Supabase service to get student attendance
+        try {
+          const { getStudentAttendanceBySessionId } = await import('../src/services/studentAttendanceSupabaseService');
+          const { queryAttendanceRecords } = await import('../src/services/attendanceRecordSupabaseService');
+          
+          if (existingSession) {
+            const attendance = await getStudentAttendanceBySessionId(existingSession.id);
+            attendance.forEach(a => markedStudentIds.add(a.studentId));
+          }
+          
+          // Also check by classId + date (for records without sessionId)
+          const attendanceRecords = await queryAttendanceRecords({
+            classId: classInfo.id,
+            date: reviewDate,
+          });
+          
+          if (attendanceRecords.length > 0) {
+            const { getStudentAttendanceByAttendanceId } = await import('../src/services/studentAttendanceSupabaseService');
+            for (const record of attendanceRecords) {
+              const studentAttendance = await getStudentAttendanceByAttendanceId(record.id);
+              studentAttendance.forEach(a => markedStudentIds.add(a.studentId));
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching student attendance:', err);
         }
-        
-        // Also check by classId + date (for records without sessionId)
-        const attendanceByDateSnap = await getDocs(
-          query(
-            collection(db, 'studentAttendance'), 
-            where('classId', '==', classInfo.id),
-            where('date', '==', reviewDate)
-          )
-        );
-        attendanceByDateSnap.docs.forEach(doc => markedStudentIds.add(doc.data().studentId));
         
         console.log('[Review] Class:', classInfo.name, '- Students:', studentsInClass.length, '- Marked:', markedStudentIds.size, '- HasSession:', !!existingSession);
         
@@ -624,40 +635,70 @@ export const Attendance: React.FC = () => {
       let actualSessionId = student.sessionId;
       
       // If sessionId is temporary (starts with temp_), create a real session first
+      // TODO: Migrate to Supabase when classSessions table is migrated
       if (student.sessionId.startsWith('temp_')) {
-        const classInfo = allClasses.find(c => c.id === student.classId);
-        const sessionDoc = await addDoc(collection(db, 'classSessions'), {
-          classId: student.classId,
-          className: student.className,
-          date: student.sessionDate,
-          sessionNumber: 0, // Will be updated by Cloud Function or manually
-          status: 'Chưa học',
-          dayOfWeek: new Date(student.sessionDate).toLocaleDateString('vi-VN', { weekday: 'long' }),
-          time: classInfo?.time || '',
-          room: classInfo?.room || '',
-          createdAt: new Date().toISOString(),
-          createdBy: staffData?.name || 'Lễ tân',
-          note: 'Tạo tự động từ Rà soát điểm danh'
-        });
-        actualSessionId = sessionDoc.id;
-        console.log('[Review] Created new session:', actualSessionId);
+        console.warn('[Review] Cannot create session - classSessions table chưa được migrate sang Supabase');
+        // const classInfo = allClasses.find(c => c.id === student.classId);
+        // const sessionDoc = await addDoc(collection(db, 'classSessions'), {
+        //   classId: student.classId,
+        //   className: student.className,
+        //   date: student.sessionDate,
+        //   sessionNumber: 0,
+        //   status: 'Chưa học',
+        //   dayOfWeek: new Date(student.sessionDate).toLocaleDateString('vi-VN', { weekday: 'long' }),
+        //   time: classInfo?.time || '',
+        //   room: classInfo?.room || '',
+        //   createdAt: new Date().toISOString(),
+        //   createdBy: staffData?.name || 'Lễ tân',
+        //   note: 'Tạo tự động từ Rà soát điểm danh'
+        // });
+        // actualSessionId = sessionDoc.id;
+        // console.log('[Review] Created new session:', actualSessionId);
       }
       
-      await addDoc(collection(db, 'studentAttendance'), {
-        sessionId: actualSessionId,
-        classId: student.classId,
-        className: student.className,
-        studentId: student.studentId,
-        studentName: student.studentName,
-        date: student.sessionDate,
-        sessionNumber: student.sessionNumber,
-        status: isLate ? 'Đi trễ' : 'Vắng',
-        note: confirmDialog.reason || (isLate ? 'Đến trễ - Rà soát điểm danh' : 'Nghỉ học - Rà soát điểm danh'),
-        checkedAt: new Date().toISOString(),
-        checkedBy: staffData?.name || 'Lễ tân',
-        isReviewed: true,
-        reviewedAt: new Date().toISOString()
-      });
+      // Find or create attendance record
+      const { checkExistingAttendance, createAttendanceRecord } = await import('../src/services/attendanceService');
+      const { createStudentAttendance } = await import('../src/services/studentAttendanceSupabaseService');
+      const studentData = allStudents.find(s => s.id === student.studentId);
+      
+      let attendanceRecord = await checkExistingAttendance(student.classId, student.sessionDate);
+      if (!attendanceRecord) {
+        // Create new attendance record
+        const classInfo = allClasses.find(c => c.id === student.classId);
+        const attendanceId = await createAttendanceRecord({
+          classId: student.classId,
+          className: classInfo?.name || student.className,
+          date: student.sessionDate,
+          sessionNumber: student.sessionNumber || null,
+          sessionId: actualSessionId || null,
+          totalStudents: 0,
+          present: 0,
+          absent: 0,
+          reserved: 0,
+          tutored: 0,
+          status: 'Chưa điểm danh',
+          createdBy: user?.uid || null,
+        });
+        attendanceRecord = await checkExistingAttendance(student.classId, student.sessionDate);
+      }
+      
+      if (attendanceRecord) {
+        await createStudentAttendance({
+          id: crypto.randomUUID(),
+          attendanceId: attendanceRecord.id,
+          sessionId: actualSessionId || undefined,
+          classId: student.classId,
+          className: student.className,
+          studentId: student.studentId,
+          studentName: student.studentName,
+          studentCode: studentData?.code || '',
+          date: student.sessionDate,
+          sessionNumber: student.sessionNumber,
+          status: isLate ? AttendanceStatus.LATE : AttendanceStatus.ABSENT,
+          note: confirmDialog.reason || (isLate ? 'Đến trễ - Rà soát điểm danh' : 'Nghỉ học - Rà soát điểm danh'),
+          createdAt: new Date().toISOString(),
+        });
+      }
       
       // Remove from list
       setSessionsWithUnmarked(prev => prev.map(session => {

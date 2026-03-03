@@ -3,8 +3,8 @@
  * Tự động tạo công dựa theo TKB và lịch nghỉ
  */
 
-import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { collection, getDocs, addDoc, query, where } from 'firebase/ // Firebase đã được xóafirestore';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 import { ClassModel } from '../../types';
 
 interface GeneratedWorkSession {

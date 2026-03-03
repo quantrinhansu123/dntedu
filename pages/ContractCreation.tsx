@@ -16,8 +16,8 @@ import {
 import { useAuth } from '../src/hooks/useAuth';
 import { useStudents } from '../src/hooks/useStudents';
 import { useContracts } from '../src/hooks/useContracts';
-import { useCurriculums } from '../src/hooks/useCurriculums';
-import { useProducts } from '../src/hooks/useProducts';
+// import { useCurriculums } from '../src/hooks/useCurriculums'; // Đã xóa cấu hình
+// import { useProducts } from '../src/hooks/useProducts'; // Đã xóa cấu hình
 import { useClasses } from '../src/hooks/useClasses';
 import {
   formatCurrency,
@@ -239,8 +239,10 @@ export const ContractCreation: React.FC = () => {
   const { user } = useAuth();
   const { students } = useStudents();
   const { createContract } = useContracts();
-  const { curriculums } = useCurriculums({ status: 'Active' });
-  const { products } = useProducts({ status: 'Kích hoạt' });
+  // const { curriculums } = useCurriculums({ status: 'Active' }); // Đã xóa cấu hình
+  // const { products } = useProducts({ status: 'Kích hoạt' }); // Đã xóa cấu hình
+  const curriculums: any[] = []; // Đã xóa cấu hình
+  const products: any[] = []; // Đã xóa cấu hình
   const { classes } = useClasses();
 
   // Get studentId from navigation state (from TrialStudents page)

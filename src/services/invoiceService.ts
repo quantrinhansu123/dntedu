@@ -13,7 +13,7 @@ import {
   query,
   orderBy,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const INVOICES_COLLECTION = 'invoices';
 

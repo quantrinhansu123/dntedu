@@ -15,7 +15,7 @@ import {
   orderBy,
   writeBatch,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+// import { db } from '../config/firebase' // Firebase đã được xóa;
 
 const LEADS_COLLECTION = 'leads';
 

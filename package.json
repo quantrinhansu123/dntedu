@@ -10,11 +10,17 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "setup:admin": "node scripts/create-admin-staff.js"
+    "setup:admin": "node scripts/create-admin-staff.js",
+    "sync:classes": "tsx scripts/syncClassesToSupabase.ts",
+    "sync:staff": "tsx scripts/syncStaffToSupabase.ts",
+    "test:staff-insert": "tsx scripts/testStaffInsert.ts",
+    "clear:supabase": "tsx scripts/clearSupabaseTables.ts",
+    "migrate:all": "tsx scripts/runAllMigrations.ts",
+    "check:views": "tsx scripts/checkViews.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
     "dotenv": "^17.2.3",
-    "firebase": "^12.6.0",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -29,9 +35,8 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-react": "^5.0.0",
-    "firebase-admin": "^13.6.0",
-    "firebase-tools": "^14.26.0",
     "jsdom": "^27.2.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.2.6",
     "vitest": "^4.0.15"
