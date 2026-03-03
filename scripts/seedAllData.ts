@@ -18,8 +18,7 @@
  */
 
 // Firebase removed - using Supabase
-// import { collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
-// import { db } from '../src/config/firebase';
+// All Firebase imports and code have been removed
 
 // Helper functions
 const getCurrentMonth = () => {
