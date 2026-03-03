@@ -11,8 +11,9 @@ import {
     FolderOpen, Video, Link2, Image, Music, ExternalLink, Eye
 } from 'lucide-react';
 import { StudentAuthService, StudentSession } from '../src/services/studentAuthService';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, query, where, getDocs } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { useStudentSurveys } from '../src/hooks/useSurvey';
 import { SurveyService } from '../src/services/surveyService';
 import { SurveyAssignment, SurveyTemplate, SurveyQuestion } from '../src/types/surveyTypes';

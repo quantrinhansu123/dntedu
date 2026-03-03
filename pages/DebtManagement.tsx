@@ -12,8 +12,9 @@ import { AlertTriangle, Clock, CreditCard, Phone, Calendar, ChevronDown, Chevron
 import { useStudents } from '../src/hooks/useStudents';
 import { useClasses } from '../src/hooks/useClasses';
 import { formatCurrency } from '../src/utils/currencyUtils';
-import { doc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { doc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 
 const SESSIONS_WARNING_THRESHOLD = 6; // Cảnh báo khi còn <= 6 buổi
 

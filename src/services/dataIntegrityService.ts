@@ -3,17 +3,18 @@
  * Handles cascading updates, validation, and consistency checks
  */
 
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  writeBatch,
-} from 'firebase/firestore';
+// Firebase imports removed - using Supabase
+// import {
+//   collection,
+//   doc,
+//   getDocs,
+//   getDoc,
+//   updateDoc,
+//   deleteDoc,
+//   query,
+//   where,
+//   writeBatch,
+// } from 'firebase/firestore';
 // import { db } from '../config/firebase' // Firebase đã được xóa;
 
 // ============================================

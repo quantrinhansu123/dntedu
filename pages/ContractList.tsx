@@ -82,69 +82,70 @@ export const ContractList: React.FC = () => {
         : Math.floor(totalSessions * (newPaidAmount / totalAmount));
       
       // Update student and create enrollment record
-      if (selectedContract.studentId) {
-        const { doc, updateDoc, getDoc } = await import('firebase/firestore');
-        const { db } = await import('../src/config/firebase');
-        const studentRef = doc(db, 'students', selectedContract.studentId);
-        const studentSnap = await getDoc(studentRef);
-        
-        if (studentSnap.exists()) {
-          const studentData = studentSnap.data();
-          const oldPaidSessions = Math.floor(totalSessions * (currentPaid / totalAmount));
-          const sessionDiff = newPaidSessions - oldPaidSessions;
-          
-          const updateData: Record<string, any> = {
-            registeredSessions: (studentData.registeredSessions || 0) + sessionDiff,
-          };
-          
-          // Check for other debt contracts of this student
-          const { collection, getDocs, query, where } = await import('firebase/firestore');
-          const otherDebtQuery = query(
-            collection(db, 'contracts'),
-            where('studentId', '==', selectedContract.studentId),
-            where('status', '==', 'Nợ hợp đồng')
-          );
-          const otherDebtSnap = await getDocs(otherDebtQuery);
-          
-          // Calculate total debt from ALL debt contracts (excluding current if it's now PAID)
-          let totalDebt = 0;
-          otherDebtSnap.docs.forEach(d => {
-            if (d.id !== selectedContract.id) {
-              totalDebt += (d.data().remainingAmount || 0);
-            }
-          });
-          
-          // Add current contract's remaining if still PARTIAL
-          if (newStatus === ContractStatus.PARTIAL) {
-            totalDebt += newRemainingAmount;
-          }
-          
-          if (totalDebt > 0) {
-            updateData.contractDebt = totalDebt;
-            updateData.status = 'Nợ hợp đồng';
-          } else {
-            updateData.contractDebt = 0;
-            updateData.status = 'Đang học';
-          }
-          
-          await updateDoc(studentRef, updateData);
-          
-          // Create enrollment record for additional payment
-          if (sessionDiff > 0) {
-            await createEnrollment({
-              studentId: selectedContract.studentId,
-              studentName: selectedContract.studentName || '',
-              sessions: sessionDiff,
-              type: 'Thanh toán thêm',
-              contractCode: selectedContract.code || '',
-              finalAmount: paymentAmount,
-              createdDate: new Date().toLocaleDateString('vi-VN'),
-              createdBy: user?.displayName || user?.email || 'Unknown',
-              note: `Thanh toán thêm HĐ ${selectedContract.code} - ${formatCurrency(paymentAmount)} (${sessionDiff} buổi)`,
-            });
-          }
-        }
-      }
+      // Firebase đã được xóa - cần migrate sang Supabase
+      // if (selectedContract.studentId) {
+      //   const { doc, updateDoc, getDoc } = await import('firebase/firestore');
+      //   const { db } = await import('../src/config/firebase');
+      //   const studentRef = doc(db, 'students', selectedContract.studentId);
+      //   const studentSnap = await getDoc(studentRef);
+      //   
+      //   if (studentSnap.exists()) {
+      //     const studentData = studentSnap.data();
+      //     const oldPaidSessions = Math.floor(totalSessions * (currentPaid / totalAmount));
+      //     const sessionDiff = newPaidSessions - oldPaidSessions;
+      //     
+      //     const updateData: Record<string, any> = {
+      //       registeredSessions: (studentData.registeredSessions || 0) + sessionDiff,
+      //     };
+      //     
+      //     // Check for other debt contracts of this student
+      //     const { collection, getDocs, query, where } = await import('firebase/firestore');
+      //     const otherDebtQuery = query(
+      //       collection(db, 'contracts'),
+      //       where('studentId', '==', selectedContract.studentId),
+      //       where('status', '==', 'Nợ hợp đồng')
+      //     );
+      //     const otherDebtSnap = await getDocs(otherDebtQuery);
+      //     
+      //     // Calculate total debt from ALL debt contracts (excluding current if it's now PAID)
+      //     let totalDebt = 0;
+      //     otherDebtSnap.docs.forEach(d => {
+      //       if (d.id !== selectedContract.id) {
+      //         totalDebt += (d.data().remainingAmount || 0);
+      //       }
+      //     });
+      //     
+      //     // Add current contract's remaining if still PARTIAL
+      //     if (newStatus === ContractStatus.PARTIAL) {
+      //       totalDebt += newRemainingAmount;
+      //     }
+      //     
+      //     if (totalDebt > 0) {
+      //       updateData.contractDebt = totalDebt;
+      //       updateData.status = 'Nợ hợp đồng';
+      //     } else {
+      //       updateData.contractDebt = 0;
+      //       updateData.status = 'Đang học';
+      //     }
+      //     
+      //     await updateDoc(studentRef, updateData);
+      //     
+      //     // Create enrollment record for additional payment
+      //     if (sessionDiff > 0) {
+      //       await createEnrollment({
+      //         studentId: selectedContract.studentId,
+      //         studentName: selectedContract.studentName || '',
+      //         sessions: sessionDiff,
+      //         type: 'Thanh toán thêm',
+      //         contractCode: selectedContract.code || '',
+      //         finalAmount: paymentAmount,
+      //         createdDate: new Date().toLocaleDateString('vi-VN'),
+      //         createdBy: user?.displayName || user?.email || 'Unknown',
+      //         note: `Thanh toán thêm HĐ ${selectedContract.code} - ${formatCurrency(paymentAmount)} (${sessionDiff} buổi)`,
+      //       });
+      //     }
+      //   }
+      // }
       
       setShowPaymentModal(false);
       setSelectedContract(null);

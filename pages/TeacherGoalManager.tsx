@@ -8,8 +8,9 @@ import {
   Target, Plus, Edit, Trash2, X, Search, Filter, TrendingUp, Award,
   Users, Calendar, BarChart3, CheckCircle, AlertCircle
 } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, getDocs } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { Staff, TeacherGoal, TeacherPerformance } from '../types';
 import * as teacherReportService from '../src/services/teacherReportService';
 

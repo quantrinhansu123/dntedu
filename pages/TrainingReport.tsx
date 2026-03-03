@@ -5,8 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Users, BookOpen, Calendar, TrendingUp, Clock, Award } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, getDocs } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { formatCurrency } from '../src/utils/currencyUtils';
 
 interface TrainingSummary {

@@ -6,8 +6,9 @@ import { useClasses } from '../src/hooks/useClasses';
 import { useStaff } from '../src/hooks/useStaff';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { formatSchedule } from '../src/utils/scheduleUtils';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 
 // Extended student type for trial students
 interface TrialStudent extends Student {

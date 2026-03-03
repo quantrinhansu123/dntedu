@@ -8,8 +8,9 @@ import {
   Users, BookOpen, Clock, TrendingUp, Award, FileText, Search, Filter,
   Download, RefreshCw, Edit, Save, X, ChevronDown, BarChart3
 } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, getDocs } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { Staff, ClassModel, Student, AttendanceRecord, StudentAttendance, TeacherDetailReport as TeacherReport } from '../types';
 import * as teacherReportService from '../src/services/teacherReportService';
 

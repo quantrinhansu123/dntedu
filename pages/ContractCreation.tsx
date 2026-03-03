@@ -24,8 +24,9 @@ import {
   numberToWords,
   calculateDiscount
 } from '../src/utils/currencyUtils';
-import { db } from '../src/config/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+// Firebase imports removed - using Supabase
+// import { db } from '../src/config/firebase';
+// import { doc, updateDoc } from 'firebase/firestore';
 
 // Contract Preview Component
 interface ContractPreviewProps {
@@ -518,18 +519,19 @@ export const ContractCreation: React.FC = () => {
       // Trigger will check if enrollment already exists before creating
 
       // Directly update student for PARTIAL payment (sync with DebtManagement)
-      if (status === ContractStatus.PARTIAL && selectedStudent?.id) {
-        try {
-          await updateDoc(doc(db, 'students', selectedStudent.id), {
-            status: 'Nợ hợp đồng',
-            contractDebt: remainingAmount,
-            nextPaymentDate: nextPaymentDate || null,
-          });
-          console.log('Updated student debt info directly');
-        } catch (err) {
-          console.error('Error updating student debt:', err);
-        }
-      }
+      // Firebase đã được xóa - cần migrate sang Supabase
+      // if (status === ContractStatus.PARTIAL && selectedStudent?.id) {
+      //   try {
+      //     await updateDoc(doc(db, 'students', selectedStudent.id), {
+      //       status: 'Nợ hợp đồng',
+      //       contractDebt: remainingAmount,
+      //       nextPaymentDate: nextPaymentDate || null,
+      //     });
+      //     console.log('Updated student debt info directly');
+      //   } catch (err) {
+      //     console.error('Error updating student debt:', err);
+      //   }
+      // }
 
       if (status === ContractStatus.PAID || status === ContractStatus.PARTIAL) {
         // Show preview for paid/partial contracts

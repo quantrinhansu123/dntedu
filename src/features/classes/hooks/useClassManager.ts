@@ -4,8 +4,9 @@
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-// import { collection, onSnapshot } from 'firebase/ // Firebase đã được xóafirestore';
-import { db } from '../../../config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, onSnapshot } from 'firebase/firestore';
+// import { db } from '../../../config/firebase';
 import { useClasses } from '../../../hooks/useClasses';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { useAuth } from '../../../hooks/useAuth';

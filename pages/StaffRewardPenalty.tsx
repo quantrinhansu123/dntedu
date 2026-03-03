@@ -6,8 +6,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Gift, AlertTriangle, Settings, Plus, Trash2, X, DollarSign, Clock, User, Calendar, FileText, ChevronDown } from 'lucide-react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { useStaff } from '../src/hooks/useStaff';
 import { formatCurrency } from '../src/utils/currencyUtils';
 

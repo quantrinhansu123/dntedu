@@ -8,8 +8,9 @@ import {
   ListTodo, Plus, Edit, Trash2, X, Search, Filter, Clock, CheckCircle,
   AlertCircle, Users, Calendar, BarChart3, ChevronDown, Save
 } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, getDocs } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { Staff, TeacherTask, TaskStatus, TaskPriority } from '../types';
 import * as teacherReportService from '../src/services/teacherReportService';
 

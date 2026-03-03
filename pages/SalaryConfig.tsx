@@ -12,8 +12,9 @@ import {
   RangeType 
 } from '../src/services/salaryConfigService';
 import { formatCurrency } from '../src/utils/currencyUtils';
-import { collection, getDocs, query, where, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, getDocs, query, where, doc, setDoc, deleteDoc } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 
 interface StaffOption {
   id: string;

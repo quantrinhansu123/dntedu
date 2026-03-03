@@ -12,8 +12,9 @@ import { useStaff } from '../src/hooks/useStaff';
 import { Lead, LeadStatus, LeadSource } from '../src/services/leadService';
 import { Campaign } from '../src/services/campaignService';
 import { Staff } from '../types';
-import { db } from '../src/config/firebase';
-import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
+// Firebase imports removed - using Supabase
+// import { db } from '../src/config/firebase';
+// import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Default status colors
 const DEFAULT_STATUS_COLORS: Record<string, string> = {

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Save, Search, Calculator, DollarSign, TrendingUp, Filter } from 'lucide-react';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { useStaff } from '../src/hooks/useStaff';
 import { Staff } from '../types';
 import { formatCurrency } from '../src/utils/currencyUtils';

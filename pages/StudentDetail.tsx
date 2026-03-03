@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, User, Phone, Mail, MapPin, Calendar, BookOpen, DollarSign, Clock, MessageSquare, FileText, X, GraduationCap, CheckCircle2, CalendarCheck, Circle, TrendingUp, AlertTriangle, History, CreditCard, AlertCircle, BadgeDollarSign } from 'lucide-react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, query, where, getDocs } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { useClasses } from '../src/hooks/useClasses';
 import { useStudents } from '../src/hooks/useStudents';
 import { useFeedback } from '../src/hooks/useFeedback';

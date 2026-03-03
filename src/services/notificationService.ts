@@ -168,10 +168,12 @@ export const getStudentNotifications = async (
  */
 export const markAsRead = async (notificationId: string): Promise<void> => {
   try {
-    const { doc: docRef, updateDoc } = await import('firebase/firestore');
-    await updateDoc(docRef(db, NOTIFICATIONS_COLLECTION, notificationId), {
-      isRead: true,
-    });
+    // Firebase đã được xóa - cần migrate sang Supabase
+    // const { doc: docRef, updateDoc } = await import('firebase/firestore');
+    // await updateDoc(docRef(db, NOTIFICATIONS_COLLECTION, notificationId), {
+    //   isRead: true,
+    // });
+    console.warn('markAsRead: Firebase đã được xóa. Cần migrate sang Supabase.');
   } catch (error) {
     console.error('Error marking notification as read:', error);
   }

@@ -5,8 +5,9 @@ import { useStudents } from '../src/hooks/useStudents';
 import { useAuth } from '../src/hooks/useAuth';
 import { usePermissions } from '../src/hooks/usePermissions';
 import { useHolidays } from '../src/hooks/useHolidays';
-import { collection, addDoc, updateDoc, doc, getDocs, query, where, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { collection, addDoc, updateDoc, doc, getDocs, query, where, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 import { ClassModel, Student } from '../types';
 
 // Default homework statuses with colors

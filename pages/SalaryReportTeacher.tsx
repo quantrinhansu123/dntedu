@@ -8,8 +8,9 @@ import React, { useState, useEffect } from 'react';
 import { Info, DollarSign, Users, X, Edit2, Save, Check } from 'lucide-react';
 import { useSalaryReport } from '../src/hooks/useSalaryReport';
 import { formatCurrency } from '../src/utils/currencyUtils';
-import { doc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+// Firebase imports removed - using Supabase
+// import { doc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
+// import { db } from '../src/config/firebase';
 
 interface ActualSalary {
   staffId: string;
