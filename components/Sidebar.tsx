@@ -94,6 +94,7 @@ const menuItems: MenuItem[] = [
       { id: 'courses', label: 'Khóa học', path: '/admin/training/courses', icon: ChevronRight },
       { id: 'academic-hub', label: 'Vận hành Đào tạo', path: '/admin/training/hub', icon: ChevronRight },
       { id: 'resources', label: 'Thư viện tài nguyên', path: '/admin/training/resources', icon: ChevronRight },
+      { id: 'centers', label: 'Quản lý Cơ sở', path: '/admin/training/centers', icon: ChevronRight },
     ]
   },
   {

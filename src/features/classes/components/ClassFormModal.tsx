@@ -11,6 +11,7 @@ import { CLASS_COLOR_PALETTE, hashClassName } from '@/pages/Schedule';
 import { useStaff } from '@/src/hooks/useStaff';
 import { useCourses } from '@/src/hooks/useCourses';
 import { useClasses } from '@/src/hooks/useClasses';
+import { useCenters } from '@/src/hooks/useCenters';
 import * as classSupabaseService from '@/src/services/classSupabaseService';
 
 export interface ClassFormModalProps {
@@ -67,7 +68,7 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
   });
 
   const [scheduleDetailsByDay, setScheduleDetailsByDay] = useState<Record<string, DayScheduleConfig>>(initScheduleDetails);
-  const [useDetailedSchedule, setUseDetailedSchedule] = useState(!!classData?.scheduleDetails?.length);
+  const [useDetailedSchedule, setUseDetailedSchedule] = useState(true); // Luôn bật lịch riêng
 
   // Fetch actual session count for existing classes without totalSessions
   // TODO: Implement with Supabase when sessions table is migrated
@@ -90,7 +91,14 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
   }, [allStaff]);
   
   // const [roomList, setRoomList] = useState<{ id: string; name: string }[]>([]); // Đã xóa quản lý phòng học
-  const [centerList, setCenterList] = useState<{ id: string; name: string }[]>([]);
+  const { centers } = useCenters();
+  
+  // Get active centers for dropdown
+  const centerList = useMemo(() => {
+    return centers
+      .filter(c => c.status === 'Hoạt động')
+      .map(c => ({ id: c.id, name: c.name }));
+  }, [centers]);
 
   // Curriculum autocomplete state
   const [curriculumList, setCurriculumList] = useState<string[]>([]);
@@ -270,10 +278,7 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
       // Staff is now fetched from Supabase via useStaff hook above
       // Courses are now fetched from Supabase via useCourses hook above
       // Classes are now fetched from Supabase via useClasses hook above
-      
-      // TODO: Migrate centers to Supabase
-      // For now, set empty list
-      setCenterList([]);
+      // Centers are now fetched from Supabase via useCenters hook above
     };
     fetchDropdownData();
   }, []);
@@ -418,7 +423,7 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
 
     setScheduleDetailsByDay(prev => {
       const newDetails = { ...prev };
-      formData.scheduleDays.forEach(day => {
+      Object.keys(prev).forEach(day => {
         if (day !== sourceDay) {
           newDetails[day] = {
             ...source,
@@ -479,15 +484,16 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let schedule = formData.schedule;
-    if (formData.scheduleStartTime && formData.scheduleEndTime && formData.scheduleDays.length > 0) {
-      const daysStr = formData.scheduleDays.map(d => d === 'CN' ? 'Chủ nhật' : `Thứ ${d}`).join(', ');
-      schedule = `${formData.scheduleStartTime}-${formData.scheduleEndTime} ${daysStr}`;
+    // Chỉ dùng scheduleDetails, không dùng schedule nữa
+    const scheduleDetailsArray: DayScheduleConfig[] = Object.values(scheduleDetailsByDay).filter(Boolean);
+    
+    // Tạo schedule string từ scheduleDetails để tương thích với code cũ
+    let schedule = '';
+    if (scheduleDetailsArray.length > 0) {
+      const firstDay = scheduleDetailsArray[0];
+      const daysStr = scheduleDetailsArray.map(d => d.dayLabel).join(', ');
+      schedule = `${firstDay.startTime}-${firstDay.endTime} ${daysStr}`;
     }
-
-    const scheduleDetailsArray: DayScheduleConfig[] = useDetailedSchedule
-      ? formData.scheduleDays.map(day => scheduleDetailsByDay[day]).filter(Boolean)
-      : [];
 
     const submitData: any = {
       name: formData.name,
@@ -659,75 +665,10 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
               </select>
             </div>
 
-            {/* Lịch học */}
+            {/* Lịch học - Chỉ dùng lịch riêng từng ngày */}
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Lịch học</label>
-              <div className="grid grid-cols-2 gap-3 mb-2">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Giờ bắt đầu</label>
-                  <select
-                    value={formData.scheduleStartTime}
-                    onChange={(e) => setFormData({ ...formData, scheduleStartTime: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm"
-                  >
-                    <option value="">-- Chọn --</option>
-                    {timeOptions.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Giờ kết thúc</label>
-                  <select
-                    value={formData.scheduleEndTime}
-                    onChange={(e) => setFormData({ ...formData, scheduleEndTime: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm"
-                  >
-                    <option value="">-- Chọn --</option>
-                    {timeOptions.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Ngày học</label>
-                <div className="flex flex-wrap gap-2">
-                  {daysOptions.map(day => (
-                    <button
-                      key={day.value}
-                      type="button"
-                      onClick={() => toggleDay(day.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                        formData.scheduleDays.includes(day.value)
-                          ? 'bg-green-500 text-white border-green-500'
-                          : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
-                      }`}
-                    >
-                      {day.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {formData.scheduleDays.length > 0 && (
-                <p className="mt-2 text-xs text-green-600 font-medium">
-                  {useDetailedSchedule ? (
-                    <span>
-                      Lịch: {formData.scheduleDays.map(d => {
-                        const dayConfig = scheduleDetailsByDay[d];
-                        const startTime = dayConfig?.startTime || formData.scheduleStartTime || '';
-                        const endTime = dayConfig?.endTime || formData.scheduleEndTime || '';
-                        const dayLabel = d === 'CN' ? 'Chủ nhật' : `Thứ ${d}`;
-                        return startTime && endTime ? `${dayLabel} (${startTime}-${endTime})` : dayLabel;
-                      }).join(', ')}
-                    </span>
-                  ) : (
-                    formData.scheduleStartTime && formData.scheduleEndTime ? (
-                      <span>Lịch: {formData.scheduleStartTime}-{formData.scheduleEndTime} {formData.scheduleDays.map(d => d === 'CN' ? 'Chủ nhật' : `Thứ ${d}`).join(', ')}</span>
-                    ) : null
-                  )}
-                </p>
-              )}
+              <label className="block text-sm font-medium text-gray-700 mb-1">Lịch học (Cấu hình riêng từng ngày)</label>
+              <p className="text-xs text-gray-500 mb-3">Vui lòng cấu hình lịch học riêng cho từng ngày bên dưới</p>
             </div>
 
             {/* Teacher allocation section */}
@@ -805,25 +746,69 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {formData.scheduleDays.length === 0 ? (
-                    <p className="text-xs text-orange-500 italic">Vui lòng chọn ngày học ở trên trước</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-gray-500">Cấu hình lịch học cho từng ngày</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newDay = prompt('Nhập ngày (2-7 cho Thứ 2-7, hoặc CN cho Chủ nhật):');
+                        if (newDay && (newDay === 'CN' || (parseInt(newDay) >= 2 && parseInt(newDay) <= 7))) {
+                          const day = newDay === 'CN' ? 'CN' : newDay;
+                          if (!scheduleDetailsByDay[day]) {
+                            setScheduleDetailsByDay(prev => ({
+                              ...prev,
+                              [day]: {
+                                dayOfWeek: day,
+                                dayLabel: getDayLabel(day),
+                                startTime: '18:00',
+                                endTime: '19:30',
+                                room: formData.room || '',
+                                teacher: formData.teacher || '',
+                                teacherDuration: formData.teacherDuration || 90,
+                                assistant: formData.assistant || '',
+                                assistantDuration: formData.assistantDuration || 0,
+                                foreignTeacher: formData.foreignTeacher || '',
+                                foreignTeacherDuration: formData.foreignTeacherDuration || 0,
+                              }
+                            }));
+                          }
+                        }
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 border border-blue-300 rounded hover:bg-blue-50"
+                    >
+                      + Thêm ngày
+                    </button>
+                  </div>
+                  {Object.keys(scheduleDetailsByDay).length === 0 ? (
+                    <p className="text-xs text-orange-500 italic">Nhấn "+ Thêm ngày" để thêm ngày học</p>
                   ) : (
                     <>
-                      <p className="text-xs text-gray-500">Cấu hình giáo viên cho từng ngày học</p>
-                      {formData.scheduleDays.map((day, idx) => {
-                        const dayConfig = scheduleDetailsByDay[day] || {
-                          dayOfWeek: day, dayLabel: getDayLabel(day), startTime: formData.scheduleStartTime, endTime: formData.scheduleEndTime,
-                          room: '', teacher: '', teacherDuration: 0, assistant: '', assistantDuration: 0, foreignTeacher: '', foreignTeacherDuration: 0,
-                        };
+                      {Object.keys(scheduleDetailsByDay).map((day, idx) => {
+                        const dayConfig = scheduleDetailsByDay[day];
                         return (
                           <div key={day} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-sm font-semibold text-gray-800">
                                 {getDayLabel(day)}
                               </span>
-                              {idx === 0 && formData.scheduleDays.length > 1 && (
-                                <button type="button" onClick={() => copyToAllDays(day)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Áp dụng cho tất cả</button>
-                              )}
+                              <div className="flex gap-2">
+                                {idx === 0 && Object.keys(scheduleDetailsByDay).length > 1 && (
+                                  <button type="button" onClick={() => copyToAllDays(day)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Áp dụng cho tất cả</button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setScheduleDetailsByDay(prev => {
+                                      const newDetails = { ...prev };
+                                      delete newDetails[day];
+                                      return newDetails;
+                                    });
+                                  }}
+                                  className="text-xs text-red-600 hover:text-red-700 font-medium"
+                                >
+                                  Xóa
+                                </button>
+                              </div>
                             </div>
                             
                             {/* Giờ học cho từng ngày */}
@@ -831,7 +816,7 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                               <div>
                                 <label className="block text-xs text-gray-600 mb-1">Giờ bắt đầu</label>
                                 <select
-                                  value={dayConfig.startTime || formData.scheduleStartTime || ''}
+                                  value={dayConfig.startTime || ''}
                                   onChange={(e) => updateDaySchedule(day, 'startTime', e.target.value)}
                                   className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-green-500"
                                 >
@@ -844,7 +829,7 @@ export const ClassFormModal: React.FC<ClassFormModalProps> = ({ classData, onClo
                               <div>
                                 <label className="block text-xs text-gray-600 mb-1">Giờ kết thúc</label>
                                 <select
-                                  value={dayConfig.endTime || formData.scheduleEndTime || ''}
+                                  value={dayConfig.endTime || ''}
                                   onChange={(e) => updateDaySchedule(day, 'endTime', e.target.value)}
                                   className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-green-500"
                                 >

@@ -335,11 +335,22 @@ export const DailyWorkReportPage: React.FC = () => {
   };
 
   const handleToggleTask = (taskId: string) => {
-    setSelectedTaskIds(prev => 
-      prev.includes(taskId)
-        ? prev.filter(id => id !== taskId)
-        : [...prev, taskId]
-    );
+    const isSelected = selectedTaskIds.includes(taskId);
+    const task = workTasks.find(wt => wt.id === taskId);
+    
+    if (isSelected) {
+      // Bỏ chọn: xóa khỏi selectedTaskIds và xóa khỏi tasks
+      setSelectedTaskIds(prev => prev.filter(id => id !== taskId));
+      if (task) {
+        setTasks(prev => prev.filter(t => t !== task.taskName));
+      }
+    } else {
+      // Chọn: thêm vào selectedTaskIds và thêm vào tasks
+      setSelectedTaskIds(prev => [...prev, taskId]);
+      if (task && !tasks.includes(task.taskName)) {
+        setTasks(prev => [...prev, task.taskName]);
+      }
+    }
   };
 
   const handleSubmit = async () => {
@@ -734,34 +745,64 @@ export const DailyWorkReportPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Danh sách công việc đã hoàn thành {workTasks.length > 0 && '(hoặc thêm công việc khác)'}
+                  Danh sách công việc đã hoàn thành
+                  {workTasks.length > 0 && (
+                    <span className="text-xs font-normal text-gray-500 ml-2">
+                      (Tự động từ công việc đã chọn ở trên, hoặc thêm công việc khác)
+                    </span>
+                  )}
                 </label>
                 <div className="space-y-2">
-                  {tasks.map((task, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input
-                        type="text"
-                        value={task}
-                        onChange={(e) => handleTaskChange(index, e.target.value)}
-                        placeholder={`Công việc ${index + 1}...`}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                      {tasks.length > 1 && (
-                        <button
-                          onClick={() => handleRemoveTask(index)}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                  {tasks.map((task, index) => {
+                    // Kiểm tra xem task này có phải từ work_tasks không
+                    const isFromWorkTasks = workTasks.some(wt => wt.taskName === task);
+                    const taskInfo = workTasks.find(wt => wt.taskName === task);
+                    
+                    return (
+                      <div key={index} className="flex gap-2 items-center">
+                        {isFromWorkTasks && (
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                            {taskInfo?.category || 'Công việc'}
+                          </span>
+                        )}
+                        <input
+                          type="text"
+                          value={task}
+                          onChange={(e) => handleTaskChange(index, e.target.value)}
+                          placeholder={`Công việc ${index + 1}...`}
+                          className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                            isFromWorkTasks ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                          }`}
+                          readOnly={isFromWorkTasks}
+                        />
+                        {tasks.length > 1 && (
+                          <button
+                            onClick={() => {
+                              // Nếu là task từ work_tasks, cũng bỏ chọn checkbox
+                              if (isFromWorkTasks && taskInfo) {
+                                setSelectedTaskIds(prev => prev.filter(id => id !== taskInfo.id));
+                              }
+                              handleRemoveTask(index);
+                            }}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {tasks.length === 0 && (
+                    <p className="text-sm text-gray-500 italic">
+                      Chọn công việc từ danh sách "Công việc đã setup" ở trên, hoặc thêm công việc khác bên dưới
+                    </p>
+                  )}
                   <button
                     onClick={handleAddTask}
                     className="flex items-center gap-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg text-sm font-medium"
                   >
                     <Plus className="w-4 h-4" />
-                    Thêm công việc khác
+                    Thêm công việc khác (không có trong setup)
                   </button>
                 </div>
               </div>

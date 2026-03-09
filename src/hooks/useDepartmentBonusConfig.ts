@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-// ;
+import * as bonusConfigService from '../services/departmentBonusConfigService';
 import { DepartmentBonusConfig, DepartmentCode, DEPARTMENT_LABELS, KpiBonusLevel } from '../../types';
 
 // Default bonus levels template
@@ -32,10 +32,7 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
             setError(null);
 
             // Fetch all configs and filter client-side to avoid composite index requirement
-            let data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as DepartmentBonusConfig[];
+            let data = await bonusConfigService.getAllBonusConfigs();
 
             // Apply filter client-side
             if (options?.departmentCode) {
@@ -44,7 +41,8 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
 
             // Sort by createdAt descending
             data.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-
+            
+            setConfigs(data);
         } catch (err: any) {
             console.error('Error fetching bonus configs:', err);
             setError(err.message || 'Không thể tải cấu hình thưởng');
@@ -63,11 +61,10 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
             const configData = {
                 ...data,
                 departmentName: DEPARTMENT_LABELS[data.departmentCode],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
             };
+            const id = await bonusConfigService.createBonusConfig(configData);
             await fetchConfigs();
-            return newDoc.id;
+            return id;
         } catch (err: any) {
             console.error('Error creating config:', err);
             throw new Error(err.message || 'Không thể tạo cấu hình');
@@ -78,7 +75,6 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
         try {
             const updateData: any = {
                 ...data,
-                updatedAt: new Date().toISOString()
             };
 
             // Update department name if code changed
@@ -86,6 +82,7 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
                 updateData.departmentName = DEPARTMENT_LABELS[data.departmentCode];
             }
 
+            await bonusConfigService.updateBonusConfig(id, updateData);
             await fetchConfigs();
         } catch (err: any) {
             console.error('Error updating config:', err);
@@ -95,6 +92,7 @@ export const useDepartmentBonusConfig = (options?: UseDepartmentBonusConfigOptio
 
     const deleteConfig = async (id: string) => {
         try {
+            await bonusConfigService.deleteBonusConfig(id);
             await fetchConfigs();
         } catch (err: any) {
             console.error('Error deleting config:', err);

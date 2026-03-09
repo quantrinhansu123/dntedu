@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Calendar, CheckSquare, Coffee, BookOpen, Clock } from 'lucide-react';
+import { Calendar, CheckSquare, Coffee, BookOpen, Clock, Building2 } from 'lucide-react';
 import { Schedule } from './Schedule';
 import { Attendance } from './Attendance';
 import { HolidayManager } from './HolidayManager';
 import { TutoringManager } from './TutoringManager';
 import { HomeworkManager } from './HomeworkManager';
+import { CenterManager } from './CenterManager';
 
 export const AcademicHub: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'schedule' | 'attendance' | 'holidays' | 'tutoring' | 'homework'>('schedule');
+    const [activeTab, setActiveTab] = useState<'schedule' | 'attendance' | 'holidays' | 'tutoring' | 'homework' | 'centers'>('schedule');
 
     const tabs = [
         { id: 'schedule', label: 'Thời khóa biểu', icon: Calendar },
@@ -15,6 +16,7 @@ export const AcademicHub: React.FC = () => {
         { id: 'holidays', label: 'Lịch nghỉ', icon: Coffee },
         { id: 'tutoring', label: 'Lịch bồi', icon: Clock },
         { id: 'homework', label: 'Bài tập', icon: BookOpen },
+        { id: 'centers', label: 'Cơ sở', icon: Building2 },
     ];
 
     return (
@@ -45,6 +47,7 @@ export const AcademicHub: React.FC = () => {
                 {activeTab === 'holidays' && <HolidayManager />}
                 {activeTab === 'tutoring' && <TutoringManager />}
                 {activeTab === 'homework' && <HomeworkManager />}
+                {activeTab === 'centers' && <CenterManager />}
             </div>
         </div>
     );

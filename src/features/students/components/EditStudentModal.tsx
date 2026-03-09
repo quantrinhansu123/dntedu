@@ -5,7 +5,8 @@
  */
 
 import React, { useState } from 'react';
-import { Student, StudentStatus, Center } from '@/types';
+import { Student, StudentStatus } from '@/types';
+import type { Center } from '@/src/services/centerService';
 
 export interface EditStudentModalProps {
   student: Student;

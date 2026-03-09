@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStudents } from '../src/hooks/useStudents';
 import { useParents } from '../src/hooks/useParents';
 import { useClasses } from '../src/hooks/useClasses';
+import { useCenters } from '../src/hooks/useCenters';
 import { usePermissions } from '../src/hooks/usePermissions';
 import { useAuth } from '../src/hooks/useAuth';
 import { getFeedbacks, FeedbackRecord } from '../src/services/feedbackService';
@@ -42,7 +43,6 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const [filterStatus, setFilterStatus] = useState<StudentStatus | 'ALL'>(initialStatusFilter || 'ALL');
   const [filterClass, setFilterClass] = useState<string>('ALL');
   const [filterBranch, setFilterBranch] = useState<string>('ALL');
-  const [centers, setCenters] = useState<{ id: string; name: string }[]>([]);
   const [birthdayMonth, setBirthdayMonth] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -127,17 +127,12 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const { classes } = useClasses({});
 
   // Fetch centers for branch filter
-  useEffect(() => {
-    const fetchCenters = async () => {
-      try {
-        // const data = await getCenters(); // Đã xóa cấu hình
-        setCenters([]); // Đã xóa cấu hình
-      } catch (err) {
-        console.error('Error fetching centers:', err);
-      }
-    };
-    fetchCenters();
-  }, []);
+  const { centers: allCenters } = useCenters();
+  const centers = useMemo(() => {
+    return allCenters
+      .filter(c => c.status === 'Hoạt động')
+      .map(c => ({ id: c.id, name: c.name }));
+  }, [allCenters]);
 
   // Fetch feedbacks when selectedStudent changes
   useEffect(() => {

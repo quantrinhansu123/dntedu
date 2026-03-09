@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, Search, Edit, Trash2, Home, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { Room } from '../types';
 import { useRooms } from '../src/hooks/useRooms';
+import { useCenters } from '../src/hooks/useCenters';
 
 interface RoomFormData {
   name: string;
@@ -24,15 +25,16 @@ export const RoomManager: React.FC = () => {
     branch: '',
     notes: '',
   });
-  const [branchList, setBranchList] = useState<string[]>([]);
-
   const { rooms, loading, createRoom, updateRoom, deleteRoom } = useRooms();
+  const { centers, loading: centersLoading } = useCenters();
 
-  // Extract unique branches from rooms
-  React.useEffect(() => {
-    const branches = Array.from(new Set(rooms.map(r => r.branch).filter(Boolean) as string[]));
-    setBranchList(branches);
-  }, [rooms]);
+  // Get center names for dropdown
+  const centerNames = useMemo(() => {
+    return centers
+      .filter(c => c.status === 'Hoạt động')
+      .map(c => c.name)
+      .sort();
+  }, [centers]);
 
   // Filter rooms based on search
   const filteredRooms = useMemo(() => {
@@ -317,19 +319,19 @@ export const RoomManager: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Cơ sở
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.branch}
                       onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                      list="branch-list"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="Nhập tên cơ sở"
-                    />
-                    <datalist id="branch-list">
-                      {branchList.map((branch) => (
-                        <option key={branch} value={branch} />
+                    >
+                      <option value="">-- Chọn cơ sở --</option>
+                      {centerNames.map((name) => (
+                        <option key={name} value={name}>{name}</option>
                       ))}
-                    </datalist>
+                    </select>
+                    {centersLoading && (
+                      <p className="text-xs text-gray-500 mt-1">Đang tải danh sách cơ sở...</p>
+                    )}
                   </div>
                 </div>
 

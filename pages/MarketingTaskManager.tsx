@@ -133,7 +133,7 @@ export const MarketingTaskManager: React.FC = () => {
                     </select>
                     <select value={filterAssignee} onChange={e => setFilterAssignee(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                         <option value="">Tất cả nhân viên</option>
-                        {staff.filter(s => s.position === 'Sale' || s.department === 'Kinh doanh').map(s => (
+                        {staff.map(s => (
                             <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                     </select>
@@ -308,21 +308,22 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, staff, campaigns, onClose, 
     });
     const [loading, setLoading] = useState(false);
 
-    const marketingStaff = staff.filter(s => s.position === 'Sale' || s.department === 'Kinh doanh' || s.role === 'Sale');
-
     const handleAssigneeChange = (staffId: string, checked: boolean) => {
+        // Ensure staffId is valid and not empty
+        if (!staffId || staffId.trim() === '') return;
+        
         const staffMember = staff.find(s => s.id === staffId);
         if (checked) {
             setFormData({
                 ...formData,
-                assignedTo: [...formData.assignedTo, staffId],
-                assignedToNames: [...formData.assignedToNames, staffMember?.name || ''],
+                assignedTo: [...formData.assignedTo.filter(id => id !== staffId), staffId], // Avoid duplicates
+                assignedToNames: [...formData.assignedToNames.filter(name => name !== staffMember?.name), staffMember?.name || ''],
             });
         } else {
             const idx = formData.assignedTo.indexOf(staffId);
             setFormData({
                 ...formData,
-                assignedTo: formData.assignedTo.filter(id => id !== staffId),
+                assignedTo: formData.assignedTo.filter(id => id !== staffId && id.trim() !== ''),
                 assignedToNames: formData.assignedToNames.filter((_, i) => i !== idx),
             });
         }
@@ -363,9 +364,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, staff, campaigns, onClose, 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Người phụ trách <span className="text-red-500">*</span></label>
                         <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2">
-                            {marketingStaff.length === 0 ? (
-                                <p className="text-sm text-gray-400">Chưa có nhân viên Sale/Marketing</p>
-                            ) : marketingStaff.map(s => (
+                            {staff.length === 0 ? (
+                                <p className="text-sm text-gray-400">Chưa có nhân sự</p>
+                            ) : staff.map(s => (
                                 <label key={s.id} className="flex items-center gap-2 cursor-pointer">
                                     <input type="checkbox" checked={formData.assignedTo.includes(s.id || '')} onChange={e => handleAssigneeChange(s.id || '', e.target.checked)}
                                         className="rounded border-gray-300 text-indigo-600" />

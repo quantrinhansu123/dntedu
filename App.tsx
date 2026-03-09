@@ -18,6 +18,7 @@ const FinanceHub = lazy(() => import('./pages/FinanceHub').then(m => ({ default:
 const ReportHub = lazy(() => import('./pages/ReportHub').then(m => ({ default: m.ReportHub })));
 // const ConfigurationHub = lazy(() => import('./pages/ConfigurationHub').then(m => ({ default: m.ConfigurationHub }))); // Đã xóa cấu hình
 const RoomManager = lazy(() => import('./pages/RoomManager').then(m => ({ default: m.RoomManager })));
+const CenterManager = lazy(() => import('./pages/CenterManager').then(m => ({ default: m.CenterManager })));
 
 const StudentManager = lazy(() => import('./pages/StudentManager').then(m => ({ default: m.StudentManager })));
 const TrialStudents = lazy(() => import('./pages/TrialStudents').then(m => ({ default: m.TrialStudents })));
@@ -164,6 +165,7 @@ const App: React.FC = () => {
                 <Route path="/training/classes" element={<ClassManager />} />
                 <Route path="/training/courses" element={<CourseManager />} />
                 <Route path="/training/resources" element={<ResourceLibrary />} />
+                <Route path="/training/centers" element={<CenterManager />} />
                 <Route path="/training/schedule" element={<Schedule />} />
                 <Route path="/training/holidays" element={<HolidayManager />} />
                 <Route path="/training/attendance" element={<Attendance />} />

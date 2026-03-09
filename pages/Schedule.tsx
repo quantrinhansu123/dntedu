@@ -7,6 +7,7 @@ import { useAuth } from '../src/hooks/useAuth';
 import { useHolidays } from '../src/hooks/useHolidays';
 // import { useRooms } from '../src/hooks/useRooms'; // Đã xóa quản lý phòng học
 import { useStaff } from '../src/hooks/useStaff';
+import { useCenters } from '../src/hooks/useCenters';
 import { ClassModel, Student, Holiday } from '../types';
 // ;
 import { getScheduleTime, getScheduleDays, formatSchedule } from '../src/utils/scheduleUtils';
@@ -93,6 +94,7 @@ export const Schedule: React.FC = () => {
   // const { rooms } = useRooms(); // Đã xóa quản lý phòng học
   const rooms: any[] = []; // Tạm thời empty array
   const { staff } = useStaff();
+  const { centers: allCenters } = useCenters();
 
   // Get active holidays (applied)
   const activeHolidays = useMemo(() => {
@@ -260,29 +262,20 @@ export const Schedule: React.FC = () => {
     return filtered;
   }, [allClasses, onlyOwnClasses, staffData, staffId, filterTeacher, filterAssistant, selectedBranch]); // filterRoom đã xóa
 
-  // Fetch centers from Supabase
+  // Fetch centers from Supabase using useCenters hook
   useEffect(() => {
-    const fetchCenters = async () => {
-      try {
-        // TODO: Implement Supabase query
-        // const { data, error } = await supabase
-        //   .from('centers')
-        //   .select('id, name')
-        //   .eq('status', 'Active');
-        // if (data) {
-        //   setCenterList(data);
-        //   if (data.length > 0 && !selectedBranch) {
-        //     setSelectedBranch(data[0].name);
-        //   }
-        // }
-        setCenterList([]);
-      } catch (err) {
-        console.error('Error fetching centers:', err);
-        setCenterList([]);
-      }
-    };
-    fetchCenters();
-  }, []);
+    // Filter only active centers
+    const activeCenters = allCenters
+      .filter(c => c.status === 'Hoạt động')
+      .map(c => ({ id: c.id, name: c.name }));
+    
+    setCenterList(activeCenters);
+    
+    // Auto-select first center if none selected
+    if (activeCenters.length > 0 && !selectedBranch) {
+      setSelectedBranch(activeCenters[0].name);
+    }
+  }, [allCenters, selectedBranch]);
 
   const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
   const branchColors = ['bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-pink-500'];
@@ -315,7 +308,7 @@ export const Schedule: React.FC = () => {
   };
 
   // Parse days from schedule string (e.g., "18:00-19:00 Thứ 2, 4" -> [2, 4])
-  // Supports: "15:00-16:30 Thứ 3, Thứ 5", "08:00-09:30 Thứ 2, 4, 6", "Chủ nhật"
+  // Supports: "15:00-16:30 Thứ 3, Thứ 5", "08:00-09:30 Thứ 2, 4, 6", "Chủ nhật", "CN", "T2, T4, T6"
   // Thứ 7 = 7, Chủ nhật = 8
   const parseDaysFromSchedule = (schedule: string): number[] => {
     if (!schedule) return [];
@@ -323,8 +316,17 @@ export const Schedule: React.FC = () => {
     const days: number[] = [];
     
     // Handle "Chủ nhật" or "CN" -> 8 (Sunday)
-    if (/ch[uủ]\s*nh[aậ]t/i.test(schedule)) {
+    if (/ch[uủ]\s*nh[aậ]t/i.test(schedule) || /\bCN\b/i.test(schedule)) {
       days.push(8);
+    }
+    
+    // Find "T2", "T3", etc. patterns
+    const tMatches = schedule.matchAll(/\bT(\d)\b/gi);
+    for (const match of tMatches) {
+      const dayNum = parseInt(match[1]);
+      if (dayNum >= 2 && dayNum <= 7 && !days.includes(dayNum)) {
+        days.push(dayNum);
+      }
     }
     
     // Find all "Thứ X" patterns (2-7 for Mon-Sat)
@@ -394,17 +396,44 @@ export const Schedule: React.FC = () => {
       });
     });
 
+    // Debug: log classes and their schedules
+    if (classes.length > 0) {
+      console.log('[Schedule] Total classes:', classes.length);
+      classes.slice(0, 3).forEach(cls => {
+        console.log(`[Schedule] Class: ${cls.name}, Schedule: "${cls.schedule}", Status: ${cls.status}`);
+      });
+    } else {
+      console.log('[Schedule] No classes found');
+    }
+
     days.forEach(day => {
       const dayNumber = dayNameToNumber[day];
+      if (!dayNumber) {
+        console.warn(`[Schedule] Unknown day: ${day}`);
+        return;
+      }
+      
       classes.forEach(cls => {
         // Skip ended/inactive classes
         const status = (cls.status || '').toLowerCase();
         if (status === 'ended' || status === 'kết thúc' || status === 'inactive' || status === 'đã kết thúc') {
           return;
         }
-        const scheduleDays = parseDaysFromSchedule(cls.schedule || '');
+        
+        const scheduleStr = cls.schedule || '';
+        if (!scheduleStr) {
+          return; // Skip classes without schedule
+        }
+        
+        const scheduleDays = parseDaysFromSchedule(scheduleStr);
+        if (scheduleDays.length === 0) {
+          // Debug: log if schedule couldn't be parsed
+          console.warn(`[Schedule] Could not parse schedule for class "${cls.name}": "${scheduleStr}"`);
+          return;
+        }
+        
         if (scheduleDays.includes(dayNumber)) {
-          const period = getTimePeriod(cls.schedule || '');
+          const period = getTimePeriod(scheduleStr);
           result[period][day].push(cls);
         }
       });

@@ -6,7 +6,8 @@
 
 import React, { useState } from 'react';
 import { UserPlus } from 'lucide-react';
-import { Student, StudentStatus, Parent, ClassModel, Center } from '@/types';
+import { Student, StudentStatus, Parent, ClassModel } from '@/types';
+import type { Center } from '@/src/services/centerService';
 
 export interface CreateStudentModalProps {
   parents: Array<Parent & { children: Student[] }>;

@@ -4,6 +4,7 @@ import { Staff, StaffRole, Candidate, StaffContract, ContractType, ContractStatu
 import { useStaff } from '../src/hooks/useStaff';
 import { useCandidate } from '../src/hooks/useCandidate';
 import { useStaffContract } from '../src/hooks/useStaffContract';
+import { useCenters } from '../src/hooks/useCenters';
 
 import { ImportExportButtons } from '../components/ImportExportButtons';
 import { StaffFormModal } from '../components/StaffFormModal';
@@ -45,27 +46,15 @@ export const StaffManager: React.FC = () => {
   const { contracts, loading: contractsLoading, createContract, updateContract, deleteContract } = useStaffContract();
 
 
-  // Fetch centers from Firestore
+  // Fetch centers from Supabase
+  const { centers } = useCenters();
+  
   useEffect(() => {
-    const fetchCenters = async () => {
-      try {
-        // TODO: Implement Supabase query for centers
-        // const { data, error } = await supabase
-        //   .from('centers')
-        //   .select('id, name')
-        //   .eq('status', 'Active');
-        // if (data) {
-        //   setCenterList(data);
-        // }
-        // Tạm thời sử dụng empty array
-        setCenterList([]);
-      } catch (err) {
-        console.error('Error fetching centers:', err);
-        setCenterList([]);
-      }
-    };
-    fetchCenters();
-  }, []);
+    const activeCenters = centers
+      .filter(c => c.status === 'Hoạt động')
+      .map(c => ({ id: c.id, name: c.name }));
+    setCenterList(activeCenters);
+  }, [centers]);
 
   // Form state
   const [formData, setFormData] = useState({
