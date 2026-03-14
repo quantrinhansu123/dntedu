@@ -34,31 +34,23 @@ export const useLeads = (props?: UseLeadsProps): UseLeadsReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Realtime listener
-  useEffect(() => {
+  // Fetch leads on mount and after mutations
+  const fetchLeads = async () => {
     setLoading(true);
     setError(null);
+    try {
+      const data = await leadService.getLeads();
+      setAllLeads(data);
+      setLoading(false);
+    } catch (err: any) {
+      console.error('Error fetching leads:', err);
+      setError(err.message || 'Không thể tải danh sách khách hàng');
+      setLoading(false);
+    }
+  };
 
-    const fetchLeads = async () => {
-      try {
-        // TODO: Implement Supabase query
-        // const { data } = await supabase
-        //   .from('leads')
-        //   .select('*')
-        //   .order('created_at', { ascending: false });
-        
-        const data: Lead[] = []; // data || [];
-        setAllLeads(data);
-        setLoading(false);
-      } catch (err: any) {
-        console.error('Error listening to leads:', err);
-        setError(err.message || 'Không thể tải danh sách khách hàng');
-        setLoading(false);
-      }
-    };
-    
+  useEffect(() => {
     fetchLeads();
-
   }, []);
 
   // Filter leads based on props
@@ -85,23 +77,29 @@ export const useLeads = (props?: UseLeadsProps): UseLeadsReturn => {
   }, [allLeads]);
 
   const createLead = async (data: Omit<Lead, 'id'>): Promise<string> => {
-    return await leadService.createLead(data);
+    const id = await leadService.createLead(data);
+    await fetchLeads(); // Refresh after create
+    return id;
   };
 
   const updateLead = async (id: string, data: Partial<Lead>): Promise<void> => {
     await leadService.updateLead(id, data);
+    await fetchLeads(); // Refresh after update
   };
 
   const updateStatus = async (id: string, status: LeadStatus): Promise<void> => {
     await leadService.updateLeadStatus(id, status);
+    await fetchLeads(); // Refresh after update
   };
 
   const deleteLead = async (id: string): Promise<void> => {
     await leadService.deleteLead(id);
+    await fetchLeads(); // Refresh after delete
   };
 
   const assignLeads = async (ids: string[], assignedTo: string, name: string): Promise<void> => {
     await leadService.assignLeads(ids, assignedTo, name);
+    await fetchLeads(); // Refresh after assign
   };
 
   return {
@@ -114,6 +112,6 @@ export const useLeads = (props?: UseLeadsProps): UseLeadsReturn => {
     updateStatus,
     deleteLead,
     assignLeads,
-    refresh: () => {}, // No-op, realtime updates automatically
+    refresh: fetchLeads, // Refresh function
   };
 };

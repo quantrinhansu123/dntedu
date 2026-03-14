@@ -16,30 +16,17 @@ interface StaffFormModalEnhancedProps {
 
 const DEPARTMENTS = [
     { id: 'Điều hành', name: 'Điều hành', color: 'red' },
-    { id: 'Đào Tạo', name: 'Đào Tạo', color: 'teal' },
-    { id: 'Văn phòng', name: 'Văn phòng', color: 'blue' },
-    { id: 'Marketing', name: 'Marketing', color: 'purple' },
+    { id: 'kinh doanh', name: 'kinh doanh', color: 'blue' },
+    { id: 'chuyên môn', name: 'chuyên môn', color: 'teal' },
+    { id: 'marketing', name: 'marketing', color: 'purple' },
+    { id: 'kế toán', name: 'kế toán', color: 'green' },
+    { id: 'nhân sự', name: 'nhân sự', color: 'orange' },
 ];
 
-const POSITIONS_BY_DEPT: Record<string, { value: string; label: string; role: string }[]> = {
-    'Điều hành': [
-        { value: 'Quản trị viên', label: 'Quản trị viên', role: 'admin' },
-        { value: 'Quản lý', label: 'Quản lý', role: 'admin' },
-    ],
-    'Đào Tạo': [
-        { value: 'Giáo viên Việt', label: 'Giáo viên Việt', role: 'gv_viet' },
-        { value: 'Giáo viên nước ngoài', label: 'Giáo viên nước ngoài', role: 'gv_nuocngoai' },
-        { value: 'Trợ giảng', label: 'Trợ giảng', role: 'tro_giang' },
-    ],
-    'Văn phòng': [
-        { value: 'Nhân viên', label: 'Nhân viên / CSKH / Sale', role: 'cskh' },
-        { value: 'Kế toán', label: 'Kế toán', role: 'ketoan' },
-        { value: 'Lễ tân', label: 'Lễ tân', role: 'cskh' },
-    ],
-    'Marketing': [
-        { value: 'Marketing', label: 'Marketing', role: 'marketer' },
-    ],
-};
+const POSITIONS = [
+    { value: 'Nhân viên', label: 'Nhân viên', role: 'staff' },
+    { value: 'Leader', label: 'Leader', role: 'leader' },
+];
 
 const CONTRACT_TYPES: StaffContractType[] = ['Thử việc', 'Chính thức', 'Cộng tác viên', 'Thời vụ'];
 
@@ -78,7 +65,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         // Basic Info
         name: '', code: '', phone: '', email: '',
         dob: '', gender: 'Nam' as 'Nam' | 'Nữ',
-        department: 'Đào Tạo', position: 'Giáo viên Việt',
+        department: 'Điều hành', position: 'Nhân viên',
         branch: '', startDate: new Date().toISOString().split('T')[0],
         status: 'Active' as 'Active' | 'Inactive',
 
@@ -115,8 +102,8 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 email: candidateToConvert.email || '',
                 dob: candidateToConvert.dob || '',
                 gender: candidateToConvert.gender || 'Nam',
-                department: candidateToConvert.applyDepartment || 'Đào Tạo',
-                position: candidateToConvert.applyPosition || 'Giáo viên Việt',
+                department: candidateToConvert.applyDepartment || 'Điều hành',
+                position: candidateToConvert.applyPosition || 'Nhân viên',
                 branch: centerList.length > 0 ? centerList[0].name : '',
                 startDate: new Date().toISOString().split('T')[0],
                 status: 'Active',
@@ -140,8 +127,8 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 name: editingStaff.name || '', code: editingStaff.code || '',
                 phone: editingStaff.phone || '', email: editingStaff.email || '',
                 dob: editingStaff.dob || '', gender: editingStaff.gender || 'Nam',
-                department: editingStaff.department || 'Đào Tạo',
-                position: editingStaff.position || 'Giáo viên Việt',
+                department: editingStaff.department || 'Điều hành',
+                position: editingStaff.position || 'Nhân viên',
                 branch: editingStaff.branch || '', startDate: editingStaff.startDate || '',
                 status: editingStaff.status || 'Active',
                 idNumber: editingStaff.idNumber || '', idIssueDate: editingStaff.idIssueDate || '',
@@ -161,7 +148,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         } else {
             setFormData({
                 name: '', code: `NV${Date.now().toString().slice(-6)}`, phone: '', email: '',
-                dob: '', gender: 'Nam', department: 'Đào Tạo', position: 'Giáo viên Việt',
+                dob: '', gender: 'Nam', department: 'Điều hành', position: 'Nhân viên',
                 branch: centerList.length > 0 ? centerList[0].name : '',
                 startDate: new Date().toISOString().split('T')[0], status: 'Active',
                 idNumber: '', idIssueDate: '', idIssuePlace: '', address: '', permanentAddress: '',
@@ -182,7 +169,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         }
         setSaving(true);
         try {
-            const primaryRole = POSITION_TO_ROLE[formData.position] || 'gv_viet';
+            const primaryRole = POSITION_TO_ROLE[formData.position] || 'staff';
 
             // Build staff data object, excluding undefined values
             const staffData: Partial<Staff> = {
@@ -322,11 +309,8 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t">
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Phòng ban</label>
-                                    <select value={formData.department} onChange={(e) => {
-                                        const dept = e.target.value;
-                                        const pos = POSITIONS_BY_DEPT[dept]?.[0]?.value || '';
-                                        setFormData({ ...formData, department: dept, position: pos });
-                                    }} className="w-full px-3 py-2 border rounded-lg">
+                                    <select value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-lg">
                                         {DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                     </select>
                                 </div>
@@ -334,7 +318,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                                     <label className="block text-sm font-medium mb-1">Vị trí</label>
                                     <select value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-lg">
-                                        {(POSITIONS_BY_DEPT[formData.department] || []).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                                        {POSITIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                                     </select>
                                 </div>
                                 <div>

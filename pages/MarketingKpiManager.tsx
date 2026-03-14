@@ -24,9 +24,8 @@ export const MarketingKpiManager: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingKpi, setEditingKpi] = useState<MarketingKpi | null>(null);
 
-    const marketingStaff = staff.filter(s =>
-        s.position === 'Sale' || s.department === 'Kinh doanh' || s.role === 'Sale'
-    );
+    // Get all staff (no longer filter by Sale/Marketing only, show all departments)
+    const marketingStaff = staff;
 
     // Group KPIs by staff
     const kpisByStaff = useMemo(() => {
@@ -77,7 +76,7 @@ export const MarketingKpiManager: React.FC = () => {
                             <Target className="text-green-600" size={24} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-gray-800">Quản lý KPI Marketing</h2>
+                            <h2 className="text-lg font-bold text-gray-800">Quản lý KPI</h2>
                             <p className="text-sm text-gray-500">Thiết lập mục tiêu và theo dõi kết quả nhân viên</p>
                         </div>
                     </div>
@@ -263,6 +262,11 @@ interface KpiModalProps {
 }
 
 const KpiModal: React.FC<KpiModalProps> = ({ kpi, staff, selectedMonth, onClose, onSubmit }) => {
+    // Get department from existing KPI's staff or default to empty
+    const existingStaff = kpi ? staff.find(s => s.id === kpi.staffId) : null;
+    const initialDepartment = existingStaff?.department || '';
+    const [selectedDepartment, setSelectedDepartment] = useState<string>(initialDepartment);
+
     const [formData, setFormData] = useState({
         staffId: kpi?.staffId || '',
         staffName: kpi?.staffName || '',
@@ -276,8 +280,31 @@ const KpiModal: React.FC<KpiModalProps> = ({ kpi, staff, selectedMonth, onClose,
     });
     const [loading, setLoading] = useState(false);
 
+    // Departments list
+    const DEPARTMENTS = ['Điều hành', 'kinh doanh', 'chuyên môn', 'marketing', 'kế toán', 'nhân sự'];
+
+    // Filter staff by selected department
+    const filteredStaff = selectedDepartment 
+        ? staff.filter(s => s.department === selectedDepartment)
+        : [];
+
+    const handleDepartmentChange = (department: string) => {
+        setSelectedDepartment(department);
+        // Reset staff selection if current staff doesn't belong to new department
+        if (formData.staffId) {
+            const currentStaff = staff.find(s => s.id === formData.staffId);
+            if (currentStaff?.department !== department) {
+                setFormData({
+                    ...formData,
+                    staffId: '',
+                    staffName: '',
+                });
+            }
+        }
+    };
+
     const handleStaffChange = (staffId: string) => {
-        const selectedStaff = staff.find(s => s.id === staffId);
+        const selectedStaff = filteredStaff.find(s => s.id === staffId);
         setFormData({
             ...formData,
             staffId,
@@ -287,8 +314,8 @@ const KpiModal: React.FC<KpiModalProps> = ({ kpi, staff, selectedMonth, onClose,
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.staffId || !formData.targetName || formData.targetValue <= 0) {
-            alert('Vui lòng điền đầy đủ thông tin');
+        if (!selectedDepartment || !formData.staffId || !formData.targetName || formData.targetValue <= 0) {
+            alert('Vui lòng điền đầy đủ thông tin (Phòng ban, Nhân viên, Tên mục tiêu, Chỉ tiêu)');
             return;
         }
         setLoading(true);
@@ -308,12 +335,38 @@ const KpiModal: React.FC<KpiModalProps> = ({ kpi, staff, selectedMonth, onClose,
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Nhân viên <span className="text-red-500">*</span></label>
-                        <select value={formData.staffId} onChange={e => handleStaffChange(e.target.value)} required
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ban <span className="text-red-500">*</span></label>
+                        <select 
+                            value={selectedDepartment} 
+                            onChange={e => handleDepartmentChange(e.target.value)} 
+                            required
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                            <option value="">-- Chọn nhân viên --</option>
-                            {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            <option value="">-- Chọn phòng ban --</option>
+                            {DEPARTMENTS.map(dept => (
+                                <option key={dept} value={dept}>{dept}</option>
+                            ))}
                         </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nhân viên <span className="text-red-500">*</span></label>
+                        <select 
+                            value={formData.staffId} 
+                            onChange={e => handleStaffChange(e.target.value)} 
+                            required
+                            disabled={!selectedDepartment}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                            <option value="">-- Chọn nhân viên --</option>
+                            {filteredStaff.length === 0 && selectedDepartment ? (
+                                <option value="" disabled>Không có nhân viên trong phòng ban này</option>
+                            ) : (
+                                filteredStaff.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name} {s.position ? `(${s.position})` : ''}</option>
+                                ))
+                            )}
+                        </select>
+                        {!selectedDepartment && (
+                            <p className="text-xs text-gray-500 mt-1">Vui lòng chọn phòng ban trước</p>
+                        )}
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu <span className="text-red-500">*</span></label>

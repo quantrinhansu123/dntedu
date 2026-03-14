@@ -17,13 +17,9 @@ import { supabase } from '../src/config/supabase';
 import { formatDate } from '../src/utils/dateUtils';
 import { formatCurrency } from '../src/utils/currencyUtils';
 
-// Departments and positions based on Excel
-const DEPARTMENTS = ['Điều hành', 'Đào Tạo', 'Văn phòng'];
-const POSITIONS = {
-  'Điều hành': ['Quản lý (Admin)'],
-  'Đào Tạo': ['Giáo Viên Việt', 'Giáo Viên Nước Ngoài', 'Trợ Giảng'],
-  'Văn phòng': ['Nhân viên', 'Kế toán', 'Lễ tân'],
-};
+// Departments and positions
+const DEPARTMENTS = ['Điều hành', 'kinh doanh', 'chuyên môn', 'marketing', 'kế toán', 'nhân sự'];
+const POSITIONS = ['Nhân viên', 'Leader'];
 
 // Available roles for multi-select
 const AVAILABLE_ROLES: StaffRole[] = ['Giáo viên', 'Trợ giảng', 'Nhân viên', 'Sale', 'Văn phòng', 'Quản lý', 'Quản trị viên'];
@@ -79,25 +75,17 @@ export const StaffManager: React.FC = () => {
   const normalizePosition = (pos: string): string => {
     if (!pos) return '';
     const lower = pos.toLowerCase();
-    if (lower.includes('quản lý') || lower.includes('admin')) return 'Quản lý (Admin)';
-    if (lower.includes('giáo viên việt') || lower === 'gv việt') return 'Giáo Viên Việt';
-    if (lower.includes('nước ngoài') || lower.includes('gv ngoại') || lower.includes('foreign')) return 'Giáo Viên Nước Ngoài';
-    if (lower.includes('trợ giảng')) return 'Trợ Giảng';
-    if (lower.includes('kế toán')) return 'Kế toán';
-    if (lower.includes('lễ tân')) return 'Lễ tân';
-    if (lower.includes('nhân viên')) return 'Nhân viên';
-    return pos;
+    if (lower.includes('leader') || lower.includes('quản lý') || lower.includes('admin')) return 'Leader';
+    if (lower.includes('nhân viên') || lower.includes('staff')) return 'Nhân viên';
+    // Keep original if it matches one of the valid positions
+    if (pos === 'Leader' || pos === 'Nhân viên') return pos;
+    return 'Nhân viên'; // Default fallback
   };
 
-  // Position order for sorting (by teaching hierarchy)
+  // Position order for sorting
   const positionOrder: Record<string, number> = {
-    'Quản lý (Admin)': 1,
-    'Giáo Viên Việt': 2,
-    'Giáo Viên Nước Ngoài': 3,
-    'Trợ Giảng': 4,
-    'Kế toán': 5,
-    'Nhân viên': 6,
-    'Lễ tân': 7,
+    'Leader': 1,
+    'Nhân viên': 2,
   };
 
   // Filter and sort staff by position
@@ -129,8 +117,8 @@ export const StaffManager: React.FC = () => {
       name: '',
       dob: '',
       phone: '',
-      department: 'Đào Tạo',
-      position: 'Giáo Viên Việt',
+      department: 'Điều hành',
+      position: 'Nhân viên',
       roles: [],
       startDate: new Date().toISOString().split('T')[0],
       contractLink: '',
@@ -152,8 +140,8 @@ export const StaffManager: React.FC = () => {
       name: staffMember.name || '',
       dob: staffMember.dob || '',
       phone: staffMember.phone || '',
-      department: staffMember.department || 'Đào Tạo',
-      position: staffMember.position || 'Giáo Viên Việt',
+      department: staffMember.department || 'Điều hành',
+      position: staffMember.position || 'Nhân viên',
       roles: staffMember.roles || (staffMember.role ? [staffMember.role] : []),
       startDate: staffMember.startDate || '',
       contractLink: '',
@@ -178,9 +166,7 @@ export const StaffManager: React.FC = () => {
     try {
       // Determine primary role from position or roles array
       const primaryRole = formData.roles.length > 0 ? formData.roles[0] :
-        formData.position.includes('Giáo Viên') ? 'Giáo viên' :
-          formData.position === 'Trợ Giảng' ? 'Trợ giảng' :
-            formData.position === 'Quản lý (Admin)' ? 'Quản lý' : 'Nhân viên';
+        formData.position === 'Leader' ? 'Quản lý' : 'Nhân viên';
 
       const staffData = {
         name: formData.name,
@@ -267,8 +253,11 @@ export const StaffManager: React.FC = () => {
   const getDeptBadge = (dept?: string) => {
     switch (dept) {
       case 'Điều hành': return 'bg-red-500';
-      case 'Đào Tạo': return 'bg-teal-500';
-      case 'Văn phòng': return 'bg-blue-500';
+      case 'kinh doanh': return 'bg-blue-500';
+      case 'chuyên môn': return 'bg-teal-500';
+      case 'marketing': return 'bg-purple-500';
+      case 'kế toán': return 'bg-green-500';
+      case 'nhân sự': return 'bg-orange-500';
       default: return 'bg-gray-500';
     }
   };
@@ -563,31 +552,20 @@ export const StaffManager: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Department */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phòng ban</label>
-                  <div className="flex gap-4">
-                    {DEPARTMENTS.map(dept => (
-                      <label key={dept} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="department"
-                          checked={formData.department === dept}
-                          onChange={() => setFormData({
-                            ...formData,
-                            department: dept,
-                            position: POSITIONS[dept as keyof typeof POSITIONS]?.[0] || ''
-                          })}
-                          className="text-indigo-600"
-                        />
-                        {dept}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Position & Branch */}
+                {/* Department & Position */}
                 <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ban</label>
+                    <select
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    >
+                      {DEPARTMENTS.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Vị trí</label>
                     <select
@@ -595,11 +573,15 @@ export const StaffManager: React.FC = () => {
                       onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                     >
-                      {(POSITIONS[formData.department as keyof typeof POSITIONS] || []).map(pos => (
+                      {POSITIONS.map(pos => (
                         <option key={pos} value={pos}>{pos}</option>
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Branch */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Cơ sở làm việc</label>
                     <select
