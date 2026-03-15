@@ -14,12 +14,18 @@ export const TeacherDebtTracker: React.FC = () => {
     }, []);
 
     const fetchDebts = async () => {
-        const data = await financialService.getTeacherDebts();
-        setDebts(data);
+        try {
+            const data = await financialService.getTeacherDebts();
+            setDebts(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching debts:', error);
+            setDebts([]);
+        }
     };
 
     const handleExport = () => {
-        const data = debts.map(d => ({
+        const safeDebts = Array.isArray(debts) ? debts : [];
+        const data = safeDebts.map(d => ({
             'Giáo viên': d.teacherName,
             'Tháng/Năm': `${d.month}/${d.year}`,
             'Lớp': d.className,
@@ -32,10 +38,14 @@ export const TeacherDebtTracker: React.FC = () => {
         exportToExcel(data, 'Cong_no_giao_vien', 'Cong_no');
     };
 
-    const filteredDebts = debts.filter(d =>
-        d.teacherName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (d.className && d.className.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const safeDebts = Array.isArray(debts) ? debts : [];
+    const filteredDebts = safeDebts.filter(d => {
+        if (!d) return false;
+        const searchLower = searchTerm.toLowerCase();
+        const teacherMatch = d.teacherName && d.teacherName.toLowerCase().includes(searchLower);
+        const classMatch = d.className && d.className.toLowerCase().includes(searchLower);
+        return teacherMatch || classMatch;
+    });
 
     return (
         <div className="p-6">
@@ -103,7 +113,7 @@ export const TeacherDebtTracker: React.FC = () => {
                         )) : (
                             <tr>
                                 <td colSpan={8} className="p-8 text-center text-gray-500">
-                                    {debts.length === 0 ? 'Chưa có dữ liệu công nợ' : 'Không tìm thấy kết quả'}
+                                    {safeDebts.length === 0 ? 'Chưa có dữ liệu công nợ' : 'Không tìm thấy kết quả'}
                                 </td>
                             </tr>
                         )}

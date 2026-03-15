@@ -30,15 +30,40 @@ export const financialService = {
         }
     },
 
-    async getTransactions(startDate?: string, endDate?: string, type?: TransactionType) {
+    async getTransactions(startDate?: string, endDate?: string, type?: TransactionType): Promise<FinancialTransaction[]> {
         try {
-
+            const { getAllTransactions, queryTransactions } = await import('./financialTransactionSupabaseService');
+            
+            // If date range is provided, filter by date range
             if (startDate && endDate) {
+                // Get all transactions and filter by date range
+                const allTransactions = await getAllTransactions();
+                const safeTransactions = Array.isArray(allTransactions) ? allTransactions : [];
+                let filtered = safeTransactions.filter(t => {
+                    if (!t || !t.date) return false;
+                    const transactionDate = t.date;
+                    return transactionDate >= startDate && transactionDate <= endDate;
+                });
+                
+                // Filter by type if provided
+                if (type) {
+                    filtered = filtered.filter(t => t && t.type === type);
+                }
+                
+                return filtered;
             }
-
+            
+            // If only type is provided, use queryTransactions
             if (type) {
+                const result = await queryTransactions({ 
+                    type: type === TransactionType.INCOME ? 'income' : 'expense' 
+                });
+                return Array.isArray(result) ? result : [];
             }
-
+            
+            // Otherwise, get all transactions
+            const result = await getAllTransactions();
+            return Array.isArray(result) ? result : [];
         } catch (error) {
             console.error('Error getting transactions:', error);
             return [];
@@ -57,24 +82,21 @@ export const financialService = {
     // ASSET MANAGEMENT
     // ==========================================
 
-    async addAsset(asset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt' | 'monthlyDepreciation' | 'residualValue' | 'status'>) {
+    async addAsset(asset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt' | 'monthlyDepreciation' | 'residualValue' | 'status'>): Promise<Asset> {
         try {
-            const monthlyDepreciation = Math.round(asset.cost / asset.usefulLife);
-      //                 ...asset,
-      //                 monthlyDepreciation,
-      //                 residualValue: asset.cost,
-      //                 status: 'Đang khấu hao',
-      //                 createdAt: new Date().toISOString(),
-      //                 updatedAt: new Date().toISOString()
-            return { id: docRef.id, ...asset, monthlyDepreciation };
+            const { createAsset } = await import('./assetSupabaseService');
+            return await createAsset(asset);
         } catch (error) {
             console.error('Error adding asset:', error);
             throw error;
         }
     },
 
-    async getAssets() {
+    async getAssets(): Promise<Asset[]> {
         try {
+            const { getAllAssets } = await import('./assetSupabaseService');
+            const result = await getAllAssets();
+            return Array.isArray(result) ? result : [];
         } catch (error) {
             console.error('Error getting assets:', error);
             return [];
@@ -174,10 +196,11 @@ export const financialService = {
         // }
     },
 
-    async getTeacherDebts(teacherId?: string) {
+    async getTeacherDebts(teacherId?: string): Promise<TeacherDebtRecord[]> {
         try {
-            if (teacherId) {
-            }
+            // TODO: Implement Supabase query for teacher debts
+            // For now, return empty array to prevent errors
+            return [];
         } catch (error) {
             console.error('Error getting teacher debts:', error);
             return [];

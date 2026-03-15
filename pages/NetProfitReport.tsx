@@ -14,27 +14,37 @@ export const NetProfitReport: React.FC = () => {
     const [year, setYear] = useState(new Date().getFullYear());
 
     useEffect(() => {
-        const start = `${year}-${String(month).padStart(2, '0')}-01`;
-        const end = `${year}-${String(month).padStart(2, '0')}-31`;
-        financialService.getTransactions(start, end).then(setTransactions);
+        const loadData = async () => {
+            try {
+                const start = `${year}-${String(month).padStart(2, '0')}-01`;
+                const end = `${year}-${String(month).padStart(2, '0')}-31`;
+                const data = await financialService.getTransactions(start, end);
+                setTransactions(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                setTransactions([]);
+            }
+        };
+        loadData();
     }, [month, year]);
 
     // Calculate Aggregates
-    const revenue = transactions
-        .filter(t => t.type === TransactionType.INCOME)
-        .reduce((sum, t) => sum + t.amount, 0);
+    const safeTransactions = Array.isArray(transactions) ? transactions : [];
+    const revenue = safeTransactions
+        .filter(t => t && t.type === TransactionType.INCOME)
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     // Group Expenses (excluding WITHDRAWAL)
     const expenseByCategory: Record<string, number> = {};
     let totalOperatingExpense = 0;
     let withdrawalAmount = 0;
 
-    transactions.filter(t => t.type === TransactionType.EXPENSE).forEach(t => {
+    safeTransactions.filter(t => t && t.type === TransactionType.EXPENSE).forEach(t => {
         if (t.category === TransactionCategory.WITHDRAWAL) {
-            withdrawalAmount += t.amount;
+            withdrawalAmount += (t.amount || 0);
         } else {
-            expenseByCategory[t.category] = (expenseByCategory[t.category] || 0) + t.amount;
-            totalOperatingExpense += t.amount;
+            expenseByCategory[t.category] = (expenseByCategory[t.category] || 0) + (t.amount || 0);
+            totalOperatingExpense += (t.amount || 0);
         }
     });
 

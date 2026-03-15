@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Wallet, TrendingUp, Box, Users, Database } from 'lucide-react';
+import { LayoutDashboard, Wallet, TrendingUp, Box, Users } from 'lucide-react';
 import { FinancialDashboard } from './FinancialDashboard';
 import { CashflowReport } from './CashflowReport';
 import { NetProfitReport } from './NetProfitReport';
@@ -18,28 +18,28 @@ export const FinancialAnalyticsHub: React.FC = () => {
     ];
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Phân tích Tài chính</h1>
+        <div className="space-y-6">
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-2">
+                {tabs.map(tab => {
+                    const isActive = activeTab === tab.id;
+                    const Icon = tab.icon;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${isActive
+                                    ? 'bg-indigo-600 text-white shadow-md'
+                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                }`}
+                        >
+                            <Icon size={18} />
+                            {tab.label}
+                        </button>
+                    );
+                })}
             </div>
 
-            <div className="flex gap-2 border-b mb-6 overflow-x-auto">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
-                            ? 'border-indigo-600 text-indigo-600 font-medium'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        <tab.icon size={18} />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            <div className="mt-4">
+            <div className="min-h-[500px]">
                 {activeTab === 'dashboard' && <FinancialDashboard />}
                 {activeTab === 'cashflow' && <CashflowReport />}
                 {activeTab === 'profit' && <NetProfitReport />}

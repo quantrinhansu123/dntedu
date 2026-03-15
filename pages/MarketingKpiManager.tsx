@@ -280,12 +280,21 @@ const KpiModal: React.FC<KpiModalProps> = ({ kpi, staff, selectedMonth, onClose,
     });
     const [loading, setLoading] = useState(false);
 
+    // Normalize department name for comparison (case-insensitive, trim spaces)
+    const normalizeDepartment = (dept: string | undefined | null): string => {
+        if (!dept) return '';
+        return dept.trim().toLowerCase();
+    };
+
     // Departments list
     const DEPARTMENTS = ['Điều hành', 'kinh doanh', 'chuyên môn', 'marketing', 'kế toán', 'nhân sự'];
+    
+    // Get unique departments from actual staff data
+    const availableDepartments = Array.from(new Set(staff.map(s => s.department).filter(Boolean)));
 
-    // Filter staff by selected department
+    // Filter staff by selected department (case-insensitive)
     const filteredStaff = selectedDepartment 
-        ? staff.filter(s => s.department === selectedDepartment)
+        ? staff.filter(s => normalizeDepartment(s.department) === normalizeDepartment(selectedDepartment))
         : [];
 
     const handleDepartmentChange = (department: string) => {
@@ -293,7 +302,7 @@ const KpiModal: React.FC<KpiModalProps> = ({ kpi, staff, selectedMonth, onClose,
         // Reset staff selection if current staff doesn't belong to new department
         if (formData.staffId) {
             const currentStaff = staff.find(s => s.id === formData.staffId);
-            if (currentStaff?.department !== department) {
+            if (normalizeDepartment(currentStaff?.department) !== normalizeDepartment(department)) {
                 setFormData({
                     ...formData,
                     staffId: '',
@@ -345,6 +354,12 @@ const KpiModal: React.FC<KpiModalProps> = ({ kpi, staff, selectedMonth, onClose,
                             {DEPARTMENTS.map(dept => (
                                 <option key={dept} value={dept}>{dept}</option>
                             ))}
+                            {/* Add departments from actual data that are not in DEPARTMENTS list */}
+                            {availableDepartments
+                                .filter(dept => !DEPARTMENTS.includes(dept))
+                                .map(dept => (
+                                    <option key={dept} value={dept}>{dept}</option>
+                                ))}
                         </select>
                     </div>
                     <div>

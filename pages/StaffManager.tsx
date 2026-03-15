@@ -88,14 +88,22 @@ export const StaffManager: React.FC = () => {
     'Nhân viên': 2,
   };
 
+  // Normalize department name for comparison (case-insensitive, trim spaces)
+  const normalizeDepartment = (dept: string | undefined | null): string => {
+    if (!dept) return '';
+    return dept.trim().toLowerCase();
+  };
+
   // Filter and sort staff by position
   const filteredStaff = useMemo(() => {
+    const normalizedFilterDept = filterDepartment === 'ALL' ? 'ALL' : normalizeDepartment(filterDepartment);
+    
     return staff
       .filter(s => {
         const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           s.phone?.includes(searchTerm) ||
           s.code?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesDept = filterDepartment === 'ALL' || s.department === filterDepartment;
+        const matchesDept = normalizedFilterDept === 'ALL' || normalizeDepartment(s.department) === normalizedFilterDept;
         const matchesBranch = filterBranch === 'ALL' || s.branch === filterBranch;
         return matchesSearch && matchesDept && matchesBranch;
       })
@@ -365,6 +373,12 @@ export const StaffManager: React.FC = () => {
               {DEPARTMENTS.map(d => (
                 <option key={d} value={d}>{d}</option>
               ))}
+              {/* Add departments from actual data that are not in DEPARTMENTS list */}
+              {Array.from(new Set(staff.map(s => s.department).filter(Boolean)))
+                .filter(dept => !DEPARTMENTS.includes(dept))
+                .map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
             </select>
             <select
               value={filterBranch}

@@ -102,10 +102,10 @@ export const getAllTransactions = async (month?: string): Promise<FinancialTrans
       const { data: fallbackData, error: fallbackError } = await fallbackQuery;
       
       if (fallbackError) throw fallbackError;
-      return fallbackData.map(transformTransactionFromSupabase);
+      return (fallbackData || []).map(transformTransactionFromSupabase);
     }
     
-    return data.map(transformTransactionFromSupabase);
+    return (data || []).map(transformTransactionFromSupabase);
   } catch (error) {
     console.error('Error fetching transactions from Supabase:', error);
     throw error;
@@ -267,10 +267,10 @@ export const queryTransactions = async (filters: {
       const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('date', { ascending: false });
       
       if (fallbackError) throw fallbackError;
-      return fallbackData.map(transformTransactionFromSupabase);
+      return (fallbackData || []).map(transformTransactionFromSupabase);
     }
     
-    return data.map(transformTransactionFromSupabase);
+    return (data || []).map(transformTransactionFromSupabase);
   } catch (error) {
     console.error('Error querying transactions from Supabase:', error);
     throw error;

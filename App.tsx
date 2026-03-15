@@ -225,6 +225,11 @@ const App: React.FC = () => {
                 <Route path="/reports/training" element={<TrainingReport />} />
                 <Route path="/reports/financial" element={<FinancialAnalyticsHub />} />
                 <Route path="/reports/monthly" element={<MonthlyReport />} />
+                
+                {/* Admin Report Routes */}
+                <Route path="/admin/reports/training" element={<TrainingReport />} />
+                <Route path="/admin/reports/financial" element={<FinancialAnalyticsHub />} />
+                <Route path="/admin/reports/monthly" element={<MonthlyReport />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin/config/rooms" element={<RoomManager />} />

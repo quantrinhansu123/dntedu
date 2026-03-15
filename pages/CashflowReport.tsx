@@ -28,16 +28,18 @@ export const CashflowReport: React.FC = () => {
 
     // Apply Filters and Pagination
     useEffect(() => {
-        let filtered = [...allTransactions];
+        const safeAllTransactions = Array.isArray(allTransactions) ? allTransactions : [];
+        let filtered = [...safeAllTransactions];
 
         // Filter by Type
         if (filterType !== 'ALL') {
-            filtered = filtered.filter(t => t.type === filterType);
+            filtered = filtered.filter(t => t && t.type === filterType);
         }
 
         // Filter by Source
         if (sourceFilter !== 'ALL') {
             filtered = filtered.filter(t => {
+                if (!t) return false;
                 if (sourceFilter === 'Contract') return t.referenceType === 'Contract';
                 if (sourceFilter === 'Salary') return t.referenceType === 'Salary';
                 if (sourceFilter === 'Depreciation') return t.referenceType === 'Depreciation';
@@ -48,7 +50,7 @@ export const CashflowReport: React.FC = () => {
 
         // Filter by Category
         if (categoryFilter !== 'ALL') {
-            filtered = filtered.filter(t => t.category === categoryFilter);
+            filtered = filtered.filter(t => t && t.category === categoryFilter);
         }
 
         setTransactions(filtered);
@@ -57,10 +59,16 @@ export const CashflowReport: React.FC = () => {
 
     const fetchData = async () => {
         setLoading(true);
-        // Fetch all within date range, then filter locally for flexibility
-        const data = await financialService.getTransactions(startDate, endDate);
-        setAllTransactions(data);
-        setLoading(false);
+        try {
+            // Fetch all within date range, then filter locally for flexibility
+            const data = await financialService.getTransactions(startDate, endDate);
+            setAllTransactions(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+            setAllTransactions([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSync = async () => {
@@ -80,14 +88,15 @@ export const CashflowReport: React.FC = () => {
     };
 
     const handleExport = () => {
-        const dataToExport = transactions.map(t => ({
-            'Ngày': t.date,
-            'Loại': t.type,
-            'Danh mục': t.category,
-            'Mô tả': t.description,
-            'Số tiền': t.amount,
-            'Nguồn': t.referenceType || 'Khác',
-            'PTTT': t.paymentMethod
+        const safeData = Array.isArray(transactions) ? transactions : [];
+        const dataToExport = safeData.map(t => ({
+            'Ngày': t?.date || '',
+            'Loại': t?.type || '',
+            'Danh mục': t?.category || '',
+            'Mô tả': t?.description || '',
+            'Số tiền': t?.amount || 0,
+            'Nguồn': t?.referenceType || 'Khác',
+            'PTTT': t?.paymentMethod || ''
         }));
         exportToExcel(dataToExport, `Bao_cao_dong_tien_${startDate}_${endDate}`, 'Cashflow');
     };
@@ -103,12 +112,13 @@ export const CashflowReport: React.FC = () => {
     };
 
     // Calculate totals based on FILTERED data
-    const totalIncome = transactions.filter(t => t.type === TransactionType.INCOME).reduce((sum, t) => sum + t.amount, 0);
-    const totalExpense = transactions.filter(t => t.type === TransactionType.EXPENSE).reduce((sum, t) => sum + t.amount, 0);
+    const safeTransactions = Array.isArray(transactions) ? transactions : [];
+    const totalIncome = safeTransactions.filter(t => t && t.type === TransactionType.INCOME).reduce((sum, t) => sum + (t.amount || 0), 0);
+    const totalExpense = safeTransactions.filter(t => t && t.type === TransactionType.EXPENSE).reduce((sum, t) => sum + (t.amount || 0), 0);
 
     // Pagination Logic
-    const totalPages = Math.ceil(transactions.length / itemsPerPage);
-    const currentData = transactions.slice(
+    const totalPages = Math.ceil(safeTransactions.length / itemsPerPage);
+    const currentData = safeTransactions.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );

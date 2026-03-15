@@ -23,8 +23,13 @@ export const AssetManager: React.FC = () => {
     }, []);
 
     const fetchAssets = async () => {
-        const data = await financialService.getAssets();
-        setAssets(data);
+        try {
+            const data = await financialService.getAssets();
+            setAssets(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching assets:', error);
+            setAssets([]);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +57,8 @@ export const AssetManager: React.FC = () => {
     };
 
     const handleExport = () => {
-        const data = assets.map(a => ({
+        const safeAssets = Array.isArray(assets) ? assets : [];
+        const data = safeAssets.map(a => ({
             'Mã TS': a.code || a.id.slice(0, 6),
             'Tên tài sản': a.name,
             'Danh mục': a.category,
@@ -101,7 +107,7 @@ export const AssetManager: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                    {assets.length > 0 ? (
+                    {assets && Array.isArray(assets) && assets.length > 0 ? (
                         assets.map(asset => (
                             <tr key={asset.id} className="hover:bg-gray-50">
                                 <td className="p-4 font-medium text-gray-900">{asset.name}</td>
@@ -183,13 +189,25 @@ export const AssetManager: React.FC = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Chi phí trả trước (Nguyên giá)</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
                                     placeholder="VNĐ"
-                                    value={formData.cost || ''}
-                                    onChange={e => setFormData({ ...formData, cost: Number(e.target.value) })}
+                                    value={formData.cost ? formData.cost.toLocaleString('vi-VN') : ''}
+                                    onChange={e => {
+                                        const numericValue = e.target.value.replace(/[^\d]/g, '');
+                                        setFormData({ ...formData, cost: numericValue ? Number(numericValue) : 0 });
+                                    }}
+                                    onBlur={e => {
+                                        const numericValue = e.target.value.replace(/[^\d]/g, '');
+                                        if (numericValue) {
+                                            setFormData({ ...formData, cost: Number(numericValue) });
+                                        }
+                                    }}
                                     required
                                 />
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Nhập số tiền (ví dụ: 10.000.000)
+                                </p>
                             </div>
 
                             <div>

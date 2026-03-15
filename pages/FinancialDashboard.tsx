@@ -17,9 +17,15 @@ export const FinancialDashboard: React.FC = () => {
 
     const loadData = async () => {
         setLoading(true);
-        const data = await financialService.getTransactions(startDate, endDate);
-        setTransactions(data);
-        setLoading(false);
+        try {
+            const data = await financialService.getTransactions(startDate, endDate);
+            setTransactions(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+            setTransactions([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -42,15 +48,17 @@ export const FinancialDashboard: React.FC = () => {
         }
     };
 
-    // Process data for charts
+    // Process data for charts - ensure transactions is always an array
+    const safeTransactions: FinancialTransaction[] = (transactions && Array.isArray(transactions)) ? transactions : [];
+    
     const monthlyData = Array(12).fill(0).map((_, idx) => {
         const month = idx + 1;
         // Logic modified to respect filter range if needed, but here we show monthly trend for the year of StartDate generally
         // Or if filter is strict, we show what is inside.
         // For simple chart: group by month of transaction date
-        const monthTransactions = transactions.filter(t => new Date(t.date).getMonth() + 1 === month);
-        const income = monthTransactions.filter(t => t.type === TransactionType.INCOME).reduce((sum, t) => sum + t.amount, 0);
-        const expense = monthTransactions.filter(t => t.type === TransactionType.EXPENSE).reduce((sum, t) => sum + t.amount, 0);
+        const monthTransactions = safeTransactions.filter(t => t && t.date && new Date(t.date).getMonth() + 1 === month);
+        const income = monthTransactions.filter(t => t && t.type === TransactionType.INCOME).reduce((sum, t) => sum + (t.amount || 0), 0);
+        const expense = monthTransactions.filter(t => t && t.type === TransactionType.EXPENSE).reduce((sum, t) => sum + (t.amount || 0), 0);
         return {
             name: `Tháng ${month}`,
             DoanhThu: income,
@@ -59,9 +67,20 @@ export const FinancialDashboard: React.FC = () => {
         };
     });
 
-    const totalRevenue = transactions.filter(t => t.type === TransactionType.INCOME).reduce((sum, t) => sum + t.amount, 0);
-    const totalExpense = transactions.filter(t => t.type === TransactionType.EXPENSE).reduce((sum, t) => sum + t.amount, 0);
+    const totalRevenue = safeTransactions.filter(t => t && t.type === TransactionType.INCOME).reduce((sum, t) => sum + (t.amount || 0), 0);
+    const totalExpense = safeTransactions.filter(t => t && t.type === TransactionType.EXPENSE).reduce((sum, t) => sum + (t.amount || 0), 0);
     const netProfit = totalRevenue - totalExpense;
+
+    // Early return if loading to prevent rendering with undefined data
+    if (loading && safeTransactions.length === 0) {
+        return (
+            <div className="p-6">
+                <div className="flex justify-center items-center h-64">
+                    <p className="text-gray-500">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6">
