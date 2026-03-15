@@ -99,7 +99,7 @@ export const MarketingTaskManager: React.FC = () => {
                             <ClipboardList className="text-indigo-600" size={24} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-gray-800">Quản lý Task Marketing</h2>
+                            <h2 className="text-lg font-bold text-gray-800">Quản lý Task</h2>
                             <p className="text-sm text-gray-500">Phân công và theo dõi tiến độ công việc</p>
                         </div>
                     </div>

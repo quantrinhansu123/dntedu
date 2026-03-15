@@ -19,7 +19,7 @@ import { formatCurrency } from '../src/utils/currencyUtils';
 
 // Departments and positions
 const DEPARTMENTS = ['Điều hành', 'kinh doanh', 'chuyên môn', 'marketing', 'kế toán', 'nhân sự'];
-const POSITIONS = ['Nhân viên', 'Leader'];
+const POSITIONS = ['Nhân viên', 'Leader', 'Giáo viên'];
 
 // Available roles for multi-select
 const AVAILABLE_ROLES: StaffRole[] = ['Giáo viên', 'Trợ giảng', 'Nhân viên', 'Sale', 'Văn phòng', 'Quản lý', 'Quản trị viên'];
@@ -57,12 +57,13 @@ export const StaffManager: React.FC = () => {
     name: '',
     dob: '',
     phone: '',
+    email: '', // Email for login
     department: 'Đào Tạo',
     position: 'Giáo Viên Việt',
     roles: [] as StaffRole[],
     startDate: '',
     contractLink: '',
-    username: '',
+    username: '', // Keep for backward compatibility
     password: '',
     status: 'Active' as 'Active' | 'Inactive',
     branch: '',
@@ -76,16 +77,18 @@ export const StaffManager: React.FC = () => {
     if (!pos) return '';
     const lower = pos.toLowerCase();
     if (lower.includes('leader') || lower.includes('quản lý') || lower.includes('admin')) return 'Leader';
+    if (lower.includes('giáo viên') || lower.includes('gv') || lower.includes('teacher')) return 'Giáo viên';
     if (lower.includes('nhân viên') || lower.includes('staff')) return 'Nhân viên';
     // Keep original if it matches one of the valid positions
-    if (pos === 'Leader' || pos === 'Nhân viên') return pos;
+    if (pos === 'Leader' || pos === 'Nhân viên' || pos === 'Giáo viên') return pos;
     return 'Nhân viên'; // Default fallback
   };
 
   // Position order for sorting
   const positionOrder: Record<string, number> = {
     'Leader': 1,
-    'Nhân viên': 2,
+    'Giáo viên': 2,
+    'Nhân viên': 3,
   };
 
   // Normalize department name for comparison (case-insensitive, trim spaces)
@@ -125,6 +128,7 @@ export const StaffManager: React.FC = () => {
       name: '',
       dob: '',
       phone: '',
+      email: '',
       department: 'Điều hành',
       position: 'Nhân viên',
       roles: [],
@@ -148,13 +152,14 @@ export const StaffManager: React.FC = () => {
       name: staffMember.name || '',
       dob: staffMember.dob || '',
       phone: staffMember.phone || '',
+      email: staffMember.email || '',
       department: staffMember.department || 'Điều hành',
       position: staffMember.position || 'Nhân viên',
       roles: staffMember.roles || (staffMember.role ? [staffMember.role] : []),
       startDate: staffMember.startDate || '',
       contractLink: '',
-      username: '',
-      password: '',
+      username: staffMember.email || '', // Use email as username for display
+      password: '', // Don't load password for security
       status: staffMember.status || 'Active',
       branch: staffMember.branch || '',
       salaryGrade: staffMember.salaryGrade,
@@ -176,11 +181,12 @@ export const StaffManager: React.FC = () => {
       const primaryRole = formData.roles.length > 0 ? formData.roles[0] :
         formData.position === 'Leader' ? 'Quản lý' : 'Nhân viên';
 
-      const staffData = {
+      const staffData: any = {
         name: formData.name,
         code: editingStaff?.code || `NV${Date.now().toString().slice(-6)}`,
         dob: formData.dob,
         phone: formData.phone,
+        email: formData.email || formData.username || '', // Use email field first, fallback to username
         department: formData.department,
         position: formData.position,
         role: primaryRole,
@@ -189,6 +195,11 @@ export const StaffManager: React.FC = () => {
         status: formData.status,
         branch: formData.branch,
       };
+      
+      // Only include password if provided (for create) or if editing and password is provided
+      if (formData.password) {
+        staffData.password = formData.password;
+      }
 
       if (editingStaff) {
         await updateStaff(editingStaff.id, staffData);
@@ -566,6 +577,56 @@ export const StaffManager: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Email & Password */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email đăng nhập <span className="text-red-500">*</span></label>
+                    <input
+                      type="email"
+                      value={formData.email || formData.username}
+                      onChange={(e) => {
+                        const emailValue = e.target.value;
+                        setFormData({ ...formData, email: emailValue, username: emailValue });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      placeholder="email@example.com"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Email này sẽ được dùng để đăng nhập hệ thống</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Mật khẩu {editingStaff ? <span className="text-gray-500 font-normal">(để trống nếu không đổi)</span> : <span className="text-red-500">*</span>}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        placeholder={editingStaff ? "•••••••• (để trống nếu không đổi)" : "••••••••"}
+                        required={!editingStaff}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {!editingStaff && (
+                      <>
+                        <p className="text-xs text-gray-500 mt-1">Mật khẩu để đăng nhập hệ thống</p>
+                        <div className="mt-2 bg-yellow-50 text-yellow-800 text-xs p-2 rounded flex items-center gap-2">
+                          <AlertTriangle size={14} />
+                          Vui lòng chọn mật khẩu không liên quan đến thông tin cá nhân!
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
                 {/* Department & Position */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -708,45 +769,6 @@ export const StaffManager: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Login Credentials */}
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Thông tin đăng nhập</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tên đăng nhập</label>
-                      <input
-                        type="text"
-                        value={formData.username}
-                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        placeholder="username"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={formData.password}
-                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2 bg-yellow-50 text-yellow-800 text-xs p-2 rounded flex items-center gap-2">
-                    <AlertTriangle size={14} />
-                    Vui lòng chọn mật khẩu không liên quan đến thông tin cá nhân!
-                  </div>
-                </div>
               </div>
 
               <div className="p-5 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">

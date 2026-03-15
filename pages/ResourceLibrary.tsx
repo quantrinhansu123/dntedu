@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import * as resourceService from '../src/services/resourceService';
 import { Resource, ResourceFolder, ResourceType } from '../types';
+import { usePermissions } from '../src/hooks/usePermissions';
 
 const TYPE_ICONS: Record<ResourceType, React.ElementType> = {
   video: Video,
@@ -42,6 +43,7 @@ const FOLDER_COLORS = [
 ];
 
 export const ResourceLibrary: React.FC = () => {
+  const { isAdmin } = usePermissions();
   const [folders, setFolders] = useState<ResourceFolder[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [allFolders, setAllFolders] = useState<ResourceFolder[]>([]);
@@ -158,6 +160,10 @@ export const ResourceLibrary: React.FC = () => {
 
   // Folder CRUD
   const handleSaveFolder = async () => {
+    if (!isAdmin) {
+      alert('Chỉ quản trị viên mới có quyền thêm/sửa thư mục');
+      return;
+    }
     try {
       if (!folderForm.name.trim()) {
         alert('Vui lòng nhập tên thư mục');
@@ -190,6 +196,10 @@ export const ResourceLibrary: React.FC = () => {
   };
 
   const handleDeleteFolder = async (folder: ResourceFolder) => {
+    if (!isAdmin) {
+      alert('Chỉ quản trị viên mới có quyền xóa thư mục');
+      return;
+    }
     if (!confirm(`Xóa thư mục "${folder.name}" và tất cả nội dung bên trong?`)) return;
     try {
       await resourceService.deleteFolder(folder.id);
@@ -202,6 +212,10 @@ export const ResourceLibrary: React.FC = () => {
 
   // Resource CRUD
   const handleSaveResource = async () => {
+    if (!isAdmin) {
+      alert('Chỉ quản trị viên mới có quyền thêm/sửa tài nguyên');
+      return;
+    }
     try {
       if (!resourceForm.name || !resourceForm.type) {
         alert('Vui lòng nhập tên và loại tài nguyên');
@@ -228,6 +242,10 @@ export const ResourceLibrary: React.FC = () => {
   };
 
   const handleDeleteResource = async (resource: Resource) => {
+    if (!isAdmin) {
+      alert('Chỉ quản trị viên mới có quyền xóa tài nguyên');
+      return;
+    }
     if (!confirm(`Xóa "${resource.name}"?`)) return;
     try {
       await resourceService.deleteResource(resource.id);
@@ -266,12 +284,20 @@ export const ResourceLibrary: React.FC = () => {
 
   const openEditFolder = (folder: ResourceFolder, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAdmin) {
+      alert('Chỉ quản trị viên mới có quyền sửa thư mục');
+      return;
+    }
     setEditingFolder(folder);
     setFolderForm({ name: folder.name, description: folder.description || '', color: folder.color || '#6366f1' });
     setShowFolderModal(true);
   };
 
   const openEditResource = (resource: Resource) => {
+    if (!isAdmin) {
+      alert('Chỉ quản trị viên mới có quyền sửa tài nguyên');
+      return;
+    }
     setEditingResource(resource);
     setResourceForm({
       name: resource.name, type: resource.type, url: resource.url,
@@ -340,15 +366,19 @@ export const ResourceLibrary: React.FC = () => {
           </div>
 
           {/* Actions */}
-          <button onClick={openCreateFolder} className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium">
-            <FolderPlus size={16} /> Thư mục
-          </button>
-          <button
-            onClick={() => { setEditingResource(null); setResourceForm({ name: '', type: 'document', url: '', description: '', tags: [] }); setShowResourceModal(true); }}
-            className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-          >
-            <FilePlus size={16} /> Tài nguyên
-          </button>
+          {isAdmin && (
+            <>
+              <button onClick={openCreateFolder} className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium">
+                <FolderPlus size={16} /> Thư mục
+              </button>
+              <button
+                onClick={() => { setEditingResource(null); setResourceForm({ name: '', type: 'document', url: '', description: '', tags: [] }); setShowResourceModal(true); }}
+                className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+              >
+                <FilePlus size={16} /> Tài nguyên
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -380,14 +410,16 @@ export const ResourceLibrary: React.FC = () => {
                           <span className="text-sm font-medium text-gray-900 truncate w-full">{folder.name}</span>
                           <span className="text-xs text-gray-400 mt-0.5">{getFolderItemCount(folder.id)} mục</span>
                         </div>
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1">
-                          <button onClick={(e) => openEditFolder(folder, e)} className="p-1.5 bg-white rounded-full shadow hover:bg-gray-100">
-                            <Edit size={12} className="text-gray-600" />
-                          </button>
-                          <button onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder); }} className="p-1.5 bg-white rounded-full shadow hover:bg-red-50">
-                            <Trash2 size={12} className="text-red-500" />
-                          </button>
-                        </div>
+                        {isAdmin && (
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1">
+                            <button onClick={(e) => openEditFolder(folder, e)} className="p-1.5 bg-white rounded-full shadow hover:bg-gray-100">
+                              <Edit size={12} className="text-gray-600" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder); }} className="p-1.5 bg-white rounded-full shadow hover:bg-red-50">
+                              <Trash2 size={12} className="text-red-500" />
+                            </button>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
@@ -398,10 +430,12 @@ export const ResourceLibrary: React.FC = () => {
                           <span className="font-medium text-gray-900 block truncate">{folder.name}</span>
                           <span className="text-xs text-gray-400">{getFolderItemCount(folder.id)} mục</span>
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                          <button onClick={(e) => openEditFolder(folder, e)} className="p-1.5 hover:bg-gray-100 rounded"><Edit size={14} className="text-gray-600" /></button>
-                          <button onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder); }} className="p-1.5 hover:bg-red-50 rounded"><Trash2 size={14} className="text-red-500" /></button>
-                        </div>
+                        {isAdmin && (
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                            <button onClick={(e) => openEditFolder(folder, e)} className="p-1.5 hover:bg-gray-100 rounded"><Edit size={14} className="text-gray-600" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder); }} className="p-1.5 hover:bg-red-50 rounded"><Trash2 size={14} className="text-red-500" /></button>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -453,8 +487,12 @@ export const ResourceLibrary: React.FC = () => {
                         </div>
                         <div className="flex gap-1">
                           <button onClick={() => handleViewResource(resource)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded" title="Mở"><ExternalLink size={14} /></button>
-                          <button onClick={() => openEditResource(resource)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded" title="Sửa"><Edit size={14} /></button>
-                          <button onClick={() => handleDeleteResource(resource)} className="p-1.5 text-red-500 hover:bg-red-50 rounded" title="Xóa"><Trash2 size={14} /></button>
+                          {isAdmin && (
+                            <>
+                              <button onClick={() => openEditResource(resource)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded" title="Sửa"><Edit size={14} /></button>
+                              <button onClick={() => handleDeleteResource(resource)} className="p-1.5 text-red-500 hover:bg-red-50 rounded" title="Xóa"><Trash2 size={14} /></button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -470,8 +508,12 @@ export const ResourceLibrary: React.FC = () => {
                       </div>
                       <div className="flex gap-1">
                         <button onClick={() => handleViewResource(resource)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded"><ExternalLink size={14} /></button>
-                        <button onClick={() => openEditResource(resource)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded"><Edit size={14} /></button>
-                        <button onClick={() => handleDeleteResource(resource)} className="p-1.5 text-red-500 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+                        {isAdmin && (
+                          <>
+                            <button onClick={() => openEditResource(resource)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded"><Edit size={14} /></button>
+                            <button onClick={() => handleDeleteResource(resource)} className="p-1.5 text-red-500 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+                          </>
+                        )}
                       </div>
                     </div>
                   );

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import {
   Contract, ContractType, ContractCategory, ContractItem, PaymentMethod,
-  Student, Course, Product, ContractStatus
+  Student, Course, Product, ContractStatus, ClassStatus
 } from '../types';
 import { useAuth } from '../src/hooks/useAuth';
 import { useStudents } from '../src/hooks/useStudents';
@@ -19,6 +19,7 @@ import { useContracts } from '../src/hooks/useContracts';
 // import { useCurriculums } from '../src/hooks/useCurriculums'; // Đã xóa cấu hình
 // import { useProducts } from '../src/hooks/useProducts'; // Đã xóa cấu hình
 import { useClasses } from '../src/hooks/useClasses';
+import { useCourses } from '../src/hooks/useCourses';
 import {
   formatCurrency,
   numberToWords,
@@ -243,6 +244,7 @@ export const ContractCreation: React.FC = () => {
   const curriculums: any[] = []; // Đã xóa cấu hình
   const products: any[] = []; // Đã xóa cấu hình
   const { classes } = useClasses();
+  const { courses: coursesFromSupabase } = useCourses({ status: 'active' });
 
   // Get studentId from navigation state (from TrialStudents page)
   const preSelectedStudentId = (location.state as any)?.studentId;
@@ -302,8 +304,8 @@ export const ContractCreation: React.FC = () => {
     }
   };
 
-  // Convert curriculums to course format for contract
-  const availableCourses: Course[] = curriculums.map(c => {
+  // Convert curriculums to course format for contract (legacy)
+  const coursesFromCurriculums: Course[] = curriculums.map(c => {
     const totalSessions = c.totalSessions || 1;
     const tuitionFee = c.tuitionFee || 0;
     return {
@@ -318,6 +320,22 @@ export const ContractCreation: React.FC = () => {
       updatedAt: c.updatedAt || '',
     };
   });
+
+  // Convert courses from Supabase to Course format for contract
+  const coursesFromSupabaseFormatted: Course[] = coursesFromSupabase.map(c => ({
+    id: c.id || '',
+    code: c.code || '',
+    name: c.name || '',
+    totalSessions: c.totalSessions || 1,
+    pricePerSession: c.pricePerSession || 0,
+    totalPrice: (c.pricePerSession || 0) * (c.totalSessions || 1),
+    status: (c.status === 'active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
+    createdAt: c.createdAt || '',
+    updatedAt: c.updatedAt || '',
+  }));
+
+  // Combine both sources (prioritize Supabase courses)
+  const availableCourses: Course[] = [...coursesFromSupabaseFormatted, ...coursesFromCurriculums];
 
   // Convert products to expected format
   const availableProducts: Product[] = products.map(p => ({
@@ -771,9 +789,16 @@ export const ContractCreation: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">-- Chọn lớp (không bắt buộc) --</option>
-                  {classes.filter(c => c.status === 'Đang hoạt động').map(cls => (
+                  {classes.filter(c => 
+                    c.status === ClassStatus.STUDYING || 
+                    c.status === ClassStatus.PENDING ||
+                    c.status === 'Đang học' ||
+                    c.status === 'Chờ mở' ||
+                    c.status === 'Active' ||
+                    c.status === 'Đang hoạt động'
+                  ).map(cls => (
                     <option key={cls.id} value={cls.id}>
-                      {cls.name} ({cls.code})
+                      {cls.name} {cls.code ? `(${cls.code})` : ''}
                     </option>
                   ))}
                 </select>
