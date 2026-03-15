@@ -25,6 +25,7 @@ import {
   numberToWords,
   calculateDiscount
 } from '../src/utils/currencyUtils';
+import { getCenterInfo } from '../src/services/centerInfoService';
 // ;
 
 // Contract Preview Component
@@ -36,6 +37,15 @@ interface ContractPreviewProps {
 
 const ContractPreview: React.FC<ContractPreviewProps> = ({ contract, onClose, onPrint }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const [centerInfo, setCenterInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const loadCenterInfo = async () => {
+      const info = await getCenterInfo();
+      setCenterInfo(info);
+    };
+    loadCenterInfo();
+  }, []);
 
   const handlePrint = () => {
     const printContent = printRef.current;
@@ -49,27 +59,152 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({ contract, onClose, on
         <head>
           <title>Hợp đồng - ${contract.code || 'Mới'}</title>
           <style>
-            body { font-family: 'Times New Roman', serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .header h1 { font-size: 24px; margin: 0; text-transform: uppercase; }
-            .header p { margin: 5px 0; color: #666; }
-            .contract-title { text-align: center; margin: 30px 0; }
-            .contract-title h2 { font-size: 20px; text-transform: uppercase; margin: 0; }
-            .contract-title p { margin: 5px 0; }
-            .section { margin: 20px 0; }
-            .section-title { font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-            .info-row { display: flex; margin: 8px 0; }
-            .info-label { width: 150px; font-weight: bold; }
-            .info-value { flex: 1; }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            th, td { border: 1px solid #333; padding: 8px; text-align: left; }
-            th { background: #f0f0f0; }
-            .total-row { font-weight: bold; background: #f9f9f9; }
-            .signatures { display: flex; justify-content: space-between; margin-top: 50px; }
-            .signature-box { text-align: center; width: 200px; }
-            .signature-line { border-top: 1px solid #333; margin-top: 60px; padding-top: 5px; }
-            .amount-words { font-style: italic; background: #f5f5f5; padding: 10px; margin: 10px 0; }
-            @media print { body { padding: 20px; } }
+            @page {
+              size: A4 portrait;
+              margin: 20mm;
+            }
+            body { 
+              font-family: 'Times New Roman', serif; 
+              padding: 0;
+              margin: 0;
+              font-size: 11px;
+              line-height: 1.4;
+            }
+            .header { 
+              display: flex; 
+              align-items: flex-start; 
+              gap: 15px; 
+              margin-bottom: 20px; 
+              border-bottom: 2px solid #333; 
+              padding-bottom: 10px; 
+            }
+            .header-logo { 
+              flex-shrink: 0; 
+            }
+            .header-logo img { 
+              max-height: 70px; 
+              width: auto; 
+            }
+            .header-info { 
+              flex: 1; 
+            }
+            .header-info h1 { 
+              font-size: 20px; 
+              margin: 0 0 8px 0; 
+              text-transform: uppercase; 
+              font-weight: bold; 
+              line-height: 1.2;
+            }
+            .header-info p { 
+              margin: 3px 0; 
+              color: #333; 
+              font-size: 11px; 
+              line-height: 1.4; 
+            }
+            .contract-title { 
+              text-align: center; 
+              margin: 20px 0; 
+            }
+            .contract-title h2 { 
+              font-size: 18px; 
+              text-transform: uppercase; 
+              margin: 0; 
+              font-weight: bold;
+            }
+            .contract-title p { 
+              margin: 5px 0; 
+              font-size: 11px;
+            }
+            .section { 
+              margin: 15px 0; 
+            }
+            .section-title { 
+              font-weight: bold; 
+              margin-bottom: 8px; 
+              border-bottom: 1px solid #ccc; 
+              padding-bottom: 5px; 
+              font-size: 12px;
+            }
+            .section p, .section div {
+              font-size: 11px;
+              margin: 4px 0;
+            }
+            .section .grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 4px 16px;
+            }
+            .info-row { 
+              display: flex; 
+              margin: 4px 0; 
+            }
+            .info-label { 
+              width: 130px; 
+              font-weight: bold; 
+            }
+            .info-value { 
+              flex: 1; 
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin: 10px 0; 
+              font-size: 10px;
+            }
+            th, td { 
+              border: 1px solid #333; 
+              padding: 6px; 
+              text-align: left; 
+            }
+            th { 
+              background: #f0f0f0; 
+              font-weight: bold;
+              font-size: 10px;
+            }
+            td {
+              font-size: 10px;
+            }
+            .total-row { 
+              font-weight: bold; 
+              background: #f9f9f9; 
+            }
+            .signatures { 
+              display: flex; 
+              justify-content: space-between; 
+              margin-top: 40px; 
+            }
+            .signature-box { 
+              text-align: center; 
+              width: 200px; 
+            }
+            .signature-box p {
+              font-size: 11px;
+              margin: 5px 0;
+            }
+            .signature-line { 
+              border-top: 1px solid #333; 
+              margin-top: 50px; 
+              padding-top: 5px; 
+            }
+            .amount-words { 
+              font-style: italic; 
+              background: #f5f5f5; 
+              padding: 8px; 
+              margin: 8px 0; 
+              font-size: 11px;
+            }
+            @media print { 
+              body { 
+                padding: 0;
+                margin: 0;
+              }
+              .header {
+                page-break-inside: avoid;
+              }
+              .section {
+                page-break-inside: avoid;
+              }
+            }
           </style>
         </head>
         <body>
@@ -104,35 +239,120 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({ contract, onClose, on
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <div ref={printRef}>
+          <div ref={printRef} className="max-w-[210mm] mx-auto">
             {/* Company Header */}
-            <div className="header text-center mb-8">
-              <h1 className="text-2xl font-bold text-indigo-800">TRUNG TÂM ANH NGỮ BRISKY</h1>
-              <p className="text-gray-600">Địa chỉ: Tây Mỗ, Nam Từ Liêm, Hà Nội</p>
-              <p className="text-gray-600">Hotline: 0912.345.678 | Email: contact@brisky.edu.vn</p>
+            <div className="header flex items-start gap-5 mb-6 border-b-2 border-gray-400 pb-4">
+              {/* Logo bên trái */}
+              <div className="header-logo flex-shrink-0">
+                {(centerInfo?.logoUrl || '/logo.jpg') && (
+                  <img 
+                    src={centerInfo?.logoUrl || '/logo.jpg'} 
+                    alt={`${centerInfo?.name || 'DNT EDU'} Logo`} 
+                    className="h-20 w-auto object-contain"
+                    onError={(e) => {
+                      // Fallback nếu không có logo
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                )}
+              </div>
+              
+              {/* Thông tin bên phải */}
+              <div className="header-info flex-1">
+                <h1 className="text-xl font-bold text-gray-900 mb-2 uppercase">
+                  {centerInfo?.name || 'DNT EDU'}
+                </h1>
+                <div className="space-y-1 text-sm text-gray-700">
+                  {centerInfo?.address && (
+                    <p className="flex items-start">
+                      <span className="font-semibold min-w-[70px]">Địa chỉ:</span>
+                      <span>{centerInfo.address}</span>
+                    </p>
+                  )}
+                  {!centerInfo?.address && (
+                    <p className="flex items-start">
+                      <span className="font-semibold min-w-[70px]">Địa chỉ:</span>
+                      <span>Tây Mỗ, Nam Từ Liêm, Hà Nội</span>
+                    </p>
+                  )}
+                  <div className="flex items-start gap-4 flex-wrap">
+                    {centerInfo?.phone && (
+                      <p className="flex items-start">
+                        <span className="font-semibold min-w-[60px]">Hotline:</span>
+                        <span>{centerInfo.phone}</span>
+                      </p>
+                    )}
+                    {!centerInfo?.phone && (
+                      <p className="flex items-start">
+                        <span className="font-semibold min-w-[60px]">Hotline:</span>
+                        <span>0912.345.678</span>
+                      </p>
+                    )}
+                    {centerInfo?.email && (
+                      <p className="flex items-start">
+                        <span className="font-semibold min-w-[45px]">Email:</span>
+                        <span>{centerInfo.email}</span>
+                      </p>
+                    )}
+                    {!centerInfo?.email && (
+                      <p className="flex items-start">
+                        <span className="font-semibold min-w-[45px]">Email:</span>
+                        <span>contact@dntedu.vn</span>
+                      </p>
+                    )}
+                  </div>
+                  {centerInfo?.website && (
+                    <p className="flex items-start">
+                      <span className="font-semibold min-w-[70px]">Website:</span>
+                      <span>{centerInfo.website}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Contract Title */}
-            <div className="contract-title text-center my-8">
-              <h2 className="text-xl font-bold uppercase">HỢP ĐỒNG ĐĂNG KÝ KHÓA HỌC</h2>
-              <p className="text-gray-600 mt-2">Số: <strong>{contract.code || 'BRISKY-XXX'}</strong></p>
-              <p className="text-gray-600">Ngày: {new Date(contract.contractDate || '').toLocaleDateString('vi-VN')}</p>
+            <div className="contract-title text-center my-6">
+              <h2 className="text-lg font-bold uppercase">HỢP ĐỒNG ĐĂNG KÝ KHÓA HỌC</h2>
+              <p className="text-gray-600 mt-2 text-sm">Số: <strong>{contract.code || `${centerInfo?.code || 'DNT'}-XXX`}</strong></p>
+              <p className="text-gray-600 text-sm">Ngày: {new Date(contract.contractDate || '').toLocaleDateString('vi-VN')}</p>
             </div>
 
             {/* Party A - Center */}
-            <div className="section mb-6">
-              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3">BÊN A: TRUNG TÂM ANH NGỮ BRISKY</div>
-              <div className="space-y-1 text-sm">
-                <p><strong>Đại diện:</strong> Nguyễn Văn A - Giám đốc</p>
-                <p><strong>Địa chỉ:</strong> Tây Mỗ, Nam Từ Liêm, Hà Nội</p>
-                <p><strong>Điện thoại:</strong> 0912.345.678</p>
+            <div className="section mb-4">
+              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3 text-sm">BÊN A: {centerInfo?.name || 'DNT EDU'}</div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                {centerInfo?.representativeName && (
+                  <p><strong>Đại diện:</strong> {centerInfo.representativeName}{centerInfo.representativePosition ? ` - ${centerInfo.representativePosition}` : ''}</p>
+                )}
+                {!centerInfo?.representativeName && (
+                  <p><strong>Đại diện:</strong> Nguyễn Văn A - Giám đốc</p>
+                )}
+                {centerInfo?.address && (
+                  <p className="col-span-2"><strong>Địa chỉ:</strong> {centerInfo.address}</p>
+                )}
+                {!centerInfo?.address && (
+                  <p className="col-span-2"><strong>Địa chỉ:</strong> Tây Mỗ, Nam Từ Liêm, Hà Nội</p>
+                )}
+                {centerInfo?.phone && (
+                  <p><strong>Điện thoại:</strong> {centerInfo.phone}</p>
+                )}
+                {!centerInfo?.phone && (
+                  <p><strong>Điện thoại:</strong> 0912.345.678</p>
+                )}
+                {centerInfo?.email && (
+                  <p><strong>Email:</strong> {centerInfo.email}</p>
+                )}
+                {!centerInfo?.email && (
+                  <p><strong>Email:</strong> contact@dntedu.vn</p>
+                )}
               </div>
             </div>
 
             {/* Party B - Customer */}
-            <div className="section mb-6">
-              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3">BÊN B: PHỤ HUYNH / HỌC VIÊN</div>
-              <div className="space-y-1 text-sm">
+            <div className="section mb-4">
+              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3 text-sm">BÊN B: PHỤ HUYNH / HỌC VIÊN</div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                 <p><strong>Học viên:</strong> {contract.studentName || '---'}</p>
                 <p><strong>Ngày sinh:</strong> {contract.studentDOB ? new Date(contract.studentDOB).toLocaleDateString('vi-VN') : '---'}</p>
                 <p><strong>Phụ huynh:</strong> {contract.parentName || '---'}</p>
@@ -141,8 +361,8 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({ contract, onClose, on
             </div>
 
             {/* Contract Items */}
-            <div className="section mb-6">
-              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3">NỘI DUNG HỢP ĐỒNG</div>
+            <div className="section mb-4">
+              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3 text-sm">NỘI DUNG HỢP ĐỒNG</div>
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="bg-gray-100">
@@ -175,9 +395,9 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({ contract, onClose, on
             </div>
 
             {/* Payment Info */}
-            <div className="section mb-6">
-              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3">THÔNG TIN THANH TOÁN</div>
-              <div className="space-y-1 text-sm">
+            <div className="section mb-4">
+              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3 text-sm">THÔNG TIN THANH TOÁN</div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                 <p><strong>Hình thức:</strong> {contract.paymentMethod}</p>
                 <p><strong>Trạng thái:</strong> <span className={contract.status === ContractStatus.PAID ? 'text-green-600 font-bold' : 'text-orange-600'}>{contract.status}</span></p>
                 <p><strong>Đã thanh toán:</strong> {formatCurrency(contract.paidAmount || 0)}</p>
@@ -186,8 +406,8 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({ contract, onClose, on
             </div>
 
             {/* Terms */}
-            <div className="section mb-6">
-              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3">ĐIỀU KHOẢN HỢP ĐỒNG</div>
+            <div className="section mb-4">
+              <div className="section-title font-bold border-b border-gray-300 pb-2 mb-3 text-sm">ĐIỀU KHOẢN HỢP ĐỒNG</div>
               <ol className="list-decimal list-inside text-sm space-y-2">
                 <li>Bên B cam kết thanh toán đầy đủ học phí theo thỏa thuận.</li>
                 <li>Bên A cam kết cung cấp dịch vụ giảng dạy theo chương trình đã đăng ký.</li>
@@ -198,14 +418,14 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({ contract, onClose, on
             </div>
 
             {/* Signatures */}
-            <div className="signatures flex justify-between mt-12">
+            <div className="signatures flex justify-between mt-10">
               <div className="signature-box text-center">
-                <p className="font-bold">ĐẠI DIỆN BÊN A</p>
+                <p className="font-bold text-sm">ĐẠI DIỆN BÊN A</p>
                 <p className="text-sm text-gray-500">(Ký, ghi rõ họ tên)</p>
                 <div className="signature-line border-t border-gray-400 mt-16 pt-2"></div>
               </div>
               <div className="signature-box text-center">
-                <p className="font-bold">ĐẠI DIỆN BÊN B</p>
+                <p className="font-bold text-sm">ĐẠI DIỆN BÊN B</p>
                 <p className="text-sm text-gray-500">(Ký, ghi rõ họ tên)</p>
                 <div className="signature-line border-t border-gray-400 mt-16 pt-2"></div>
               </div>

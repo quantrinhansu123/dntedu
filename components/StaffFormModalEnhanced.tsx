@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Mail, MapPin, Calendar, Building2, Briefcase, Shield, Save, CreditCard, GraduationCap, FileText, DollarSign, UserCheck, Eye, EyeOff } from 'lucide-react';
 import { Staff, StaffRole, Candidate, StaffContractType } from '../types';
-import { POSITION_TO_ROLE } from '../src/services/permissionService';
-
 interface StaffFormModalEnhancedProps {
     isOpen: boolean;
     onClose: () => void;
@@ -21,11 +19,6 @@ const DEPARTMENTS = [
     { id: 'marketing', name: 'marketing', color: 'purple' },
     { id: 'kế toán', name: 'kế toán', color: 'green' },
     { id: 'nhân sự', name: 'nhân sự', color: 'orange' },
-];
-
-const POSITIONS = [
-    { value: 'Nhân viên', label: 'Nhân viên', role: 'staff' },
-    { value: 'Leader', label: 'Leader', role: 'leader' },
 ];
 
 const CONTRACT_TYPES: StaffContractType[] = ['Thử việc', 'Chính thức', 'Cộng tác viên', 'Thời vụ'];
@@ -68,7 +61,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         // Basic Info
         name: '', code: '', phone: '', email: '',
         dob: '', gender: 'Nam' as 'Nam' | 'Nữ',
-        department: 'Điều hành', position: 'Nhân viên',
+        department: 'Điều hành',
         branch: '', startDate: new Date().toISOString().split('T')[0],
         status: 'Active' as 'Active' | 'Inactive',
         password: '', roles: [] as StaffRole[],
@@ -107,7 +100,6 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 dob: candidateToConvert.dob || '',
                 gender: candidateToConvert.gender || 'Nam',
                 department: candidateToConvert.applyDepartment || 'Điều hành',
-                position: candidateToConvert.applyPosition || 'Nhân viên',
                 branch: centerList.length > 0 ? centerList[0].name : '',
                 startDate: new Date().toISOString().split('T')[0],
                 status: 'Active',
@@ -133,7 +125,6 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 phone: editingStaff.phone || '', email: editingStaff.email || '',
                 dob: editingStaff.dob || '', gender: editingStaff.gender || 'Nam',
                 department: editingStaff.department || 'Điều hành',
-                position: editingStaff.position || 'Nhân viên',
                 branch: editingStaff.branch || '', startDate: editingStaff.startDate || '',
                 status: editingStaff.status || 'Active',
                 idNumber: editingStaff.idNumber || '', idIssueDate: editingStaff.idIssueDate || '',
@@ -155,7 +146,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         } else {
             setFormData({
                 name: '', code: `NV${Date.now().toString().slice(-6)}`, phone: '', email: '',
-                dob: '', gender: 'Nam', department: 'Điều hành', position: 'Nhân viên',
+                dob: '', gender: 'Nam', department: 'Điều hành',
                 branch: centerList.length > 0 ? centerList[0].name : '',
                 startDate: new Date().toISOString().split('T')[0], status: 'Active',
                 idNumber: '', idIssueDate: '', idIssuePlace: '', address: '', permanentAddress: '',
@@ -176,8 +167,6 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         }
         setSaving(true);
         try {
-            const primaryRole = POSITION_TO_ROLE[formData.position] || 'staff';
-
             // Helper function to convert empty string to null for date fields
             const toDateOrNull = (value: string): string | null => {
                 return value && value.trim() !== '' ? value : null;
@@ -197,7 +186,6 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 dob: toDateOrNull(formData.dob),
                 gender: formData.gender,
                 department: formData.department,
-                position: formData.position,
                 branch: toStringOrNull(formData.branch),
                 startDate: toDateOrNull(formData.startDate),
                 status: formData.status,
@@ -218,8 +206,9 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 contractStartDate: toDateOrNull(formData.contractStartDate),
                 contractEndDate: toDateOrNull(formData.contractEndDate),
                 notes: toStringOrNull(formData.notes),
-                role: primaryRole as any,
-                roles: formData.roles.length > 0 ? formData.roles : [primaryRole as any],
+                // Only set role and roles if roles are selected, otherwise leave empty
+                role: formData.roles.length > 0 ? formData.roles[0] as any : undefined,
+                roles: formData.roles.length > 0 ? formData.roles : [],
             };
             
             // Only include password if provided and not empty
@@ -346,13 +335,6 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                                     <select value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-lg">
                                         {DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Vị trí</label>
-                                    <select value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg">
-                                        {POSITIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                                     </select>
                                 </div>
                                 <div>

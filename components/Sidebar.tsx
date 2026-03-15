@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Settings
+  Settings,
+  FolderOpen
 } from 'lucide-react';
 import { MenuItem } from '../types';
 import { usePermissions } from '../src/hooks/usePermissions';
@@ -24,7 +25,6 @@ import { ModuleKey } from '../src/services/permissionService';
 const subItemToModule: Record<string, ModuleKey> = {
   'classes': 'classes',
   'courses': 'classes',
-  'resources': 'classes',
   'schedule': 'schedule',
   'holidays': 'holidays',
   'attendance': 'attendance',
@@ -94,9 +94,14 @@ const menuItems: MenuItem[] = [
       { id: 'classes', label: 'Lớp học', path: '/admin/training/classes', icon: ChevronRight },
       { id: 'courses', label: 'Khóa học', path: '/admin/training/courses', icon: ChevronRight },
       { id: 'academic-hub', label: 'Vận hành Đào tạo', path: '/admin/training/hub', icon: ChevronRight },
-      { id: 'resources', label: 'Thư viện tài nguyên', path: '/admin/training/resources', icon: ChevronRight },
       { id: 'centers', label: 'Quản lý Cơ sở', path: '/admin/training/centers', icon: ChevronRight },
     ]
+  },
+  {
+    id: 'resources',
+    label: 'Tài nguyên trung tâm',
+    icon: FolderOpen,
+    path: '/admin/training/resources'
   },
   {
     id: 'customers',
@@ -176,6 +181,11 @@ export const Sidebar: React.FC = () => {
       // Settings only visible to admin
       if (item.id === 'settings') {
         return isAdmin ? item : null;
+      }
+
+      // Resources menu item - check permission
+      if (item.id === 'resources') {
+        return canView('resources') ? item : null;
       }
 
       // For parent menus with subItems

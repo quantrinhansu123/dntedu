@@ -11,6 +11,7 @@ import {
 import { useMarketingTasks } from '../src/hooks/useMarketingTasks';
 import { useStaff } from '../src/hooks/useStaff';
 import { useCampaigns } from '../src/hooks/useCampaigns';
+import { usePermissions } from '../src/hooks/usePermissions';
 import { MarketingTask, MarketingTaskStatus, MarketingTaskPriority } from '../src/types/marketingTypes';
 
 const STATUS_COLORS: Record<MarketingTaskStatus, string> = {
@@ -27,6 +28,7 @@ const PRIORITY_COLORS: Record<MarketingTaskPriority, string> = {
 };
 
 export const MarketingTaskManager: React.FC = () => {
+    const { isAdmin } = usePermissions();
     const { tasks, loading, error, createTask, updateTask, deleteTask, getStaffCompletion } = useMarketingTasks();
     const { staff = [] } = useStaff();
     const { campaigns = [] } = useCampaigns();
@@ -57,20 +59,34 @@ export const MarketingTaskManager: React.FC = () => {
         return { total, inProgress, completed, completionRate };
     }, [tasks]);
 
-    // Staff performance
+    // Staff performance - Hiển thị tất cả nhân viên
     const staffPerformance = useMemo(() => {
-        const marketingStaff = staff.filter(s =>
-            s.position === 'Sale' || s.department === 'Kinh doanh' || s.role === 'Sale'
-        );
-        return marketingStaff.map(s => ({
-            id: s.id,
-            name: s.name,
-            taskCount: tasks.filter(t => t.assignedTo.includes(s.id || '')).length,
-            completionPercent: getStaffCompletion(s.id || ''),
-        }));
+        // Hiển thị tất cả nhân viên trong hệ thống
+        return staff.map(s => {
+            const staffTasks = tasks.filter(t => t.assignedTo.includes(s.id || ''));
+            const taskCount = staffTasks.length;
+            const completionPercent = taskCount > 0 ? getStaffCompletion(s.id || '') : 0;
+            
+            return {
+                id: s.id,
+                name: s.name,
+                taskCount,
+                completionPercent,
+            };
+        }).sort((a, b) => {
+            // Sắp xếp: nhân viên có task trước, sau đó sắp xếp theo số lượng task giảm dần
+            if (a.taskCount === 0 && b.taskCount > 0) return 1;
+            if (a.taskCount > 0 && b.taskCount === 0) return -1;
+            return b.taskCount - a.taskCount;
+        });
     }, [staff, tasks, getStaffCompletion]);
 
     const handleDelete = async (id: string) => {
+        if (!isAdmin) {
+            alert('Chỉ quản trị viên mới có quyền xóa task');
+            return;
+        }
+        
         if (!confirm('Xóa task này?')) return;
         try {
             await deleteTask(id);
@@ -80,6 +96,11 @@ export const MarketingTaskManager: React.FC = () => {
     };
 
     const handleStatusChange = async (task: MarketingTask, newStatus: MarketingTaskStatus) => {
+        if (!isAdmin) {
+            alert('Chỉ quản trị viên mới có quyền thay đổi trạng thái task');
+            return;
+        }
+        
         if (!task.id) return;
         const updates: Partial<MarketingTask> = { status: newStatus };
         if (newStatus === 'Hoàn thành') {
@@ -87,6 +108,24 @@ export const MarketingTaskManager: React.FC = () => {
             updates.completionPercent = 100;
         }
         await updateTask(task.id, updates);
+    };
+    
+    const handleEdit = (task: MarketingTask) => {
+        if (!isAdmin) {
+            alert('Chỉ quản trị viên mới có quyền sửa task');
+            return;
+        }
+        setEditingTask(task);
+        setShowModal(true);
+    };
+    
+    const handleAdd = () => {
+        if (!isAdmin) {
+            alert('Chỉ quản trị viên mới có quyền tạo task');
+            return;
+        }
+        setEditingTask(null);
+        setShowModal(true);
     };
 
     return (
@@ -103,12 +142,14 @@ export const MarketingTaskManager: React.FC = () => {
                             <p className="text-sm text-gray-500">Phân công và theo dõi tiến độ công việc</p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => { setEditingTask(null); setShowModal(true); }}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-medium"
-                    >
-                        <Plus size={16} /> Tạo Task
-                    </button>
+                    {isAdmin && (
+                        <button
+                            onClick={handleAdd}
+                            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                        >
+                            <Plus size={16} /> Tạo Task
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -187,29 +228,47 @@ export const MarketingTaskManager: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <select
-                                            value={task.status}
-                                            onChange={e => handleStatusChange(task, e.target.value as MarketingTaskStatus)}
-                                            className={`px-2 py-1 rounded text-xs font-medium border-0 ${STATUS_COLORS[task.status]}`}
-                                        >
-                                            <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                            <option value="Đang làm">Đang làm</option>
-                                            <option value="Hoàn thành">Hoàn thành</option>
-                                            <option value="Hủy">Hủy</option>
-                                        </select>
+                                        {isAdmin ? (
+                                            <select
+                                                value={task.status}
+                                                onChange={e => handleStatusChange(task, e.target.value as MarketingTaskStatus)}
+                                                className={`px-2 py-1 rounded text-xs font-medium border-0 ${STATUS_COLORS[task.status]}`}
+                                            >
+                                                <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                                <option value="Đang làm">Đang làm</option>
+                                                <option value="Hoàn thành">Hoàn thành</option>
+                                                <option value="Hủy">Hủy</option>
+                                            </select>
+                                        ) : (
+                                            <span className={`px-2 py-1 rounded text-xs font-medium ${STATUS_COLORS[task.status]}`}>
+                                                {task.status}
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-4 py-3 text-center text-xs">
                                         {new Date(task.dueDate).toLocaleDateString('vi-VN')}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <button onClick={() => { setEditingTask(task); setShowModal(true); }} className="p-1 text-gray-400 hover:text-indigo-600">
-                                                <Edit size={16} />
-                                            </button>
-                                            <button onClick={() => task.id && handleDelete(task.id)} className="p-1 text-gray-400 hover:text-red-600">
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
+                                        {isAdmin ? (
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button 
+                                                    onClick={() => handleEdit(task)} 
+                                                    className="p-1 text-gray-400 hover:text-indigo-600"
+                                                    title="Sửa task"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => task.id && handleDelete(task.id)} 
+                                                    className="p-1 text-gray-400 hover:text-red-600"
+                                                    title="Xóa task"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-gray-400">Chỉ xem</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -239,7 +298,7 @@ export const MarketingTaskManager: React.FC = () => {
                     ))}
                     {staffPerformance.length === 0 && (
                         <div className="col-span-full text-center text-gray-400 py-8">
-                            Chưa có nhân viên Sale/Marketing
+                            Chưa có nhân viên nào trong hệ thống
                         </div>
                     )}
                 </div>

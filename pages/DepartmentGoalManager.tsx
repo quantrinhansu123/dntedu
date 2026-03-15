@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { useDepartmentGoals } from '../src/hooks/useDepartmentGoals';
 import { DepartmentGoal, DepartmentCode, DEPARTMENT_LABELS } from '../types';
+import { usePermissions } from '../src/hooks/usePermissions';
+import { useAuth } from '../src/hooks/useAuth';
 
 const DEPARTMENT_COLORS: Record<DepartmentCode, { bg: string; text: string; border: string }> = {
     sales: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
@@ -19,11 +21,36 @@ const DEPARTMENT_COLORS: Record<DepartmentCode, { bg: string; text: string; bord
     hr: { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-200' }
 };
 
+// Helper function to map department string to DepartmentCode
+const mapDepartmentToCode = (department: string | null | undefined): DepartmentCode | null => {
+    if (!department) return null;
+    
+    const deptLower = department.toLowerCase().trim();
+    
+    // Map Vietnamese department names to codes
+    if (deptLower.includes('kinh doanh') || deptLower === 'sales') return 'sales';
+    if (deptLower.includes('chuyên môn') || deptLower.includes('đào tạo') || deptLower === 'training') return 'training';
+    if (deptLower.includes('marketing') || deptLower === 'marketing') return 'marketing';
+    if (deptLower.includes('kế toán') || deptLower === 'accounting') return 'accounting';
+    if (deptLower.includes('nhân sự') || deptLower === 'hr') return 'hr';
+    
+    return null;
+};
+
 export const DepartmentGoalManager: React.FC = () => {
+    const { isAdmin } = usePermissions();
+    const { staffData } = useAuth();
     const currentDate = new Date();
     const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-    const [selectedDept, setSelectedDept] = useState<DepartmentCode | 'all'>('all');
+    
+    // Get user's department code
+    const userDepartmentCode = useMemo(() => mapDepartmentToCode(staffData?.department), [staffData?.department]);
+    
+    // For non-admin users, default to their department only
+    const [selectedDept, setSelectedDept] = useState<DepartmentCode | 'all'>(
+        isAdmin ? 'all' : (userDepartmentCode || 'all')
+    );
 
     const {
         goals,
@@ -39,30 +66,82 @@ export const DepartmentGoalManager: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingGoal, setEditingGoal] = useState<DepartmentGoal | null>(null);
 
-    // Filter goals by department
+    // Filter goals by department (for non-admin, only show their department)
     const filteredGoals = useMemo(() => {
-        if (selectedDept === 'all') return goals;
-        return goals.filter(g => g.departmentCode === selectedDept);
-    }, [goals, selectedDept]);
+        let filtered = goals;
+        
+        // Non-admin users can only see their department's goals
+        if (!isAdmin && userDepartmentCode) {
+            filtered = filtered.filter(g => g.departmentCode === userDepartmentCode);
+        } else if (selectedDept !== 'all') {
+            filtered = filtered.filter(g => g.departmentCode === selectedDept);
+        }
+        
+        return filtered;
+    }, [goals, selectedDept, isAdmin, userDepartmentCode]);
 
     // Group goals by department
-    const goalsByDept = useMemo(() => getGoalsByDepartment(), [getGoalsByDepartment]);
+    const goalsByDept = useMemo(() => {
+        const grouped = getGoalsByDepartment();
+        
+        // For non-admin, only return their department
+        if (!isAdmin && userDepartmentCode) {
+            return { [userDepartmentCode]: grouped[userDepartmentCode] || [] };
+        }
+        
+        return grouped;
+    }, [getGoalsByDepartment, isAdmin, userDepartmentCode]);
 
-    // Departments to show
+    // Departments to show (for non-admin, only their department)
     const departments = useMemo(() => {
+        if (!isAdmin && userDepartmentCode) {
+            return [userDepartmentCode];
+        }
+        
         if (selectedDept === 'all') {
             return Object.keys(DEPARTMENT_LABELS) as DepartmentCode[];
         }
         return [selectedDept];
-    }, [selectedDept]);
+    }, [selectedDept, isAdmin, userDepartmentCode]);
+    
+    // Available departments for tabs (for non-admin, only their department)
+    const availableDepartments = useMemo(() => {
+        if (!isAdmin && userDepartmentCode) {
+            return [userDepartmentCode];
+        }
+        return Object.keys(DEPARTMENT_LABELS) as DepartmentCode[];
+    }, [isAdmin, userDepartmentCode]);
 
     const handleDelete = async (id: string) => {
+        if (!isAdmin) {
+            alert('Chỉ quản trị viên mới có quyền xóa mục tiêu');
+            return;
+        }
+        
         if (!confirm('Xóa mục tiêu này?')) return;
         try {
             await deleteGoal(id);
         } catch (err) {
             alert('Không thể xóa mục tiêu');
         }
+    };
+    
+    const handleEdit = (goal: DepartmentGoal) => {
+        if (!isAdmin) {
+            alert('Chỉ quản trị viên mới có quyền sửa mục tiêu');
+            return;
+        }
+        setEditingGoal(goal);
+        setShowModal(true);
+    };
+    
+    const handleAdd = () => {
+        if (!isAdmin) {
+            alert('Chỉ quản trị viên mới có quyền thêm mục tiêu');
+            return;
+        }
+        setEditingGoal(null);
+        setShowModal(true);
     };
 
     const getResultColor = (result: number) => {
@@ -108,64 +187,91 @@ export const DepartmentGoalManager: React.FC = () => {
                                 ))}
                             </select>
                         </div>
-                        <button
-                            onClick={() => { setEditingGoal(null); setShowModal(true); }}
-                            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-medium"
-                        >
-                            <Plus size={16} /> Thêm mục tiêu
-                        </button>
+                        {isAdmin && (
+                            <button
+                                onClick={handleAdd}
+                                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                            >
+                                <Plus size={16} /> Thêm mục tiêu
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Department Tabs */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
-                <div className="flex flex-wrap gap-2">
-                    <button
-                        onClick={() => setSelectedDept('all')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedDept === 'all'
-                                ? 'bg-indigo-600 text-white'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        Tất cả
-                    </button>
-                    {(Object.keys(DEPARTMENT_LABELS) as DepartmentCode[]).map(code => (
+            {/* Department Tabs - Only show for admin */}
+            {isAdmin && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+                    <div className="flex flex-wrap gap-2">
                         <button
-                            key={code}
-                            onClick={() => setSelectedDept(code)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedDept === code
-                                    ? `${DEPARTMENT_COLORS[code].bg} ${DEPARTMENT_COLORS[code].text}`
+                            onClick={() => setSelectedDept('all')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedDept === 'all'
+                                    ? 'bg-indigo-600 text-white'
                                     : 'text-gray-600 hover:bg-gray-100'
                                 }`}
                         >
-                            {DEPARTMENT_LABELS[code]}
+                            Tất cả
                         </button>
-                    ))}
+                        {(Object.keys(DEPARTMENT_LABELS) as DepartmentCode[]).map(code => (
+                            <button
+                                key={code}
+                                onClick={() => setSelectedDept(code)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedDept === code
+                                        ? `${DEPARTMENT_COLORS[code].bg} ${DEPARTMENT_COLORS[code].text}`
+                                        : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                            >
+                                {DEPARTMENT_LABELS[code]}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* Department Results Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {(Object.keys(DEPARTMENT_LABELS) as DepartmentCode[]).map(code => {
-                    const result = getDepartmentResult(code);
-                    const colors = DEPARTMENT_COLORS[code];
-                    return (
-                        <div
-                            key={code}
-                            className={`${colors.bg} ${colors.border} border rounded-xl p-4 cursor-pointer hover:shadow-md transition-shadow`}
-                            onClick={() => setSelectedDept(code)}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <Building2 size={20} className={colors.text} />
-                                <span className={`text-2xl font-bold ${colors.text}`}>{result}%</span>
+            {/* Department Results Summary - Only show for admin */}
+            {isAdmin && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {(Object.keys(DEPARTMENT_LABELS) as DepartmentCode[]).map(code => {
+                        const result = getDepartmentResult(code);
+                        const colors = DEPARTMENT_COLORS[code];
+                        return (
+                            <div
+                                key={code}
+                                className={`${colors.bg} ${colors.border} border rounded-xl p-4 cursor-pointer hover:shadow-md transition-shadow`}
+                                onClick={() => setSelectedDept(code)}
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <Building2 size={20} className={colors.text} />
+                                    <span className={`text-2xl font-bold ${colors.text}`}>{result}%</span>
+                                </div>
+                                <p className="text-sm font-medium text-gray-700">{DEPARTMENT_LABELS[code]}</p>
+                                <p className="text-xs text-gray-500">{goalsByDept[code]?.length || 0} mục tiêu</p>
                             </div>
-                            <p className="text-sm font-medium text-gray-700">{DEPARTMENT_LABELS[code]}</p>
-                            <p className="text-xs text-gray-500">{goalsByDept[code]?.length || 0} mục tiêu</p>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
+            
+            {/* Non-admin: Show their department summary */}
+            {!isAdmin && userDepartmentCode && (
+                <div className="grid grid-cols-1 gap-4">
+                    {(() => {
+                        const code = userDepartmentCode;
+                        const result = getDepartmentResult(code);
+                        const colors = DEPARTMENT_COLORS[code];
+                        return (
+                            <div className={`${colors.bg} ${colors.border} border rounded-xl p-4`}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <Building2 size={20} className={colors.text} />
+                                    <span className={`text-2xl font-bold ${colors.text}`}>{result}%</span>
+                                </div>
+                                <p className="text-sm font-medium text-gray-700">{DEPARTMENT_LABELS[code]}</p>
+                                <p className="text-xs text-gray-500">{goalsByDept[code]?.length || 0} mục tiêu</p>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
 
             {/* Goals by Department */}
             <div className="space-y-4">
@@ -202,12 +308,14 @@ export const DepartmentGoalManager: React.FC = () => {
                                     <div className="text-center py-8 text-gray-400">
                                         <Target size={32} className="mx-auto mb-2 opacity-50" />
                                         <p>Chưa có mục tiêu nào</p>
-                                        <button
-                                            onClick={() => { setEditingGoal(null); setShowModal(true); }}
-                                            className="mt-2 text-indigo-600 hover:underline text-sm"
-                                        >
-                                            + Thêm mục tiêu mới
-                                        </button>
+                                        {isAdmin && (
+                                            <button
+                                                onClick={handleAdd}
+                                                className="mt-2 text-indigo-600 hover:underline text-sm"
+                                            >
+                                                + Thêm mục tiêu mới
+                                            </button>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">
@@ -246,18 +354,26 @@ export const DepartmentGoalManager: React.FC = () => {
                                                             </span>
                                                         </td>
                                                         <td className="py-3 px-4 text-center">
-                                                            <button
-                                                                onClick={() => { setEditingGoal(goal); setShowModal(true); }}
-                                                                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
-                                                            >
-                                                                <Edit size={14} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDelete(goal.id)}
-                                                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
+                                                            {isAdmin ? (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => handleEdit(goal)}
+                                                                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+                                                                        title="Sửa mục tiêu"
+                                                                    >
+                                                                        <Edit size={14} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDelete(goal.id)}
+                                                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded ml-1"
+                                                                        title="Xóa mục tiêu"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <span className="text-xs text-gray-400">Chỉ xem</span>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -292,12 +408,14 @@ export const DepartmentGoalManager: React.FC = () => {
                         <Target size={48} className="mx-auto mb-4 text-gray-300" />
                         <h3 className="text-lg font-medium text-gray-600 mb-2">Chưa có mục tiêu nào</h3>
                         <p className="text-gray-400 mb-4">Bắt đầu bằng việc thêm mục tiêu KPI cho các phòng ban</p>
-                        <button
-                            onClick={() => { setEditingGoal(null); setShowModal(true); }}
-                            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700"
-                        >
-                            <Plus size={18} /> Thêm mục tiêu đầu tiên
-                        </button>
+                        {isAdmin && (
+                            <button
+                                onClick={handleAdd}
+                                className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700"
+                            >
+                                <Plus size={18} /> Thêm mục tiêu đầu tiên
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

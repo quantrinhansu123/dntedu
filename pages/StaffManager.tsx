@@ -17,9 +17,8 @@ import { supabase } from '../src/config/supabase';
 import { formatDate } from '../src/utils/dateUtils';
 import { formatCurrency } from '../src/utils/currencyUtils';
 
-// Departments and positions
+// Departments
 const DEPARTMENTS = ['Điều hành', 'kinh doanh', 'chuyên môn', 'marketing', 'kế toán', 'nhân sự'];
-const POSITIONS = ['Nhân viên', 'Leader', 'Giáo viên'];
 
 // Available roles for multi-select
 const AVAILABLE_ROLES: StaffRole[] = ['Giáo viên', 'Trợ giảng', 'Nhân viên', 'Sale', 'Văn phòng', 'Quản lý', 'Quản trị viên'];
@@ -59,7 +58,6 @@ export const StaffManager: React.FC = () => {
     phone: '',
     email: '', // Email for login
     department: 'Đào Tạo',
-    position: 'Giáo Viên Việt',
     roles: [] as StaffRole[],
     startDate: '',
     contractLink: '',
@@ -72,32 +70,13 @@ export const StaffManager: React.FC = () => {
     allowance: undefined as number | undefined,
   });
 
-  // Normalize position name (handle variations in database)
-  const normalizePosition = (pos: string): string => {
-    if (!pos) return '';
-    const lower = pos.toLowerCase();
-    if (lower.includes('leader') || lower.includes('quản lý') || lower.includes('admin')) return 'Leader';
-    if (lower.includes('giáo viên') || lower.includes('gv') || lower.includes('teacher')) return 'Giáo viên';
-    if (lower.includes('nhân viên') || lower.includes('staff')) return 'Nhân viên';
-    // Keep original if it matches one of the valid positions
-    if (pos === 'Leader' || pos === 'Nhân viên' || pos === 'Giáo viên') return pos;
-    return 'Nhân viên'; // Default fallback
-  };
-
-  // Position order for sorting
-  const positionOrder: Record<string, number> = {
-    'Leader': 1,
-    'Giáo viên': 2,
-    'Nhân viên': 3,
-  };
-
   // Normalize department name for comparison (case-insensitive, trim spaces)
   const normalizeDepartment = (dept: string | undefined | null): string => {
     if (!dept) return '';
     return dept.trim().toLowerCase();
   };
 
-  // Filter and sort staff by position
+  // Filter and sort staff
   const filteredStaff = useMemo(() => {
     const normalizedFilterDept = filterDepartment === 'ALL' ? 'ALL' : normalizeDepartment(filterDepartment);
     
@@ -111,12 +90,7 @@ export const StaffManager: React.FC = () => {
         return matchesSearch && matchesDept && matchesBranch;
       })
       .sort((a, b) => {
-        // Sort by position (normalized)
-        const posA = positionOrder[normalizePosition(a.position || '')] || 99;
-        const posB = positionOrder[normalizePosition(b.position || '')] || 99;
-        if (posA !== posB) return posA - posB;
-
-        // Then sort by name
+        // Sort by name
         return (a.name || '').localeCompare(b.name || '');
       });
   }, [staff, searchTerm, filterDepartment, filterBranch]);
@@ -130,7 +104,6 @@ export const StaffManager: React.FC = () => {
       phone: '',
       email: '',
       department: 'Điều hành',
-      position: 'Nhân viên',
       roles: [],
       startDate: new Date().toISOString().split('T')[0],
       contractLink: '',
@@ -154,7 +127,6 @@ export const StaffManager: React.FC = () => {
       phone: staffMember.phone || '',
       email: staffMember.email || '',
       department: staffMember.department || 'Điều hành',
-      position: staffMember.position || 'Nhân viên',
       roles: staffMember.roles || (staffMember.role ? [staffMember.role] : []),
       startDate: staffMember.startDate || '',
       contractLink: '',
@@ -177,9 +149,8 @@ export const StaffManager: React.FC = () => {
     }
 
     try {
-      // Determine primary role from position or roles array
-      const primaryRole = formData.roles.length > 0 ? formData.roles[0] :
-        formData.position === 'Leader' ? 'Quản lý' : 'Nhân viên';
+      // Use first role as primary role if roles are selected, otherwise leave empty
+      const primaryRole = formData.roles.length > 0 ? formData.roles[0] : undefined;
 
       const staffData: any = {
         name: formData.name,
@@ -188,9 +159,8 @@ export const StaffManager: React.FC = () => {
         phone: formData.phone,
         email: formData.email || formData.username || '', // Use email field first, fallback to username
         department: formData.department,
-        position: formData.position,
         role: primaryRole,
-        roles: formData.roles.length > 0 ? formData.roles : [primaryRole],
+        roles: formData.roles,
         startDate: formData.startDate,
         status: formData.status,
         branch: formData.branch,
@@ -243,7 +213,6 @@ export const StaffManager: React.FC = () => {
         await createStaff({
           name: row.name,
           code: row.code || `NV${Date.now()}${i}`,
-          position: row.position || 'Nhân viên',
           department: row.department || 'Văn phòng',
           phone: row.phone || '',
           email: row.email || '',
@@ -412,7 +381,6 @@ export const StaffManager: React.FC = () => {
                   <th className="px-6 py-4">Họ tên</th>
                   <th className="px-6 py-4">SĐT</th>
                   <th className="px-6 py-4 text-center">Phòng ban</th>
-                  <th className="px-6 py-4">Vị trí</th>
                   <th className="px-6 py-4">Cơ sở</th>
                   <th className="px-6 py-4">Vai trò</th>
                   <th className="px-6 py-4 text-right">Hành động</th>
@@ -438,7 +406,6 @@ export const StaffManager: React.FC = () => {
                         {s.department}
                       </span>
                     </td>
-                    <td className="px-6 py-4">{normalizePosition(s.position || '')}</td>
                     <td className="px-6 py-4">
                       {s.branch ? (
                         <span className="inline-flex items-center gap-1 text-sm text-gray-700">
@@ -479,7 +446,7 @@ export const StaffManager: React.FC = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
                       Không có nhân viên nào
                     </td>
                   </tr>
@@ -641,18 +608,6 @@ export const StaffManager: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Vị trí</label>
-                    <select
-                      value={formData.position}
-                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    >
-                      {POSITIONS.map(pos => (
-                        <option key={pos} value={pos}>{pos}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
 
                 {/* Branch */}
@@ -802,7 +757,7 @@ export const StaffManager: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold">{selectedStaff.name}</h3>
-                    <p className="text-indigo-100">{selectedStaff.code} • {selectedStaff.position}</p>
+                    <p className="text-indigo-100">{selectedStaff.code}</p>
                     <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${selectedStaff.status === 'Active' ? 'bg-green-400 text-green-900' : 'bg-gray-400 text-gray-900'}`}>
                       {selectedStaff.status === 'Active' ? 'Đang làm việc' : 'Đã nghỉ việc'}
                     </span>
@@ -859,20 +814,20 @@ export const StaffManager: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Vị trí & Phòng ban */}
+                {/* Phòng ban & Vai trò */}
                 <div>
                   <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2 border-b pb-2">
-                    <Building2 size={18} className="text-blue-500" /> Vị trí công việc
+                    <Building2 size={18} className="text-blue-500" /> Thông tin công việc
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                     <div><span className="text-gray-500">Phòng ban:</span><p className="font-medium">{selectedStaff.department || '-'}</p></div>
-                    <div><span className="text-gray-500">Vị trí:</span><p className="font-medium">{selectedStaff.position || '-'}</p></div>
                     <div><span className="text-gray-500">Ngày bắt đầu:</span><p className="font-medium">{selectedStaff.startDate ? new Date(selectedStaff.startDate).toLocaleDateString('vi-VN') : '-'}</p></div>
                     <div><span className="text-gray-500">Vai trò:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {(selectedStaff.roles?.length ? selectedStaff.roles : [selectedStaff.role]).map((role, i) => (
+                        {(selectedStaff.roles?.length ? selectedStaff.roles : (selectedStaff.role ? [selectedStaff.role] : [])).map((role, i) => (
                           <span key={i} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs">{role}</span>
                         ))}
+                        {(!selectedStaff.roles?.length && !selectedStaff.role) && <span className="text-gray-400">-</span>}
                       </div>
                     </div>
                   </div>
