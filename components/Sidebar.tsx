@@ -12,7 +12,8 @@ import {
   ChevronDown,
   ChevronRight,
   Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { MenuItem } from '../types';
 import { usePermissions } from '../src/hooks/usePermissions';
@@ -151,6 +152,12 @@ const menuItems: MenuItem[] = [
       { id: 'report-monthly', label: 'Báo cáo học tập', path: '/admin/reports/monthly', icon: ChevronRight },
     ]
   },
+  {
+    id: 'settings',
+    label: 'Cài đặt',
+    icon: Settings,
+    path: '/admin/settings'
+  },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -165,6 +172,11 @@ export const Sidebar: React.FC = () => {
     return menuItems.map(item => {
       // Dashboard always visible
       if (item.id === 'dashboard') return item;
+
+      // Settings only visible to admin
+      if (item.id === 'settings') {
+        return isAdmin ? item : null;
+      }
 
       // For parent menus with subItems
       if (item.subItems) {
@@ -185,7 +197,7 @@ export const Sidebar: React.FC = () => {
 
       return item;
     }).filter(Boolean) as MenuItem[];
-  }, [canView, role]);
+  }, [canView, role, isAdmin]);
 
   const toggleMenu = (id: string) => {
     setExpandedMenus(prev =>

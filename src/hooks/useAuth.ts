@@ -7,15 +7,16 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for backdoor user in localStorage
-    const backdoorUser = localStorage.getItem('backdoorUser');
-    if (backdoorUser) {
+    // Check for user in localStorage (both backdoor and regular staff)
+    const storedUser = localStorage.getItem('authUser') || localStorage.getItem('backdoorUser');
+    if (storedUser) {
       try {
-        const user = JSON.parse(backdoorUser);
+        const user = JSON.parse(storedUser);
         setUser(user);
         setLoading(false);
         return;
       } catch (e) {
+        localStorage.removeItem('authUser');
         localStorage.removeItem('backdoorUser');
       }
     }
@@ -25,6 +26,7 @@ export const useAuth = () => {
       setLoading(false);
     });
 
+    return unsubscribe;
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -32,9 +34,12 @@ export const useAuth = () => {
       setError(null);
       const user = await AuthService.signIn(email, password);
       setUser(user);
-      // Persist backdoor user
+      // Persist user to localStorage
       if (email === 'admin@admin.admin') {
         localStorage.setItem('backdoorUser', JSON.stringify(user));
+      } else {
+        // Save regular staff user
+        localStorage.setItem('authUser', JSON.stringify(user));
       }
       return user;
     } catch (err: any) {
@@ -48,7 +53,8 @@ export const useAuth = () => {
       setError(null);
       await AuthService.signOut();
       setUser(null);
-      // Clear backdoor user
+      // Clear all user data from localStorage
+      localStorage.removeItem('authUser');
       localStorage.removeItem('backdoorUser');
     } catch (err: any) {
       setError(err.message);

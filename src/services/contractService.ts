@@ -5,6 +5,8 @@
 
 import { Contract, ContractStatus, ContractType, PaymentMethod, EnrollmentRecord } from '../../types';
 import * as enrollmentService from './enrollmentService';
+import * as contractSupabaseService from './contractSupabaseService';
+import { supabase } from '../config/supabase';
 
 const CONTRACTS_COLLECTION = 'contracts';
 
@@ -13,25 +15,26 @@ const CONTRACTS_COLLECTION = 'contracts';
  */
 export const generateContractCode = async (): Promise<string> => {
   try {
-    // TODO: Implement Supabase query to get existing contracts
-    // const { data } = await supabase
-    //   .from(CONTRACTS_COLLECTION)
-    //   .select('code')
-    //   .order('created_at', { ascending: false });
+    // Query Supabase to get existing contracts
+    const { data } = await supabase
+      .from(CONTRACTS_COLLECTION)
+      .select('code')
+      .order('created_at', { ascending: false })
+      .limit(1000);
 
     // Find highest number from existing contracts
     let maxNumber = 0;
-    // if (data) {
-    //   for (const contract of data) {
-    //     const code = contract.code || '';
-    //     // Extract number from code (support both DNT and Brisky formats)
-    //     const match = code.match(/\d+/);
-    //     if (match) {
-    //       const num = parseInt(match[0]) || 0;
-    //       if (num > maxNumber) maxNumber = num;
-    //     }
-    //   }
-    // }
+    if (data) {
+      for (const contract of data) {
+        const code = contract.code || '';
+        // Extract number from code (support both DNT and Brisky formats)
+        const match = code.match(/\d+/);
+        if (match) {
+          const num = parseInt(match[0]) || 0;
+          if (num > maxNumber) maxNumber = num;
+        }
+      }
+    }
 
     const nextNumber = maxNumber + 1;
 
@@ -55,9 +58,16 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
   try {
     const code = await generateContractCode();
 
+    // Validate and set paymentMethod
+    const validPaymentMethods = Object.values(PaymentMethod);
+    const paymentMethod = contractData.paymentMethod && validPaymentMethods.includes(contractData.paymentMethod)
+      ? contractData.paymentMethod
+      : PaymentMethod.CASH;
+
     const contract: Omit<Contract, 'id'> = {
       code,
       type: contractData.type || ContractType.STUDENT,
+      category: contractData.category,
       studentId: contractData.studentId || '',
       studentName: contractData.studentName || '',
       studentDOB: contractData.studentDOB || '',
@@ -68,11 +78,17 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
       totalDiscount: contractData.totalDiscount || 0,
       totalAmount: contractData.totalAmount || 0,
       totalAmountInWords: contractData.totalAmountInWords || '',
-      paymentMethod: contractData.paymentMethod || PaymentMethod.CASH,
+      paymentMethod: paymentMethod,
       paidAmount: contractData.paidAmount || 0,
       remainingAmount: contractData.remainingAmount || 0,
       contractDate: contractData.contractDate || new Date().toISOString(),
+      startDate: contractData.startDate,
       paymentDate: contractData.paymentDate || null,
+      nextPaymentDate: contractData.nextPaymentDate,
+      classId: contractData.classId,
+      className: contractData.className,
+      totalSessions: contractData.totalSessions,
+      pricePerSession: contractData.pricePerSession,
       status: contractData.status || ContractStatus.DRAFT,
       notes: contractData.notes || '',
       createdAt: new Date().toISOString(),
@@ -80,18 +96,8 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
       createdBy: contractData.createdBy || 'unknown',
     };
 
-    // TODO: Implement Supabase insert
-    // const { data: result, error } = await supabase
-    //   .from(CONTRACTS_COLLECTION)
-    //   .insert({
-    //     ...contract,
-    //     created_at: contract.createdAt,
-    //     updated_at: contract.updatedAt,
-    //     created_by: contract.createdBy
-    //   })
-    //   .select()
-    //   .single();
-    // if (error) throw error;
+    // Insert into Supabase
+    const contractId = await contractSupabaseService.createContract(contract);
 
     // Auto-create enrollment record for tracking
     try {
@@ -113,7 +119,7 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
         sessions: totalSessions,
         type: enrollmentType,
         contractCode: contract.code,
-        contractId: '', // result?.id || '',
+        contractId: contractId,
         originalAmount: contract.subtotal,
         finalAmount: contract.totalAmount,
         createdDate: new Date().toLocaleDateString('vi-VN'),
@@ -128,8 +134,7 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
       // Don't fail contract creation if enrollment fails
     }
 
-    // return result.id;
-    throw new Error('Not implemented');
+    return contractId;
   } catch (error: any) {
     console.error('Error creating contract:', error);
     throw new Error(error.message || 'Không thể tạo hợp đồng');
@@ -141,15 +146,7 @@ export const createContract = async (contractData: Partial<Contract>): Promise<s
  */
 export const getContract = async (id: string): Promise<Contract | null> => {
   try {
-    // TODO: Implement Supabase query
-    // const { data, error } = await supabase
-    //   .from(CONTRACTS_COLLECTION)
-    //   .select('*')
-    //   .eq('id', id)
-    //   .single();
-    // if (error) throw error;
-    // return data || null;
-    return null;
+    return await contractSupabaseService.getContractById(id);
   } catch (error) {
     console.error('Error getting contract:', error);
     throw new Error('Không thể tải hợp đồng');
@@ -166,32 +163,7 @@ export const getContracts = async (filters?: {
   type?: ContractType;
 }): Promise<Contract[]> => {
   try {
-    // TODO: Implement Supabase query
-    // let query = supabase.from(CONTRACTS_COLLECTION).select('*');
-    // if (filters?.studentId) {
-    //   query = query.eq('studentId', filters.studentId);
-    // }
-    // query = query.order('created_at', { ascending: false });
-    // const { data, error } = await query;
-    // if (error) throw error;
-
-    // let contracts = (data || []).map(item => ({
-    //   id: item.id,
-    //   ...item,
-    // } as Contract));
-
-    let contracts: Contract[] = [];
-
-    // Apply status and type filters client-side
-    if (filters?.status) {
-      contracts = contracts.filter(c => c.status === filters.status);
-    }
-
-    if (filters?.type) {
-      contracts = contracts.filter(c => c.type === filters.type);
-    }
-
-    return contracts;
+    return await contractSupabaseService.queryContracts(filters || {});
   } catch (error) {
     console.error('Error getting contracts:', error);
     throw new Error('Không thể tải danh sách hợp đồng');
@@ -203,15 +175,7 @@ export const getContracts = async (filters?: {
  */
 export const updateContract = async (id: string, data: Partial<Contract>): Promise<void> => {
   try {
-    // TODO: Implement Supabase update
-    // const { error } = await supabase
-    //   .from(CONTRACTS_COLLECTION)
-    //   .update({
-    //     ...data,
-    //     updated_at: new Date().toISOString(),
-    //   })
-    //   .eq('id', id);
-    // if (error) throw error;
+    await contractSupabaseService.updateContract(id, data);
   } catch (error) {
     console.error('Error updating contract:', error);
     throw new Error('Không thể cập nhật hợp đồng');
@@ -226,12 +190,8 @@ export const deleteContract = async (id: string): Promise<void> => {
     // Get contract first to get the code
     const contract = await getContract(id);
 
-    // TODO: Implement Supabase delete
-    // const { error } = await supabase
-    //   .from(CONTRACTS_COLLECTION)
-    //   .delete()
-    //   .eq('id', id);
-    // if (error) throw error;
+    // Delete from Supabase
+    await contractSupabaseService.deleteContract(id);
 
     // Cascade delete enrollment record
     if (contract?.code) {
@@ -255,15 +215,7 @@ export const updateContractStatus = async (
   status: ContractStatus
 ): Promise<void> => {
   try {
-    // TODO: Implement Supabase update
-    // const { error } = await supabase
-    //   .from(CONTRACTS_COLLECTION)
-    //   .update({
-    //     status,
-    //     updated_at: new Date().toISOString(),
-    //   })
-    //   .eq('id', id);
-    // if (error) throw error;
+    await contractSupabaseService.updateContract(id, { status });
   } catch (error) {
     console.error('Error updating contract status:', error);
     throw new Error('Không thể cập nhật trạng thái hợp đồng');
@@ -287,18 +239,13 @@ export const recordPayment = async (
     const newPaidAmount = contract.paidAmount + amount;
     const newRemainingAmount = contract.totalAmount - newPaidAmount;
 
-    // TODO: Implement Supabase update
-    // const { error } = await supabase
-    //   .from(CONTRACTS_COLLECTION)
-    //   .update({
-    //     paidAmount: newPaidAmount,
-    //     remainingAmount: newRemainingAmount,
-    //     paymentDate: paymentDate || new Date().toISOString(),
-    //     status: newRemainingAmount === 0 ? ContractStatus.PAID : ContractStatus.PARTIAL,
-    //     updated_at: new Date().toISOString(),
-    //   })
-    //   .eq('id', id);
-    // if (error) throw error;
+    // Update contract in Supabase
+    await contractSupabaseService.updateContract(id, {
+      paidAmount: newPaidAmount,
+      remainingAmount: newRemainingAmount,
+      paymentDate: paymentDate || new Date().toISOString(),
+      status: newRemainingAmount === 0 ? ContractStatus.PAID : ContractStatus.PARTIAL,
+    });
   } catch (error) {
     console.error('Error recording payment:', error);
     throw new Error('Không thể ghi nhận thanh toán');

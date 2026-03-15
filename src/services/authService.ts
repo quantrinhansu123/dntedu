@@ -1,6 +1,7 @@
 // Authentication service - using Supabase
 import { Staff } from '../../types';
 import { sanitizeError } from '../utils/errorUtils';
+import { getStaffByEmailAndPassword } from './staffSupabaseService';
 
 export interface AuthUser {
   uid: string;
@@ -13,10 +14,10 @@ export interface AuthUser {
 
 export class AuthService {
   
-  // Sign in with email and password
+  // Sign in with email and password from staff table
   static async signIn(email: string, password: string): Promise<AuthUser> {
     try {
-      // Backdoor for development
+      // Backdoor for development (keep for backward compatibility)
       if (email === 'admin@admin.admin' && password === 'admin123') {
         const mockUser: AuthUser = {
           uid: 'backdoor-admin-uid',
@@ -25,7 +26,7 @@ export class AuthService {
           emailVerified: true,
           role: 'Quản trị viên',
           staffData: {
-            uid: 'backdoor-admin-uid',
+            id: 'backdoor-admin-uid',
             email: 'admin@admin.admin',
             name: 'Admin Backdoor',
             code: 'AD999',
@@ -34,23 +35,32 @@ export class AuthService {
             position: 'Quản trị viên',
             phone: '0123456789',
             status: 'Active',
-            permissions: {
-              canManageStudents: true,
-              canManageClasses: true,
-              canManageStaff: true,
-              canManageFinance: true,
-              canViewReports: true,
-            },
           }
         };
         return mockUser;
       }
 
-      // TODO: Implement with Supabase auth
-      throw new Error('Authentication not implemented. Please use Supabase auth.');
-    } catch (error) {
+      // Query staff by email and password from Supabase
+      const staff = await getStaffByEmailAndPassword(email, password);
+
+      if (!staff) {
+        throw new Error('Email hoặc mật khẩu không đúng');
+      }
+
+      // Create AuthUser
+      const authUser: AuthUser = {
+        uid: staff.id,
+        email: staff.email || null,
+        displayName: staff.name,
+        emailVerified: true,
+        role: staff.role,
+        staffData: staff,
+      };
+
+      return authUser;
+    } catch (error: any) {
       console.error('Sign in error:', error);
-      throw new Error(sanitizeError(error));
+      throw new Error(error.message || sanitizeError(error));
     }
   }
   

@@ -66,6 +66,7 @@ const SurveyFormPublic = lazy(() => import('./pages/SurveyFormPublic').then(m =>
 // New pages for Resource Library, Course Management, Teacher Management
 const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary').then(m => ({ default: m.ResourceLibrary })));
 const CourseManager = lazy(() => import('./pages/CourseManager').then(m => ({ default: m.CourseManager })));
+const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
 const TeacherDetailReport = lazy(() => import('./pages/TeacherDetailReport').then(m => ({ default: m.TeacherDetailReport })));
 const TeacherTaskManager = lazy(() => import('./pages/TeacherTaskManager').then(m => ({ default: m.TeacherTaskManager })));
 const TeacherGoalManager = lazy(() => import('./pages/TeacherGoalManager').then(m => ({ default: m.TeacherGoalManager })));
@@ -232,7 +233,8 @@ const App: React.FC = () => {
                 <Route path="/admin/reports/monthly" element={<MonthlyReport />} />
 
                 {/* Admin Routes */}
-                <Route path="/admin/config/rooms" element={<RoomManager />} />
+                <Route path="/config/rooms" element={<RoomManager />} />
+                <Route path="/settings" element={<Settings />} />
 
                 {/* Teacher Management Routes */}
                 <Route path="/hr/teacher-report" element={<TeacherDetailReport />} />

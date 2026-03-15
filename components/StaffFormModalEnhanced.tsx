@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Phone, Mail, MapPin, Calendar, Building2, Briefcase, Shield, Save, CreditCard, GraduationCap, FileText, DollarSign, UserCheck } from 'lucide-react';
+import { X, User, Phone, Mail, MapPin, Calendar, Building2, Briefcase, Shield, Save, CreditCard, GraduationCap, FileText, DollarSign, UserCheck, Eye, EyeOff } from 'lucide-react';
 import { Staff, StaffRole, Candidate, StaffContractType } from '../types';
 import { POSITION_TO_ROLE } from '../src/services/permissionService';
 
@@ -30,12 +30,15 @@ const POSITIONS = [
 
 const CONTRACT_TYPES: StaffContractType[] = ['Thử việc', 'Chính thức', 'Cộng tác viên', 'Thời vụ'];
 
+const AVAILABLE_ROLES: StaffRole[] = ['Giáo viên', 'Trợ giảng', 'Nhân viên', 'Sale', 'Văn phòng', 'Quản lý', 'Quản trị viên'];
+
 export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
     isOpen, onClose, onSubmit, editingStaff, centerList, candidateToConvert, onConvertSuccess
 }) => {
     const [activeSection, setActiveSection] = useState<'basic' | 'identity' | 'education' | 'salary' | 'contract'>('basic');
     const [saving, setSaving] = useState(false);
     const [globalBaseSalary, setGlobalBaseSalary] = useState<number>(1800000);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Fetch global salary config
     useEffect(() => {
@@ -68,6 +71,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         department: 'Điều hành', position: 'Nhân viên',
         branch: '', startDate: new Date().toISOString().split('T')[0],
         status: 'Active' as 'Active' | 'Inactive',
+        password: '', roles: [] as StaffRole[],
 
         // Identity
         idNumber: '', idIssueDate: '', idIssuePlace: '',
@@ -120,7 +124,8 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 currentContractType: 'Thử việc',
                 contractStartDate: new Date().toISOString().split('T')[0],
                 contractEndDate: '',
-                notes: candidateToConvert.notes || ''
+                notes: candidateToConvert.notes || '',
+                password: '', roles: []
             });
         } else if (editingStaff) {
             setFormData({
@@ -143,7 +148,9 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 currentContractType: editingStaff.currentContractType || 'Thử việc',
                 contractStartDate: editingStaff.contractStartDate || '',
                 contractEndDate: editingStaff.contractEndDate || '',
-                notes: editingStaff.notes || ''
+                notes: editingStaff.notes || '',
+                password: '', // Don't load password for security
+                roles: editingStaff.roles || (editingStaff.role ? [editingStaff.role] : [])
             });
         } else {
             setFormData({
@@ -156,7 +163,7 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                 education: '', degree: '', major: '', certificates: '',
                 salaryCoefficient: undefined, baseSalary: undefined, allowance: undefined,
                 currentContractType: 'Thử việc', contractStartDate: '', contractEndDate: '',
-                notes: ''
+                notes: '', password: '', roles: []
             });
         }
         setActiveSection('basic');
@@ -171,39 +178,55 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
         try {
             const primaryRole = POSITION_TO_ROLE[formData.position] || 'staff';
 
+            // Helper function to convert empty string to null for date fields
+            const toDateOrNull = (value: string): string | null => {
+                return value && value.trim() !== '' ? value : null;
+            };
+            
+            // Helper function to convert empty string to null for text fields
+            const toStringOrNull = (value: string): string | null => {
+                return value && value.trim() !== '' ? value : null;
+            };
+
             // Build staff data object, excluding undefined values
             const staffData: Partial<Staff> = {
                 name: formData.name,
                 code: formData.code,
                 phone: formData.phone,
-                email: formData.email || '',
-                dob: formData.dob || '',
+                email: toStringOrNull(formData.email),
+                dob: toDateOrNull(formData.dob),
                 gender: formData.gender,
                 department: formData.department,
                 position: formData.position,
-                branch: formData.branch || '',
-                startDate: formData.startDate || '',
+                branch: toStringOrNull(formData.branch),
+                startDate: toDateOrNull(formData.startDate),
                 status: formData.status,
-                idNumber: formData.idNumber || '',
-                idIssueDate: formData.idIssueDate || '',
-                idIssuePlace: formData.idIssuePlace || '',
-                address: formData.address || '',
-                permanentAddress: formData.permanentAddress || '',
-                bankAccount: formData.bankAccount || '',
-                bankName: formData.bankName || '',
-                taxCode: formData.taxCode || '',
-                insuranceNumber: formData.insuranceNumber || '',
-                education: formData.education || '',
-                degree: formData.degree || '',
-                major: formData.major || '',
-                certificates: formData.certificates ? formData.certificates.split(',').map(s => s.trim()) : [],
+                idNumber: toStringOrNull(formData.idNumber),
+                idIssueDate: toDateOrNull(formData.idIssueDate),
+                idIssuePlace: toStringOrNull(formData.idIssuePlace),
+                address: toStringOrNull(formData.address),
+                permanentAddress: toStringOrNull(formData.permanentAddress),
+                bankAccount: toStringOrNull(formData.bankAccount),
+                bankName: toStringOrNull(formData.bankName),
+                taxCode: toStringOrNull(formData.taxCode),
+                insuranceNumber: toStringOrNull(formData.insuranceNumber),
+                education: toStringOrNull(formData.education),
+                degree: toStringOrNull(formData.degree),
+                major: toStringOrNull(formData.major),
+                certificates: formData.certificates ? formData.certificates.split(',').map(s => s.trim()).filter(s => s !== '') : [],
                 currentContractType: formData.currentContractType,
-                contractStartDate: formData.contractStartDate || '',
-                contractEndDate: formData.contractEndDate || '',
-                notes: formData.notes || '',
+                contractStartDate: toDateOrNull(formData.contractStartDate),
+                contractEndDate: toDateOrNull(formData.contractEndDate),
+                notes: toStringOrNull(formData.notes),
                 role: primaryRole as any,
-                roles: [primaryRole as any],
+                roles: formData.roles.length > 0 ? formData.roles : [primaryRole as any],
             };
+            
+            // Only include password if provided and not empty
+            // When editing, empty password means "don't change password"
+            if (formData.password && formData.password.trim() !== '') {
+                staffData.password = formData.password;
+            }
 
             // Only add numeric fields if they have values
             if (formData.salaryCoefficient !== undefined && formData.salaryCoefficient !== null) {
@@ -219,9 +242,20 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
             await onSubmit(staffData);
             if (candidateToConvert && onConvertSuccess) onConvertSuccess();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving staff:', error);
-            alert('Có lỗi xảy ra!');
+            const errorMessage = error?.message || 'Có lỗi xảy ra!';
+            
+            // Check if it's a password column error
+            if (errorMessage.includes("password") && errorMessage.includes("schema cache")) {
+                alert('❌ Lỗi: Cột password chưa tồn tại trong database.\n\n' +
+                      'Vui lòng chạy migration để thêm cột password:\n' +
+                      '1. Chạy: node scripts/runPasswordMigration.ts\n' +
+                      '2. Copy SQL và chạy trong Supabase SQL Editor\n' +
+                      '3. Thử lại sau khi migration thành công');
+            } else {
+                alert(`Lỗi: ${errorMessage}`);
+            }
         } finally { setSaving(false); }
     };
 
@@ -342,6 +376,76 @@ export const StaffFormModalEnhanced: React.FC<StaffFormModalEnhancedProps> = ({
                                         <option value="Inactive">Đã nghỉ việc</option>
                                     </select>
                                 </div>
+                            </div>
+                            
+                            {/* Email & Password */}
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Email đăng nhập <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
+                                        placeholder="email@example.com"
+                                        required
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Email này sẽ được dùng để đăng nhập hệ thống</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Mật khẩu {editingStaff ? <span className="text-gray-500 font-normal">(để trống nếu không đổi)</span> : <span className="text-red-500">*</span>}
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            className="w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-teal-500"
+                                            placeholder={editingStaff ? "•••••••• (để trống nếu không đổi)" : "••••••••"}
+                                            required={!editingStaff}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                    {!editingStaff && (
+                                        <p className="text-xs text-gray-500 mt-1">Mật khẩu để đăng nhập hệ thống</p>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Multiple Roles */}
+                            <div className="pt-4 border-t">
+                                <label className="block text-sm font-medium mb-2">
+                                    Vai trò (có thể chọn nhiều)
+                                </label>
+                                <div className="border border-gray-300 rounded-lg p-3 grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    {AVAILABLE_ROLES.map(role => (
+                                        <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.roles.includes(role)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setFormData({ ...formData, roles: [...formData.roles, role] });
+                                                    } else {
+                                                        setFormData({ ...formData, roles: formData.roles.filter(r => r !== role) });
+                                                    }
+                                                }}
+                                                className="rounded border-gray-300 text-teal-600"
+                                            />
+                                            <span className="text-sm">{role}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                {formData.roles.length > 0 && (
+                                    <p className="text-xs text-gray-500 mt-2">Đã chọn: {formData.roles.join(', ')}</p>
+                                )}
                             </div>
                         </div>
                     )}
