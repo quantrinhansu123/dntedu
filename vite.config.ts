@@ -1,6 +1,34 @@
+import fs from 'fs';
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+
+const faviconSvgPath = path.resolve(__dirname, 'public/favicon.svg');
+
+function faviconIcoFallback() {
+  const handler = (_req: any, res: any, next: () => void) => {
+    if (_req.url === '/favicon.ico' || _req.url?.startsWith('/favicon.ico?')) {
+      try {
+        const svg = fs.readFileSync(faviconSvgPath);
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.end(svg);
+      } catch {
+        next();
+      }
+      return;
+    }
+    next();
+  };
+  return {
+    name: 'favicon-ico-fallback',
+    configureServer(server: { middlewares: { use: (fn: typeof handler) => void } }) {
+      server.middlewares.use(handler);
+    },
+    configurePreviewServer(server: { middlewares: { use: (fn: typeof handler) => void } }) {
+      server.middlewares.use(handler);
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -9,7 +37,7 @@ export default defineConfig(({ mode }) => {
       port: 3003,
       host: '0.0.0.0',
     },
-    plugins: [react()],
+    plugins: [react(), faviconIcoFallback()],
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
