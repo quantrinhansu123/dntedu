@@ -126,75 +126,27 @@ export const getWorkTaskById = async (id: string): Promise<WorkTask | null> => {
 
 /**
  * Lấy công việc theo staff ID
- * Sử dụng Supabase JSONB query để filter trực tiếp trong database
+ * Lấy tất cả work_tasks active rồi lọc theo staffId ở client (tránh lỗi 400 với .contains() JSONB trên Supabase)
  */
 export const getWorkTasksByStaffId = async (staffId: string): Promise<WorkTask[]> => {
   try {
-    console.log('getWorkTasksByStaffId - Looking for staffId:', staffId);
-    console.log('getWorkTasksByStaffId - staffId type:', typeof staffId);
-    
-    // Method 1: Try using Supabase JSONB contains operator (more efficient)
-    // Query: staff_ids @> '["staffId"]'::jsonb
-    // This checks if the JSONB array contains the staffId
-    const { data: queryData, error: queryError } = await supabase
-      .from('work_tasks')
-      .select('*')
-      .eq('is_active', true)
-      .contains('staff_ids', [staffId])  // JSONB contains operator
-      .order('category', { ascending: true })
-      .order('task_name', { ascending: true });
-    
-    // If contains() works, use it
-    if (!queryError && queryData) {
-      console.log('getWorkTasksByStaffId - Using Supabase contains() query');
-      console.log('getWorkTasksByStaffId - Found', queryData.length, 'tasks');
-      const transformed = queryData.map(transformFromSupabase);
-      transformed.forEach(task => {
-        console.log(`✅ Task "${task.taskName}" (ID: ${task.id}) - staffIds:`, task.staffIds);
-      });
-      return transformed;
-    }
-    
-    // Method 2: Fallback to client-side filtering if contains() doesn't work
-    console.log('getWorkTasksByStaffId - Fallback to client-side filtering');
-    console.log('Query error (if any):', queryError);
-    
+    if (!staffId) return [];
+
     const { data, error } = await supabase
       .from('work_tasks')
       .select('*')
       .eq('is_active', true)
       .order('category', { ascending: true })
       .order('task_name', { ascending: true });
-    
+
     if (error) throw error;
-    
-    console.log('getWorkTasksByStaffId - All active tasks:', data.length);
-    
-    // Filter client-side to check if staffId is in staff_ids array
-    const transformedTasks = data.map(transformFromSupabase);
-    
-    const filtered = transformedTasks.filter(task => {
+
+    const transformedTasks = (data || []).map(transformFromSupabase);
+    const searchId = String(staffId);
+    return transformedTasks.filter(task => {
       const staffIdsArray = task.staffIds || [];
-      
-      // Convert both to string for comparison (handle type mismatches)
-      const searchId = String(staffId);
-      const isMatch = staffIdsArray.some(id => String(id) === searchId);
-      
-      if (!isMatch) {
-        console.log(`❌ Task "${task.taskName}" (ID: ${task.id}) - staffIds:`, staffIdsArray, 'does not include', searchId);
-        console.log('  - staffIds types:', staffIdsArray.map(id => typeof id));
-        console.log('  - staffIds values:', staffIdsArray);
-      } else {
-        console.log(`✅ Task "${task.taskName}" (ID: ${task.id}) - MATCHED for staffId:`, searchId);
-        console.log('  - Matching staffIds:', staffIdsArray);
-      }
-      
-      return isMatch;
+      return staffIdsArray.some(id => String(id) === searchId);
     });
-    
-    console.log('getWorkTasksByStaffId - Filtered tasks:', filtered.length, 'out of', data.length);
-    
-    return filtered;
   } catch (error) {
     console.error('Error fetching work tasks by staff ID from Supabase:', error);
     throw error;
