@@ -9,6 +9,7 @@ export interface ResourceFolder {
   id: string;
   name: string;
   parentId?: string;
+  department?: string;
   color?: string;
   description?: string;
   createdAt?: string;
@@ -23,6 +24,7 @@ const transformResourceFolderFromSupabase = (data: any): ResourceFolder => {
     id: data.id,
     name: data.name,
     parentId: data.parent_id || undefined,
+    department: data.department || undefined,
     color: data.color || undefined,
     description: data.description || undefined,
     createdAt: data.created_at ? new Date(data.created_at).toISOString() : undefined,
@@ -37,6 +39,7 @@ const transformResourceFolderForSupabase = (folder: Partial<ResourceFolder>): an
   const data: any = {
     name: folder.name,
     parent_id: folder.parentId || null,
+    department: folder.department || null,
     color: folder.color || null,
     description: folder.description || null,
   };

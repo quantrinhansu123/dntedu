@@ -297,7 +297,7 @@ export const deleteWorkTask = async (id: string): Promise<void> => {
 };
 
 /**
- * Lấy tất cả categories
+ * Lấy tất cả categories (từ work_tasks - backward compat)
  */
 export const getAllCategories = async (): Promise<string[]> => {
   try {
@@ -312,6 +312,42 @@ export const getAllCategories = async (): Promise<string[]> => {
     return categories.sort();
   } catch (error) {
     console.error('Error fetching categories from Supabase:', error);
+    throw error;
+  }
+};
+
+/**
+ * Lấy danh sách hạng mục từ bảng work_task_categories, gộp thêm từ work_tasks (backward compat).
+ * Nếu bảng work_task_categories chưa tồn tại thì chỉ lấy từ work_tasks.
+ */
+export const getWorkTaskCategoryNames = async (): Promise<string[]> => {
+  const fromTable = new Set<string>();
+  const { data, error } = await supabase
+    .from('work_task_categories')
+    .select('name')
+    .order('name', { ascending: true });
+  if (!error && data) {
+    data.forEach((r: { name: string }) => fromTable.add(r.name));
+  }
+  const fromTasks = await getAllCategories();
+  fromTasks.forEach(c => fromTable.add(c));
+  return Array.from(fromTable).sort();
+};
+
+/**
+ * Tạo hạng mục mới và lưu vào bảng work_task_categories.
+ * Nếu bảng chưa tồn tại sẽ throw với message hướng dẫn chạy migration.
+ */
+export const createWorkTaskCategory = async (name: string): Promise<void> => {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error('Tên hạng mục không được để trống');
+  const { error } = await supabase
+    .from('work_task_categories')
+    .insert({ name: trimmed });
+  if (error) {
+    if (error.message?.includes('work_task_categories') || error.message?.includes('schema cache')) {
+      throw new Error('Bảng work_task_categories chưa có. Vui lòng chạy file SQL trong supabase/sql/work_task_categories.sql tại Supabase Dashboard → SQL Editor.');
+    }
     throw error;
   }
 };

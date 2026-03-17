@@ -741,6 +741,8 @@ export interface ResourceFolder {
   id: string;
   name: string;
   parentId?: string; // null = root folder
+  /** Phòng ban sở hữu thư mục (chỉ áp dụng thư mục gốc). NV chỉ thấy thư mục đúng phòng. */
+  department?: string;
   description?: string;
   color?: string;
   icon?: string;

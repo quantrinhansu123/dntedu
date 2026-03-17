@@ -52,6 +52,7 @@ const subItemToModule: Record<string, ModuleKey> = {
   'dept-goals': 'staff',
   'dept-bonus': 'staff',
   'salary': 'salary_config',
+  'payroll-hub': 'salary_config',
   'work-confirm': 'work_confirmation',
   'report-teacher': 'salary_teacher',
   'report-staff': 'salary_staff',
@@ -132,7 +133,8 @@ const menuItems: MenuItem[] = [
     subItems: [
       { id: 'staff', label: 'Quản lý Nhân sự', path: '/admin/hr/staff', icon: ChevronRight },
       { id: 'teacher-hub', label: 'Quản lý Giáo viên', path: '/admin/hr/teacher-hub', icon: ChevronRight },
-      { id: 'payroll-hub', label: 'Lương & Chấm công', path: '/admin/hr/payroll', icon: ChevronRight },
+      { id: 'work-confirm', label: 'Chấm công', path: '/admin/hr/work-confirmation', icon: ChevronRight },
+      { id: 'payroll-hub', label: 'Lương', path: '/admin/hr/payroll', icon: ChevronRight },
       { id: 'dept-goals', label: 'Mục tiêu phòng ban', path: '/admin/hr/department-goals', icon: ChevronRight },
       { id: 'dept-bonus', label: 'Cấu hình thưởng KPI', path: '/admin/hr/department-bonus', icon: ChevronRight },
     ]
@@ -175,8 +177,8 @@ export const Sidebar: React.FC = () => {
   // Filter menu items based on permissions
   const filteredMenuItems = useMemo(() => {
     return menuItems.map(item => {
-      // Dashboard always visible
-      if (item.id === 'dashboard') return item;
+      // Trang chủ chỉ hiển thị cho admin
+      if (item.id === 'dashboard') return canView('dashboard') ? item : null;
 
       // Settings only visible to admin
       if (item.id === 'settings') {

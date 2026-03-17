@@ -12,6 +12,13 @@ import {
 import * as resourceService from '../src/services/resourceService';
 import { Resource, ResourceFolder, ResourceType } from '../types';
 import { usePermissions } from '../src/hooks/usePermissions';
+import { useAuth } from '../src/hooks/useAuth';
+
+/** Chuẩn hóa tên phòng để so sánh (bỏ "Phòng ", trim, lowercase) */
+function normalizeDepartment(s: string | null | undefined): string {
+  if (!s || typeof s !== 'string') return '';
+  return s.replace(/^Phòng\s*/i, '').trim().toLowerCase();
+}
 
 const TYPE_ICONS: Record<ResourceType, React.ElementType> = {
   video: Video,
@@ -42,8 +49,17 @@ const FOLDER_COLORS = [
   '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'
 ];
 
+/** Danh sách phòng ban cho thư mục gốc (khớp với staff.department) */
+const RESOURCE_DEPARTMENTS = [
+  'Phòng chuyên môn', 'Phòng điều hành', 'Phòng Kế Toán', 'Phòng Kinh Doanh',
+  'Phòng Marketing', 'Phòng Nhân sự', 'Điều hành', 'Đào Tạo', 'Văn phòng', 'Marketing',
+];
+
 export const ResourceLibrary: React.FC = () => {
   const { isAdmin } = usePermissions();
+  const { staffData } = useAuth();
+  const staffDepartment = staffData?.department ?? null;
+
   const [folders, setFolders] = useState<ResourceFolder[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [allFolders, setAllFolders] = useState<ResourceFolder[]>([]);
@@ -62,8 +78,8 @@ export const ResourceLibrary: React.FC = () => {
   const [editingFolder, setEditingFolder] = useState<ResourceFolder | null>(null);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   
-  // Form states
-  const [folderForm, setFolderForm] = useState({ name: '', description: '', color: '#6366f1' });
+  // Form states (department dùng cho thư mục gốc)
+  const [folderForm, setFolderForm] = useState({ name: '', description: '', color: '#6366f1', department: '' as string });
   const [resourceForm, setResourceForm] = useState<Partial<Resource>>({
     name: '', type: 'document', url: '', description: '', tags: []
   });
@@ -71,7 +87,7 @@ export const ResourceLibrary: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [currentFolderId]);
+  }, [currentFolderId, isAdmin, staffDepartment]);
 
   useEffect(() => {
     if (searchTerm.length >= 2) {
@@ -89,27 +105,73 @@ export const ResourceLibrary: React.FC = () => {
         resourceService.getAllFolders(),
         resourceService.getAllResources(),
       ]);
-      
-      setAllFolders(allFoldersData);
-      setAllResources(allResourcesData);
-      
+
+      // NV không phải admin: chỉ hiển thị thư mục (và tài nguyên) thuộc đúng phòng
+      let visibleFolders = allFoldersData;
+      let visibleResources = allResourcesData;
+      if (!isAdmin && staffDepartment) {
+        const normStaff = normalizeDepartment(staffDepartment);
+        const rootFolders = allFoldersData.filter(f => !f.parentId);
+        const allowedRootIds = new Set<string>(
+          rootFolders
+            .filter(f => {
+              const deptMatch = f.department ? normalizeDepartment(f.department) === normStaff : false;
+              const nameMatch = !f.department && normalizeDepartment(f.name) === normStaff;
+              return deptMatch || nameMatch;
+            })
+            .map(f => f.id)
+        );
+        const allowedFolderIds = new Set<string>(allowedRootIds);
+        allFoldersData.forEach(f => {
+          if (f.parentId && allowedFolderIds.has(f.parentId)) allowedFolderIds.add(f.id);
+        });
+        // Cập nhật đệ quy để gồm mọi cấp con
+        let changed = true;
+        while (changed) {
+          changed = false;
+          allFoldersData.forEach(f => {
+            if (f.parentId && allowedFolderIds.has(f.parentId) && !allowedFolderIds.has(f.id)) {
+              allowedFolderIds.add(f.id);
+              changed = true;
+            }
+          });
+        }
+        visibleFolders = allFoldersData.filter(f => allowedFolderIds.has(f.id));
+        visibleResources = allResourcesData.filter(r =>
+          !r.folderId ? false : allowedFolderIds.has(r.folderId)
+        );
+      } else if (!isAdmin && !staffDepartment) {
+        visibleFolders = [];
+        visibleResources = [];
+      }
+
+      setAllFolders(visibleFolders);
+      setAllResources(visibleResources);
+
+      // NV không được xem thư mục khác phòng: nếu đang ở thư mục không thuộc visible thì quay về gốc
+      const effectiveFolderId =
+        currentFolderId && visibleFolders.some(f => f.id === currentFolderId)
+          ? currentFolderId
+          : null;
+
       // Filter for current level
-      const currentFolders = allFoldersData.filter(f => 
-        currentFolderId ? f.parentId === currentFolderId : !f.parentId
+      const currentFolders = visibleFolders.filter(f =>
+        effectiveFolderId ? f.parentId === effectiveFolderId : !f.parentId
       );
-      const currentResources = allResourcesData.filter(r => 
-        currentFolderId ? r.folderId === currentFolderId : !r.folderId
+      const currentResources = visibleResources.filter(r =>
+        effectiveFolderId ? r.folderId === effectiveFolderId : !r.folderId
       );
-      
+
       setFolders(currentFolders);
       setResources(currentResources);
-      
+      if (effectiveFolderId !== currentFolderId) setCurrentFolderId(effectiveFolderId);
+
       // Build breadcrumb
-      if (currentFolderId) {
+      if (effectiveFolderId) {
         const path: ResourceFolder[] = [];
-        let folderId: string | null | undefined = currentFolderId;
+        let folderId: string | null | undefined = effectiveFolderId;
         while (folderId) {
-          const folder = allFoldersData.find(f => f.id === folderId);
+          const folder = visibleFolders.find(f => f.id === folderId);
           if (folder) {
             path.unshift(folder);
             folderId = folder.parentId;
@@ -131,8 +193,20 @@ export const ResourceLibrary: React.FC = () => {
   const handleSearch = async () => {
     try {
       setIsSearching(true);
-      const results = await resourceService.searchResources(searchTerm);
-      setSearchResults(results);
+      if (!isAdmin && staffDepartment) {
+        // NV: chỉ tìm trong tài nguyên phòng mình
+        const term = searchTerm.toLowerCase();
+        const results = allResources.filter(
+          r =>
+            r.name.toLowerCase().includes(term) ||
+            r.description?.toLowerCase().includes(term) ||
+            r.tags?.some(t => t.toLowerCase().includes(term))
+        );
+        setSearchResults(results);
+      } else {
+        const results = await resourceService.searchResources(searchTerm);
+        setSearchResults(results);
+      }
     } catch (error) {
       console.error('Error searching:', error);
     }
@@ -175,6 +249,7 @@ export const ResourceLibrary: React.FC = () => {
           name: folderForm.name,
           description: folderForm.description,
           color: folderForm.color,
+          department: folderForm.department || undefined,
         });
       } else {
         await resourceService.createFolder({
@@ -182,12 +257,13 @@ export const ResourceLibrary: React.FC = () => {
           description: folderForm.description,
           color: folderForm.color,
           parentId: currentFolderId || undefined,
+          department: folderForm.department || undefined,
           createdAt: new Date().toISOString(),
         });
       }
       setShowFolderModal(false);
       setEditingFolder(null);
-      setFolderForm({ name: '', description: '', color: '#6366f1' });
+      setFolderForm({ name: '', description: '', color: '#6366f1', department: '' });
       fetchData();
     } catch (error) {
       console.error('Error saving folder:', error);
@@ -278,7 +354,12 @@ export const ResourceLibrary: React.FC = () => {
 
   const openCreateFolder = () => {
     setEditingFolder(null);
-    setFolderForm({ name: '', description: '', color: FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)] });
+    setFolderForm({
+      name: '',
+      description: '',
+      color: FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)],
+      department: '',
+    });
     setShowFolderModal(true);
   };
 
@@ -289,7 +370,12 @@ export const ResourceLibrary: React.FC = () => {
       return;
     }
     setEditingFolder(folder);
-    setFolderForm({ name: folder.name, description: folder.description || '', color: folder.color || '#6366f1' });
+    setFolderForm({
+      name: folder.name,
+      description: folder.description || '',
+      color: folder.color || '#6366f1',
+      department: folder.department || '',
+    });
     setShowFolderModal(true);
   };
 
@@ -545,6 +631,23 @@ export const ResourceLibrary: React.FC = () => {
                   autoFocus
                 />
               </div>
+              {(editingFolder ? !editingFolder.parentId : !currentFolderId) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ban (chỉ thư mục gốc)</label>
+                  <select
+                    aria-label="Phòng ban"
+                    value={folderForm.department}
+                    onChange={(e) => setFolderForm({ ...folderForm, department: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">-- Chọn phòng ban --</option>
+                    {RESOURCE_DEPARTMENTS.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">NV chỉ thấy thư mục của phòng mình</p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
                 <textarea

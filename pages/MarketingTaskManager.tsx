@@ -1,18 +1,21 @@
 /**
  * Marketing Task Manager Page
- * Quản lý task, tiến độ, kết quả nhân viên Marketing
+ * Quản lý task, tiến độ, kết quả nhân viên Marketing.
+ * Gồm 3 tab: Quản lí công việc, Báo cáo công việc, Setup công việc.
  */
 
 import React, { useState, useMemo } from 'react';
 import {
     ClipboardList, Plus, Edit, Trash2, X, CheckCircle, Clock,
-    AlertCircle, Users, Target, TrendingUp, Filter
+    Users, TrendingUp, Filter, FileText, Briefcase, Wrench
 } from 'lucide-react';
 import { useMarketingTasks } from '../src/hooks/useMarketingTasks';
 import { useStaff } from '../src/hooks/useStaff';
 import { useCampaigns } from '../src/hooks/useCampaigns';
 import { usePermissions } from '../src/hooks/usePermissions';
 import { MarketingTask, MarketingTaskStatus, MarketingTaskPriority } from '../src/types/marketingTypes';
+import { DailyWorkReportPage } from './DailyWorkReport';
+import { WorkTaskSetup } from './WorkTaskSetup';
 
 const STATUS_COLORS: Record<MarketingTaskStatus, string> = {
     'Chưa bắt đầu': 'bg-gray-100 text-gray-700',
@@ -27,16 +30,22 @@ const PRIORITY_COLORS: Record<MarketingTaskPriority, string> = {
     'Cao': 'bg-red-100 text-red-700',
 };
 
+type TaskManagerTab = 'manage' | 'report' | 'setup';
+
 export const MarketingTaskManager: React.FC = () => {
-    const { isAdmin } = usePermissions();
+    const { isAdmin, staffId } = usePermissions();
     const { tasks, loading, error, createTask, updateTask, deleteTask, getStaffCompletion } = useMarketingTasks();
     const { staff = [] } = useStaff();
     const { campaigns = [] } = useCampaigns();
 
+    const [activeTab, setActiveTab] = useState<TaskManagerTab>('manage');
     const [showModal, setShowModal] = useState(false);
     const [editingTask, setEditingTask] = useState<MarketingTask | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>('');
     const [filterAssignee, setFilterAssignee] = useState<string>('');
+
+    // Ai vào được trang Task đều được sửa task (báo cáo tiến độ). Chỉ admin mới xóa.
+    const canUpdateTask = (_task: MarketingTask): boolean => true;
 
     // Filtered tasks
     const filteredTasks = useMemo(() => {
@@ -59,14 +68,12 @@ export const MarketingTaskManager: React.FC = () => {
         return { total, inProgress, completed, completionRate };
     }, [tasks]);
 
-    // Staff performance - Hiển thị tất cả nhân viên
+    // Staff performance: admin thấy toàn bộ, nhân viên chỉ thấy kết quả của bản thân
     const staffPerformance = useMemo(() => {
-        // Hiển thị tất cả nhân viên trong hệ thống
-        return staff.map(s => {
+        const list = staff.map(s => {
             const staffTasks = tasks.filter(t => t.assignedTo.includes(s.id || ''));
             const taskCount = staffTasks.length;
             const completionPercent = taskCount > 0 ? getStaffCompletion(s.id || '') : 0;
-            
             return {
                 id: s.id,
                 name: s.name,
@@ -74,12 +81,14 @@ export const MarketingTaskManager: React.FC = () => {
                 completionPercent,
             };
         }).sort((a, b) => {
-            // Sắp xếp: nhân viên có task trước, sau đó sắp xếp theo số lượng task giảm dần
             if (a.taskCount === 0 && b.taskCount > 0) return 1;
             if (a.taskCount > 0 && b.taskCount === 0) return -1;
             return b.taskCount - a.taskCount;
         });
-    }, [staff, tasks, getStaffCompletion]);
+        if (isAdmin) return list;
+        if (!staffId) return [];
+        return list.filter(sp => sp.id === staffId);
+    }, [staff, tasks, getStaffCompletion, isAdmin, staffId]);
 
     const handleDelete = async (id: string) => {
         if (!isAdmin) {
@@ -96,11 +105,6 @@ export const MarketingTaskManager: React.FC = () => {
     };
 
     const handleStatusChange = async (task: MarketingTask, newStatus: MarketingTaskStatus) => {
-        if (!isAdmin) {
-            alert('Chỉ quản trị viên mới có quyền thay đổi trạng thái task');
-            return;
-        }
-        
         if (!task.id) return;
         const updates: Partial<MarketingTask> = { status: newStatus };
         if (newStatus === 'Hoàn thành') {
@@ -111,10 +115,6 @@ export const MarketingTaskManager: React.FC = () => {
     };
     
     const handleEdit = (task: MarketingTask) => {
-        if (!isAdmin) {
-            alert('Chỉ quản trị viên mới có quyền sửa task');
-            return;
-        }
         setEditingTask(task);
         setShowModal(true);
     };
@@ -130,6 +130,43 @@ export const MarketingTaskManager: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            {/* Tabs: Quản lí công việc | Báo cáo công việc */}
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-2">
+                <button
+                    onClick={() => setActiveTab('manage')}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        activeTab === 'manage' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                >
+                    <Briefcase size={18} />
+                    Quản lí công việc
+                </button>
+                <button
+                    onClick={() => setActiveTab('report')}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        activeTab === 'report' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                >
+                    <FileText size={18} />
+                    Báo cáo công việc
+                </button>
+                <button
+                    onClick={() => setActiveTab('setup')}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        activeTab === 'setup' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                >
+                    <Wrench size={18} />
+                    Setup công việc
+                </button>
+            </div>
+
+            {activeTab === 'report' ? (
+                <DailyWorkReportPage />
+            ) : activeTab === 'setup' ? (
+                <WorkTaskSetup />
+            ) : (
+                <>
             {/* Header */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -219,8 +256,8 @@ export const MarketingTaskManager: React.FC = () => {
                                     <td className="px-4 py-3 text-center">
                                         <span className={`px-2 py-1 rounded text-xs font-medium ${PRIORITY_COLORS[task.priority]}`}>{task.priority}</span>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center gap-2">
+                                    <td className="px-4 py-3 text-center">
+                                        <div className="flex items-center justify-center gap-2">
                                             <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
                                                 <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${task.completionPercent}%` }} />
                                             </div>
@@ -228,7 +265,7 @@ export const MarketingTaskManager: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        {isAdmin ? (
+                                        {canUpdateTask(task) ? (
                                             <select
                                                 value={task.status}
                                                 onChange={e => handleStatusChange(task, e.target.value as MarketingTaskStatus)}
@@ -248,27 +285,38 @@ export const MarketingTaskManager: React.FC = () => {
                                     <td className="px-4 py-3 text-center text-xs">
                                         {new Date(task.dueDate).toLocaleDateString('vi-VN')}
                                     </td>
-                                    <td className="px-4 py-3">
-                                        {isAdmin ? (
-                                            <div className="flex items-center justify-center gap-1">
-                                                <button 
-                                                    onClick={() => handleEdit(task)} 
-                                                    className="p-1 text-gray-400 hover:text-indigo-600"
+                                    <td className="px-4 py-3 text-center">
+                                        <div className="flex items-center justify-center gap-1">
+                                            {isAdmin ? (
+                                                <>
+                                                    <button 
+                                                        onClick={() => handleEdit(task)} 
+                                                        className="p-1 text-gray-400 hover:text-indigo-600"
+                                                        title="Sửa task"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => task.id && handleDelete(task.id)} 
+                                                        className="p-1 text-gray-400 hover:text-red-600"
+                                                        title="Xóa task"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </>
+                                            ) : canUpdateTask(task) ? (
+                                                <button
+                                                    onClick={() => handleEdit(task)}
+                                                    className="flex items-center justify-center gap-1 p-1 text-gray-400 hover:text-indigo-600"
                                                     title="Sửa task"
                                                 >
                                                     <Edit size={16} />
+                                                    <span className="text-xs font-medium">Sửa</span>
                                                 </button>
-                                                <button 
-                                                    onClick={() => task.id && handleDelete(task.id)} 
-                                                    className="p-1 text-gray-400 hover:text-red-600"
-                                                    title="Xóa task"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <span className="text-xs text-gray-400">Chỉ xem</span>
-                                        )}
+                                            ) : (
+                                                <span className="text-xs text-gray-400">Chỉ xem</span>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -321,6 +369,8 @@ export const MarketingTaskManager: React.FC = () => {
                         setEditingTask(null);
                     }}
                 />
+            )}
+                </>
             )}
         </div>
     );

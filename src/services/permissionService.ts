@@ -114,7 +114,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
   // CSKH - Tư vấn & Chăm sóc khách hàng (Văn phòng)
   // ========================================
   cskh: {
-    dashboard: { view: true, create: false, edit: false, delete: false },
+    dashboard: { view: false, create: false, edit: false, delete: false }, // Chỉ admin xem Trang chủ
     classes: { view: true, create: true, edit: true, delete: false },
     schedule: { view: true, create: true, edit: true, delete: false },
     holidays: { view: true, create: true, edit: true, delete: false },
@@ -152,7 +152,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
   // MARKETER (Văn phòng)
   // ========================================
   marketer: {
-    dashboard: { view: true, create: false, edit: false, delete: false },
+    dashboard: { view: false, create: false, edit: false, delete: false }, // Chỉ admin xem Trang chủ
     classes: { view: false, create: false, edit: false, delete: false }, // Ẩn
     schedule: { view: false, create: false, edit: false, delete: false }, // Ẩn
     holidays: { view: false, create: false, edit: false, delete: false }, // Ẩn
@@ -193,7 +193,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
   // KẾ TOÁN (Văn phòng)
   // ========================================
   ketoan: {
-    dashboard: { view: true, create: false, edit: false, delete: false },
+    dashboard: { view: false, create: false, edit: false, delete: false }, // Chỉ admin xem Trang chủ
     classes: { view: true, create: false, edit: false, delete: false },
     schedule: { view: true, create: false, edit: false, delete: false },
     holidays: { view: true, create: false, edit: false, delete: false },
@@ -230,7 +230,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
   // GIÁO VIÊN VIỆT (Đào tạo)
   // ========================================
   gv_viet: {
-    dashboard: { view: true, create: false, edit: false, delete: false },
+    dashboard: { view: false, create: false, edit: false, delete: false }, // Chỉ admin xem Trang chủ
     classes: { view: true, create: false, edit: false, delete: false, onlyOwnClasses: true, hideParentPhone: true },
     schedule: { view: true, create: false, edit: false, delete: false, onlyOwnClasses: true },
     holidays: { view: false, create: false, edit: false, delete: false }, // Ẩn
@@ -267,7 +267,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
   // GIÁO VIÊN NƯỚC NGOÀI (Đào tạo)
   // ========================================
   gv_nuocngoai: {
-    dashboard: { view: true, create: false, edit: false, delete: false },
+    dashboard: { view: false, create: false, edit: false, delete: false }, // Chỉ admin xem Trang chủ
     classes: { view: true, create: false, edit: false, delete: false, onlyOwnClasses: true, hideParentPhone: true },
     schedule: { view: true, create: false, edit: false, delete: false, onlyOwnClasses: true },
     holidays: { view: false, create: false, edit: false, delete: false },
@@ -305,7 +305,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Partial<Record<ModuleKey, Module
   // TRỢ GIẢNG (Đào tạo)
   // ========================================
   tro_giang: {
-    dashboard: { view: true, create: false, edit: false, delete: false },
+    dashboard: { view: false, create: false, edit: false, delete: false }, // Chỉ admin xem Trang chủ
     classes: { view: true, create: false, edit: false, delete: false, onlyOwnClasses: true, hideParentPhone: true },
     schedule: { view: true, create: false, edit: false, delete: false, onlyOwnClasses: true },
     holidays: { view: false, create: false, edit: false, delete: false },

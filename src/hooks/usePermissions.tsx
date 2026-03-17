@@ -100,6 +100,9 @@ export const usePermissions = (): UsePermissionsReturn => {
 
   // Check if module is allowed by department
   const isModuleAllowedByDepartment = (module: ModuleKey): boolean => {
+    // Trang chủ (Dashboard) chỉ dành cho admin
+    if (module === 'dashboard') return isAdminRole;
+    
     // Admin có full quyền
     if (isAdminRole) return true;
     

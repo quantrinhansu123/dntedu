@@ -3,7 +3,7 @@
  * Setup công việc: Hạng mục, Tên công việc, Nhân sự thực hiện
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Edit, 
@@ -13,7 +13,8 @@ import {
   CheckSquare,
   FolderOpen,
   Briefcase,
-  Users
+  Users,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../src/hooks/useAuth';
 import { useStaff } from '../src/hooks/useStaff';
@@ -27,6 +28,14 @@ export const WorkTaskSetup: React.FC = () => {
   const [tasks, setTasks] = useState<WorkTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Danh sách hạng mục (từ DB) cho dropdown
+  const [categoryList, setCategoryList] = useState<string[]>([]);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [showAddCategoryInput, setShowAddCategoryInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [savingCategory, setSavingCategory] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
   
   // Form state
   const [showModal, setShowModal] = useState(false);
@@ -43,6 +52,33 @@ export const WorkTaskSetup: React.FC = () => {
   useEffect(() => {
     fetchTasks();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const list = await workTaskService.getWorkTaskCategoryNames();
+      setCategoryList(list);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
+  // Load categories khi mở modal
+  useEffect(() => {
+    if (showModal) fetchCategories();
+  }, [showModal]);
+
+  // Đóng dropdown hạng mục khi click bên ngoài
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
+    };
+    if (categoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [categoryDropdownOpen]);
 
   const fetchTasks = async () => {
     try {
@@ -84,6 +120,9 @@ export const WorkTaskSetup: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingTask(null);
+    setCategoryDropdownOpen(false);
+    setShowAddCategoryInput(false);
+    setNewCategoryName('');
     setFormData({
       category: '',
       taskName: '',
@@ -91,6 +130,27 @@ export const WorkTaskSetup: React.FC = () => {
       description: '',
       isActive: true,
     });
+  };
+
+  const handleSaveNewCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) {
+      alert('Vui lòng nhập tên hạng mục');
+      return;
+    }
+    try {
+      setSavingCategory(true);
+      await workTaskService.createWorkTaskCategory(name);
+      await fetchCategories();
+      setFormData(prev => ({ ...prev, category: name }));
+      setShowAddCategoryInput(false);
+      setNewCategoryName('');
+    } catch (err) {
+      console.error('Error creating category:', err);
+      alert((err as Error).message || 'Không thể lưu hạng mục. Có thể trùng tên.');
+    } finally {
+      setSavingCategory(false);
+    }
   };
 
   const handleToggleStaff = (staffId: string) => {
@@ -314,25 +374,100 @@ export const WorkTaskSetup: React.FC = () => {
                 {editingTask ? 'Sửa Công việc' : 'Thêm Công việc'}
               </h3>
               <button
+                type="button"
                 onClick={handleCloseModal}
                 className="text-gray-400 hover:text-gray-600"
+                title="Đóng"
+                aria-label="Đóng"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div>
+              <div ref={categoryDropdownRef} className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Hạng mục công việc <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  placeholder="Ví dụ: Marketing, Đào tạo, Hành chính..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
+                <button
+                  type="button"
+                  onClick={() => setCategoryDropdownOpen(prev => !prev)}
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg bg-white text-left focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  aria-label="Chọn hạng mục công việc"
+                  aria-haspopup="listbox"
+                  aria-expanded={categoryDropdownOpen ? 'true' : 'false'}
+                >
+                  <span className={formData.category ? 'text-gray-900' : 'text-gray-500'}>
+                    {formData.category || '-- Chọn hạng mục --'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                </button>
+                {categoryDropdownOpen && (
+                  <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-64 overflow-hidden">
+                    <div className="max-h-48 overflow-y-auto py-1">
+                      {categoryList.map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, category: cat }));
+                            setCategoryDropdownOpen(false);
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm text-gray-900 hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none"
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                      {categoryList.length === 0 && !showAddCategoryInput && (
+                        <p className="px-3 py-2 text-sm text-gray-500">Chưa có hạng mục. Nhấn Thêm bên dưới.</p>
+                      )}
+                    </div>
+                    {!showAddCategoryInput ? (
+                      <div className="border-t border-gray-100 p-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddCategoryInput(true)}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-md"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Thêm hạng mục
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="border-t border-gray-100 p-2 space-y-2">
+                        <input
+                          type="text"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="Nhập tên hạng mục mới..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          aria-label="Tên hạng mục mới"
+                          onKeyDown={(e) => e.key === 'Enter' && handleSaveNewCategory()}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleSaveNewCategory}
+                            disabled={savingCategory || !newCategoryName.trim()}
+                            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {savingCategory ? 'Đang lưu...' : 'Lưu'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowAddCategoryInput(false);
+                              setNewCategoryName('');
+                            }}
+                            className="px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>

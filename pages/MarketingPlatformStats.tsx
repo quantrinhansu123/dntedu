@@ -1,47 +1,148 @@
 /**
  * Marketing Platform Stats Page
  * Theo dõi chỉ số Marketing trên từng nền tảng
+ * Dữ liệu chính lấy tự động từ Kho dữ liệu khách hàng (leads)
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     BarChart3, Plus, Edit, Trash2, X, Calendar, TrendingUp,
     MessageCircle, Users, MousePointer, Globe
 } from 'lucide-react';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+    Legend,
+} from 'recharts';
 import { useMarketingPlatforms, usePlatformStats } from '../src/hooks/useMarketingPlatforms';
 import { MarketingPlatform, PlatformMonthlyStats } from '../src/types/marketingTypes';
+import { useLeads } from '../src/hooks/useLeads';
+import type { Lead } from '../src/services/leadService';
 
 export const MarketingPlatformStats: React.FC = () => {
     const currentMonth = new Date().toISOString().slice(0, 7);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
     const { platforms, loading: platformLoading, createPlatform, updatePlatform, deletePlatform } = useMarketingPlatforms();
-    const { stats, loading: statsLoading, createStats, updateStats, refetch: refetchStats } = usePlatformStats(selectedMonth);
+    const {
+        stats: dbStats,
+        loading: statsLoading,
+        createStats,
+        updateStats,
+        refetch: refetchStats,
+    } = usePlatformStats(selectedMonth);
+    const { leads, loading: leadsLoading } = useLeads();
 
     const [showPlatformModal, setShowPlatformModal] = useState(false);
     const [showStatsModal, setShowStatsModal] = useState(false);
     const [editingPlatform, setEditingPlatform] = useState<MarketingPlatform | null>(null);
     const [editingStats, setEditingStats] = useState<{ platform: MarketingPlatform; stats?: PlatformMonthlyStats } | null>(null);
 
-    // Combine platforms with stats
-    const platformsWithStats = useMemo(() => {
-        return platforms.filter(p => p.isActive).map(platform => {
-            const platformStats = stats.find(s => s.platformId === platform.id);
-            return {
-                platform,
-                stats: platformStats || null,
-            };
-        });
-    }, [platforms, stats]);
+    // Helper: kiểm tra lead thuộc tháng đang chọn
+    const isLeadInSelectedMonth = (lead: Lead): boolean => {
+        if (!lead.createdAt) return false;
+        // createdAt dạng ISO: YYYY-MM-DD...
+        return lead.createdAt.startsWith(selectedMonth);
+    };
 
-    // Summary
-    const summary = useMemo(() => {
-        return {
-            totalFollowers: stats.reduce((sum, s) => sum + (s.newFollowers || 0), 0),
-            totalInteractions: stats.reduce((sum, s) => sum + (s.interactions || 0), 0),
-            totalMessages: stats.reduce((sum, s) => sum + (s.newMessages || 0), 0),
+    // Thống kê leads theo nguồn (source) trong tháng được chọn
+    const leadStatsBySource = useMemo(() => {
+        const result: Record<string, { newFollowers: number; interactions: number; newMessages: number }> = {};
+
+        const ensureSource = (source: string) => {
+            if (!result[source]) {
+                result[source] = { newFollowers: 0, interactions: 0, newMessages: 0 };
+            }
+            return result[source];
         };
-    }, [stats]);
+
+        leads.forEach(lead => {
+            if (!isLeadInSelectedMonth(lead)) return;
+            const bucket = ensureSource(lead.source);
+
+            // Quy ước:
+            // - newFollowers: tổng số lead mới theo nguồn trong tháng
+            bucket.newFollowers += 1;
+
+            // - interactions: lead đang được chăm sóc/tương tác
+            if (['Đang liên hệ', 'Quan tâm', 'Hẹn test', 'Đã test'].includes(lead.status)) {
+                bucket.interactions += 1;
+            }
+
+            // - newMessages: lead ở trạng thái "Mới"
+            if (lead.status === 'Mới') {
+                bucket.newMessages += 1;
+            }
+        });
+
+        return result;
+    }, [leads, selectedMonth]);
+
+    // Kết hợp danh sách nền tảng với:
+    // - leadStatsBySource: số liệu tự động từ Kho dữ liệu khách hàng
+    // - dbStats: số liệu bổ sung (reach, clicks, ghi chú) lưu trong Supabase
+    const platformsWithStats = useMemo(() => {
+        return platforms
+            .filter(p => p.isActive)
+            .map(platform => {
+                const sourceStats = leadStatsBySource[platform.name] || {
+                    newFollowers: 0,
+                    interactions: 0,
+                    newMessages: 0,
+                };
+                const platformDbStats = dbStats.find(s => s.platformId === platform.id) || null;
+                return {
+                    platform,
+                    leadStats: sourceStats,
+                    dbStats: platformDbStats,
+                };
+            });
+    }, [platforms, leadStatsBySource, dbStats]);
+
+    // Tổng quan từ leadStatsBySource
+    const summary = useMemo(() => {
+        return Object.values(leadStatsBySource).reduce(
+            (acc, s) => {
+                acc.totalFollowers += s.newFollowers;
+                acc.totalInteractions += s.interactions;
+                acc.totalMessages += s.newMessages;
+                return acc;
+            },
+            { totalFollowers: 0, totalInteractions: 0, totalMessages: 0 }
+        );
+    }, [leadStatsBySource]);
+
+    // Dữ liệu cho biểu đồ cột: theo nguồn (tất cả nền tảng đang bật)
+    const barChartData = useMemo(() => {
+        return platforms
+            .filter(p => p.isActive)
+            .map(p => {
+                const s = leadStatsBySource[p.name] || { newFollowers: 0, interactions: 0, newMessages: 0 };
+                return {
+                    name: p.name,
+                    leadMoi: s.newFollowers,
+                    dangTuongTac: s.interactions,
+                    leadMoiTao: s.newMessages,
+                };
+            });
+    }, [platforms, leadStatsBySource]);
+
+    // Dữ liệu cho biểu đồ tròn: phân bố lead theo nguồn trong tháng
+    const pieChartData = useMemo(() => {
+        return Object.entries(leadStatsBySource)
+            .filter(([, s]) => s.newFollowers > 0)
+            .map(([name, s]) => ({ name, value: s.newFollowers }));
+    }, [leadStatsBySource]);
+
+    const CHART_COLORS = ['#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#3B82F6', '#EF4444'];
 
     const handleDeletePlatform = async (id: string) => {
         if (!confirm('Xóa nền tảng này?')) return;
@@ -111,16 +212,75 @@ export const MarketingPlatformStats: React.FC = () => {
                 />
             </div>
 
+            {/* Biểu đồ */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Biểu đồ cột: so sánh theo nguồn */}
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4">Lead theo nguồn (tháng {selectedMonth})</h3>
+                    {barChartData.length === 0 ? (
+                        <div className="h-64 flex items-center justify-center text-gray-400 text-sm">Chưa có nền tảng nào. Thêm nền tảng để xem biểu đồ.</div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={280}>
+                            <BarChart data={barChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                                <Tooltip
+                                    formatter={(value: number) => [value, '']}
+                                    labelFormatter={(label) => `Nguồn: ${label}`}
+                                    contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
+                                />
+                                <Legend />
+                                <Bar dataKey="leadMoi" name="Lead mới" fill="#6366F1" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="dangTuongTac" name="Đang tương tác" fill="#10B981" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="leadMoiTao" name="Lead trạng thái Mới" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
+                </div>
+                {/* Biểu đồ tròn: phân bố theo nguồn */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4">Phân bố lead theo nguồn</h3>
+                    {pieChartData.length === 0 ? (
+                        <div className="h-64 flex items-center justify-center text-gray-400 text-sm">Chưa có dữ liệu</div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={280}>
+                            <PieChart>
+                                <Pie
+                                    data={pieChartData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={50}
+                                    outerRadius={90}
+                                    paddingAngle={2}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {pieChartData.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    formatter={(value: number, name: string) => [value, name]}
+                                    contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    )}
+                </div>
+            </div>
+
             {/* Platform Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {platformLoading || statsLoading ? (
+                {platformLoading || statsLoading || leadsLoading ? (
                     <div className="col-span-full text-center py-12 text-gray-500">Đang tải...</div>
                 ) : platformsWithStats.length === 0 ? (
                     <div className="col-span-full text-center py-12 text-gray-400">
                         <Globe size={48} className="mx-auto mb-2 opacity-20" />
                         Chưa có nền tảng nào
                     </div>
-                ) : platformsWithStats.map(({ platform, stats: platformStats }) => (
+                ) : platformsWithStats.map(({ platform, leadStats, dbStats: platformStats }) => (
                     <div key={platform.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div
                             className="px-4 py-3 border-b border-gray-100 flex items-center justify-between"
@@ -152,9 +312,9 @@ export const MarketingPlatformStats: React.FC = () => {
                             </div>
                         </div>
                         <div className="p-4 space-y-3">
-                            <StatRow icon={<Users size={16} />} label="Theo dõi mới" value={platformStats?.newFollowers || 0} color="text-blue-600" />
-                            <StatRow icon={<TrendingUp size={16} />} label="Tương tác" value={platformStats?.interactions || 0} color="text-green-600" />
-                            <StatRow icon={<MessageCircle size={16} />} label="Tin nhắn" value={platformStats?.newMessages || 0} color="text-orange-600" />
+                            <StatRow icon={<Users size={16} />} label="Theo dõi mới (lead mới)" value={leadStats.newFollowers} color="text-blue-600" />
+                            <StatRow icon={<TrendingUp size={16} />} label="Lead đang tương tác" value={leadStats.interactions} color="text-green-600" />
+                            <StatRow icon={<MessageCircle size={16} />} label="Lead mới tạo" value={leadStats.newMessages} color="text-orange-600" />
                             {platformStats?.reach !== undefined && (
                                 <StatRow icon={<Globe size={16} />} label="Tiếp cận" value={platformStats.reach} color="text-purple-600" />
                             )}
@@ -162,7 +322,7 @@ export const MarketingPlatformStats: React.FC = () => {
                                 <StatRow icon={<MousePointer size={16} />} label="Click" value={platformStats.clicks} color="text-indigo-600" />
                             )}
                             {!platformStats && (
-                                <p className="text-xs text-gray-400 text-center py-2">Chưa có số liệu tháng này</p>
+                                <p className="text-xs text-gray-400 text-center py-2">Chưa có số liệu bổ sung tháng này (reach, click)</p>
                             )}
                         </div>
                     </div>
@@ -195,13 +355,22 @@ export const MarketingPlatformStats: React.FC = () => {
                     onClose={() => { setShowStatsModal(false); setEditingStats(null); }}
                     onSubmit={async (data) => {
                         if (editingStats.stats?.id) {
-                            await updateStats(editingStats.stats.id, data);
+                            await updateStats(editingStats.stats.id, {
+                                reach: data.reach,
+                                clicks: data.clicks,
+                                notes: data.notes,
+                            });
                         } else {
                             await createStats({
-                                ...data,
                                 platformId: editingStats.platform.id || '',
                                 platformName: editingStats.platform.name,
                                 month: selectedMonth,
+                                newFollowers: 0,
+                                interactions: 0,
+                                newMessages: 0,
+                                reach: data.reach,
+                                clicks: data.clicks,
+                                notes: data.notes,
                             } as any);
                         }
                         setShowStatsModal(false);

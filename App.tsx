@@ -6,7 +6,9 @@ import { Header } from './components/Header';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { StudentStatus } from './types';
 import { useAuth } from './src/hooks/useAuth';
+import { usePermissions } from './src/hooks/usePermissions';
 import { initAutoNotifications } from './src/services/autoNotificationTriggers';
+import type { ModuleKey } from './src/services/permissionService';
 
 // Lazy load page components for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -96,6 +98,40 @@ const Placeholder: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
+// Thứ tự path redirect cho nhân viên không có quyền xem Trang chủ (theo thứ tự menu)
+const FIRST_ALLOWED_PATH_ORDER: { module: ModuleKey; path: string }[] = [
+  { module: 'classes', path: '/admin/training/classes' },
+  { module: 'schedule', path: '/admin/training/hub' },
+  { module: 'resources', path: '/admin/training/resources' },
+  { module: 'students', path: '/admin/customers/students' },
+  { module: 'parents', path: '/admin/customers/parents' },
+  { module: 'service_dashboard', path: '/admin/customers/service-dashboard' },
+  { module: 'leads', path: '/admin/business/leads' },
+  { module: 'campaigns', path: '/admin/business/campaigns' },
+  { module: 'marketing_tasks', path: '/admin/business/tasks' },
+  { module: 'marketing_kpi', path: '/admin/business/kpi' },
+  { module: 'marketing_platforms', path: '/admin/business/platforms' },
+  { module: 'staff', path: '/admin/hr/staff' },
+  { module: 'salary_config', path: '/admin/hr/payroll' },
+  { module: 'work_confirmation', path: '/admin/hr/work-confirmation' },
+  { module: 'contracts', path: '/admin/finance/contracts' },
+  { module: 'invoices', path: '/admin/finance/invoices' },
+  { module: 'debt', path: '/admin/finance/debt' },
+  { module: 'reports_training', path: '/admin/reports/training' },
+  { module: 'reports_finance', path: '/admin/reports/financial' },
+];
+
+/** Chỉ admin được xem Dashboard; nhân viên bị redirect sang trang đầu tiên được phép */
+const DashboardGate: React.FC = () => {
+  const { canView } = usePermissions();
+  if (canView('dashboard')) {
+    return <Dashboard />;
+  }
+  const firstAllowed = FIRST_ALLOWED_PATH_ORDER.find(({ module }) => canView(module));
+  const redirectTo = firstAllowed?.path ?? '/admin/training/classes';
+  return <Navigate to={redirectTo} replace />;
+};
+
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden print:block print:h-auto print:overflow-visible">
@@ -159,7 +195,7 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<Suspense fallback={<PageLoader />}><DashboardGate /></Suspense>} />
 
                 <Route path="/training/hub" element={<AcademicHub />} />
                 {/* Legacy Routes */}

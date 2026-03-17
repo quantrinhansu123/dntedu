@@ -77,6 +77,7 @@ export const DailyWorkReportPage: React.FC = () => {
   // Form state
   const today = new Date().toISOString().split('T')[0];
   const [reportDate, setReportDate] = useState(today);
+  const [selectedTaskIdInForm, setSelectedTaskIdInForm] = useState<string>('');
   const [workDescription, setWorkDescription] = useState('');
   const [tasks, setTasks] = useState<string[]>(['']);
   const [note, setNote] = useState('');
@@ -392,6 +393,7 @@ export const DailyWorkReportPage: React.FC = () => {
         setEditingReport(null);
         setReportDate(today);
         setSelectedTaskIds([]);
+        setSelectedTaskIdInForm('');
       
       await fetchReports();
       alert(editingReport ? 'Cập nhật báo cáo thành công!' : 'Gửi báo cáo thành công!');
@@ -669,6 +671,7 @@ export const DailyWorkReportPage: React.FC = () => {
                 onClick={() => {
                   setShowReportForm(false);
                   setEditingReport(null);
+                  setSelectedTaskIdInForm('');
                   setWorkDescription('');
                   setTasks(['']);
                   setNote('');
@@ -693,6 +696,37 @@ export const DailyWorkReportPage: React.FC = () => {
                   max={today}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="report-form-task" className="block text-sm font-medium text-gray-700 mb-2">
+                  Task
+                </label>
+                <select
+                  id="report-form-task"
+                  value={selectedTaskIdInForm}
+                  onChange={(e) => {
+                    const taskId = e.target.value;
+                    setSelectedTaskIdInForm(taskId);
+                    if (taskId && !selectedTaskIds.includes(taskId)) {
+                      handleToggleTask(taskId);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  aria-label="Chọn task của nhân viên"
+                >
+                  <option value="">-- Chọn task (công việc của nhân viên được chọn) --</option>
+                  {workTasks.map((task) => (
+                    <option key={task.id} value={task.id}>
+                      {task.taskName}{task.category ? ` (${task.category})` : ''}
+                    </option>
+                  ))}
+                </select>
+                {selectedStaffId && workTasks.length === 0 && (
+                  <p className="mt-1 text-xs text-amber-600">
+                    Chưa có task nào được gán cho nhân viên này trong Setup công việc.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -832,6 +866,7 @@ export const DailyWorkReportPage: React.FC = () => {
                   onClick={() => {
                     setShowReportForm(false);
                     setEditingReport(null);
+                    setSelectedTaskIdInForm('');
                     setWorkDescription('');
                     setTasks(['']);
                     setNote('');
