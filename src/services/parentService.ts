@@ -6,7 +6,7 @@
 
 import { Parent, Student } from '../../types';
 import * as parentSupabaseService from './parentSupabaseService';
-import { StudentService } from './studentService';
+import * as studentSupabaseService from './studentSupabaseService';
 
 const PARENTS_COLLECTION = 'parents';
 const STUDENTS_COLLECTION = 'students';
@@ -69,7 +69,7 @@ export const getParents = async (searchTerm?: string): Promise<Parent[]> => {
  */
 export const getChildrenByParentId = async (parentId: string): Promise<Student[]> => {
   try {
-    return await StudentService.getStudents({ parentId });
+    return await studentSupabaseService.queryStudents({ parentId });
   } catch (error) {
     console.error('Error getting children:', error);
     return [];
@@ -120,19 +120,16 @@ export const updateParent = async (id: string, data: Partial<Parent>): Promise<v
       updatedAt: new Date().toISOString(),
     });
     
-    // Sync to all students with this parentId
+    // Đồng bộ tên/SĐT PH xuống bảng students (chỉ ghi Supabase, KHÔNG qua StudentService.updateStudent
+    // để tránh vòng lặp: updateStudent -> updateParent -> updateStudent -> ...)
     if (data.name || data.phone) {
       const children = await getChildrenByParentId(id);
-      const studentUpdates: any = {};
-      if (data.name) studentUpdates.parentName = data.name;
-      if (data.phone) studentUpdates.parentPhone = data.phone;
-      
-      // Update each student's denormalized parent fields
       for (const child of children) {
-        await StudentService.updateStudent(child.id, {
-          ...studentUpdates,
-          updatedAt: new Date().toISOString(),
-        });
+        const patch: { parentName?: string; parentPhone?: string } = {};
+        if (data.name) patch.parentName = data.name;
+        if (data.phone) patch.parentPhone = data.phone;
+        if (Object.keys(patch).length === 0) continue;
+        await studentSupabaseService.updateStudent(child.id, patch);
       }
     }
   } catch (error) {

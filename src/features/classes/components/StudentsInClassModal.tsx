@@ -27,9 +27,20 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
   // Enrollment confirmation modal state
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [selectedStudentToAdd, setSelectedStudentToAdd] = useState<any>(null);
-  const [enrollForm, setEnrollForm] = useState({
-    sessions: 12,
+  const defaultSessions = 12;
+  const getDefaultEndDate = (start: string, sessions: number) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + sessions);
+    return d.toISOString().split('T')[0];
+  };
+  const [enrollForm, setEnrollForm] = useState<{
+    sessions: number | null;
+    startDate: string;
+    endDate: string;
+  }>({
+    sessions: defaultSessions,
     startDate: new Date().toISOString().split('T')[0],
+    endDate: getDefaultEndDate(new Date().toISOString().split('T')[0], defaultSessions),
   });
 
   // Normalize student status
@@ -91,10 +102,13 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
 
   // Open enrollment modal when adding student
   const addStudentToClass = (student: any) => {
+    const start = new Date().toISOString().split('T')[0];
+    const sessions = defaultSessions;
     setSelectedStudentToAdd(student);
     setEnrollForm({
-      sessions: 12,
-      startDate: new Date().toISOString().split('T')[0],
+      sessions,
+      startDate: start,
+      endDate: getDefaultEndDate(start, sessions),
     });
     setShowEnrollModal(true);
   };
@@ -102,6 +116,13 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
   // Confirm add student with enrollment
   const confirmAddStudent = async () => {
     if (!selectedStudentToAdd) return;
+
+    if (!enrollForm.sessions || enrollForm.sessions < 1) {
+      alert('Vui lòng nhập số buổi đăng ký hợp lệ (>= 1)');
+      return;
+    }
+
+    const sessions = enrollForm.sessions;
 
     setAdding(true);
     try {
@@ -111,13 +132,15 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
         ? currentClassIds 
         : [...currentClassIds, classData.id];
 
-      // Update student with classId, sessions, and add to classIds array
+      // Update student with classId, sessions, expected end date
       await StudentService.updateStudent(selectedStudentToAdd.id, {
         classId: classData.id,
         class: classData.name,
         classIds: updatedClassIds,
-        registeredSessions: (selectedStudentToAdd.registeredSessions || 0) + enrollForm.sessions,
+        registeredSessions: (selectedStudentToAdd.registeredSessions || 0) + sessions,
         enrollmentDate: enrollForm.startDate,
+        expectedEndDate: enrollForm.endDate,
+        startDate: enrollForm.startDate,
         status: 'Đang học',
       });
 
@@ -127,7 +150,7 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
         studentName: selectedStudentToAdd.fullName || selectedStudentToAdd.name,
         classId: classData.id,
         className: classData.name,
-        sessions: enrollForm.sessions,
+        sessions,
         type: 'Ghi danh thủ công',
         createdDate: new Date().toLocaleDateString('vi-VN'),
         createdBy: 'Admin', // TODO: Get from auth context
@@ -373,10 +396,16 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
         </div>
       </div>
 
-      {/* Enrollment Confirmation Modal */}
+      {/* Enrollment Confirmation Modal - stopPropagation để click không bubble lên overlay đóng modal */}
       {showEnrollModal && selectedStudentToAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-5 border-b border-gray-200">
               <h3 className="text-lg font-bold text-gray-900">Xác nhận ghi danh</h3>
               <p className="text-sm text-gray-600 mt-1">Thêm học viên vào lớp {classData.name}</p>
@@ -397,8 +426,17 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
                 <input
                   type="number"
                   min="1"
-                  value={enrollForm.sessions}
-                  onChange={(e) => setEnrollForm(prev => ({ ...prev, sessions: parseInt(e.target.value) || 1 }))}
+                  value={enrollForm.sessions ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const parsed = parseInt(value, 10);
+                    const sessions = value === '' || isNaN(parsed) ? null : parsed;
+                    setEnrollForm(prev => ({
+                      ...prev,
+                      sessions,
+                      endDate: sessions != null ? getDefaultEndDate(prev.startDate, sessions) : prev.endDate,
+                    }));
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
@@ -411,7 +449,28 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
                 <input
                   type="date"
                   value={enrollForm.startDate}
-                  onChange={(e) => setEnrollForm(prev => ({ ...prev, startDate: e.target.value }))}
+                  onChange={(e) => {
+                    const start = e.target.value;
+                    const sessions = enrollForm.sessions ?? defaultSessions;
+                    setEnrollForm(prev => ({
+                      ...prev,
+                      startDate: start,
+                      endDate: getDefaultEndDate(start, sessions),
+                    }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* End Date - mặc định 12 buổi từ ngày bắt đầu */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ngày kết thúc
+                </label>
+                <input
+                  type="date"
+                  value={enrollForm.endDate}
+                  onChange={(e) => setEnrollForm(prev => ({ ...prev, endDate: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
@@ -419,8 +478,10 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
               {/* Summary */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
                 <p className="text-green-800">
-                  <span className="font-medium">Ghi danh thủ công:</span> {enrollForm.sessions} buổi,
-                  bắt đầu từ {new Date(enrollForm.startDate).toLocaleDateString('vi-VN')}
+                  <span className="font-medium">Ghi danh thủ công:</span>{' '}
+                  {enrollForm.sessions
+                    ? `${enrollForm.sessions} buổi, từ ${new Date(enrollForm.startDate).toLocaleDateString('vi-VN')} đến ${new Date(enrollForm.endDate).toLocaleDateString('vi-VN')}`
+                    : 'Vui lòng nhập số buổi và ngày bắt đầu'}
                 </p>
               </div>
             </div>
@@ -435,7 +496,7 @@ export const StudentsInClassModal: React.FC<StudentsInClassModalProps> = ({ clas
               </button>
               <button
                 onClick={confirmAddStudent}
-                disabled={adding || enrollForm.sessions < 1}
+                disabled={adding || !enrollForm.sessions || enrollForm.sessions < 1}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
               >
                 {adding ? (

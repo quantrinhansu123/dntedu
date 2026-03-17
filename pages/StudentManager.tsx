@@ -32,7 +32,7 @@ interface StudentManagerProps {
   title?: string;
 }
 
-export const StudentManager: React.FC<StudentManagerProps> = ({
+const StudentManager: React.FC<StudentManagerProps> = ({
   initialStatusFilter,
   title = "Danh sách học viên"
 }) => {
@@ -118,7 +118,15 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const hideParentPhone = shouldHideParentPhone('students');
   const onlyOwnClasses = shouldShowOnlyOwnClasses('students');
 
-  const { students: allStudents, loading, error, createStudent, updateStudent, deleteStudent } = useStudents();
+  const {
+    students: allStudents,
+    loading,
+    error,
+    createStudent,
+    updateStudent,
+    deleteStudent,
+    refreshStudentsSilent,
+  } = useStudents();
 
   // Fetch parents for dropdown
   const { parents } = useParents();
@@ -155,6 +163,13 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     };
     fetchStudentFeedbacks();
   }, [selectedStudent?.id]);
+
+  /** Sau khi lưu / refetch, cập nhật panel chi tiết (Realtime WebSocket thường không bắn kịp). */
+  useEffect(() => {
+    if (!selectedStudent?.id) return;
+    const match = allStudents.find((s) => s.id === selectedStudent.id);
+    if (match) setSelectedStudent(match);
+  }, [allStudents, selectedStudent?.id]);
 
   // Filter students based on teacher's classes (if onlyOwnClasses)
   const students = useMemo(() => {
@@ -321,15 +336,17 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     for (const student of studentsWithoutClass) {
       const randomClass = activeClasses[Math.floor(Math.random() * activeClasses.length)];
       try {
-        await updateStudent(student.id, {
-          classId: randomClass.id,
-          class: randomClass.name
-        });
+        await updateStudent(
+          student.id,
+          { classId: randomClass.id, class: randomClass.name },
+          { skipRefetch: true }
+        );
         assigned++;
       } catch (err) {
         console.error('Error assigning class:', err);
       }
     }
+    await refreshStudentsSilent();
 
     setAssigningClasses(false);
     alert(`Đã gán lớp cho ${assigned}/${studentsWithoutClass.length} học viên!`);
@@ -397,29 +414,37 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
       await updateStudent(id, data);
 
-      // Create enrollment record if sessions changed
+      // Ghi nhật ký ghi danh (lỗi không chặn lưu học viên)
       if (sessionChange !== 0 && editingStudent) {
-        await createEnrollment({
-          studentId: id,
-          studentName: editingStudent.fullName,
-          classId: editingStudent.classId || '',
-          className: editingStudent.class || '',
-          sessions: sessionChange,
-          type: 'Ghi danh thủ công',
-          reason: `Chỉnh sửa thủ công: ${oldSessions} → ${newSessions} buổi`,
-          note: `Chỉnh sửa thủ công: ${oldSessions} → ${newSessions} buổi`,
-          createdBy: staffData?.name || 'Admin',
-          createdAt: new Date().toISOString(),
-          createdDate: new Date().toLocaleDateString('vi-VN'),
-          finalAmount: 0,
-        });
+        try {
+          await createEnrollment({
+            studentId: id,
+            studentName: editingStudent.fullName,
+            classId: editingStudent.classId || '',
+            className: editingStudent.class || '',
+            sessions: sessionChange,
+            type: 'Ghi danh thủ công',
+            reason: `Chỉnh sửa thủ công: ${oldSessions} → ${newSessions} buổi`,
+            note: `Chỉnh sửa thủ công: ${oldSessions} → ${newSessions} buổi`,
+            createdBy: staffData?.name || 'Admin',
+            createdAt: new Date().toISOString(),
+            createdDate: new Date().toLocaleDateString('vi-VN'),
+            finalAmount: 0,
+          });
+        } catch (enrollErr) {
+          console.warn('createEnrollment after edit:', enrollErr);
+        }
       }
 
       setShowEditModal(false);
       setEditingStudent(null);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error updating student:', err);
-      alert('Không thể cập nhật học viên. Vui lòng thử lại.');
+      const msg =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message: string }).message)
+          : '';
+      alert(msg ? `Không thể cập nhật học viên: ${msg}` : 'Không thể cập nhật học viên. Vui lòng thử lại.');
     }
   };
 
@@ -1421,3 +1446,5 @@ const PasswordModal: React.FC<{
   );
 };
 
+export { StudentManager };
+export default StudentManager;

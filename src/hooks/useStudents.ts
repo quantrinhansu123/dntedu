@@ -17,18 +17,21 @@ export const useStudents = (filters?: {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch initial data
-  const fetchStudents = async () => {
+  const fetchStudents = async (opts?: { silent?: boolean }) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (!opts?.silent) {
+        setLoading(true);
+        setError(null);
+      }
       const data = await StudentService.getStudents(filters);
       setAllStudents(data);
     } catch (err: any) {
       console.error('Error fetching students:', err);
       setError(err.message || 'Không thể tải danh sách học viên');
     } finally {
-      setLoading(false);
+      if (!opts?.silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -46,10 +49,8 @@ export const useStudents = (filters?: {
           schema: 'public',
           table: 'students',
         },
-        (payload) => {
-          console.log('Student change detected:', payload);
-          // Refresh data when changes occur
-          fetchStudents();
+        () => {
+          fetchStudents({ silent: true });
         }
       )
       .subscribe();
@@ -92,6 +93,7 @@ export const useStudents = (filters?: {
   const createStudent = async (studentData: Omit<Student, 'id'>) => {
     try {
       const id = await StudentService.createStudent(studentData);
+      await fetchStudents({ silent: true });
       return id;
     } catch (err: any) {
       setError(err.message || 'Lỗi khi tạo học viên');
@@ -99,18 +101,30 @@ export const useStudents = (filters?: {
     }
   };
 
-  const updateStudent = async (id: string, updates: Partial<Student>) => {
+  const updateStudent = async (
+    id: string,
+    updates: Partial<Student>,
+    options?: { skipRefetch?: boolean }
+  ) => {
     try {
       await StudentService.updateStudent(id, updates);
+      if (!options?.skipRefetch) {
+        await fetchStudents({ silent: true });
+      }
     } catch (err: any) {
       setError(err.message || 'Lỗi khi cập nhật học viên');
       throw err;
     }
   };
 
+  const refreshStudentsSilent = async () => {
+    await fetchStudents({ silent: true });
+  };
+
   const deleteStudent = async (id: string) => {
     try {
       await StudentService.deleteStudent(id);
+      await fetchStudents({ silent: true });
     } catch (err: any) {
       setError(err.message || 'Lỗi khi xóa học viên');
       throw err;
@@ -122,9 +136,10 @@ export const useStudents = (filters?: {
     loading,
     error,
     refreshStudents,
+    refreshStudentsSilent,
     createStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
   };
 };
 

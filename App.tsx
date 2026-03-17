@@ -22,7 +22,7 @@ const ReportHub = lazy(() => import('./pages/ReportHub').then(m => ({ default: m
 const RoomManager = lazy(() => import('./pages/RoomManager').then(m => ({ default: m.RoomManager })));
 const CenterManager = lazy(() => import('./pages/CenterManager').then(m => ({ default: m.CenterManager })));
 
-const StudentManager = lazy(() => import('./pages/StudentManager').then(m => ({ default: m.StudentManager })));
+const StudentManager = lazy(() => import('./pages/StudentManager'));
 const TrialStudents = lazy(() => import('./pages/TrialStudents').then(m => ({ default: m.TrialStudents })));
 const Schedule = lazy(() => import('./pages/Schedule').then(m => ({ default: m.Schedule })));
 const HolidayManager = lazy(() => import('./pages/HolidayManager').then(m => ({ default: m.HolidayManager })));
